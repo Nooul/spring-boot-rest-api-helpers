@@ -1,4 +1,4 @@
-package reactAdmin.specifications;
+package reactAdmin.rest.specifications;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;

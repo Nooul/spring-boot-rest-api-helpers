@@ -1,4 +1,4 @@
-package reactAdmin.utils;
+package reactAdmin.rest.utils;
 
 
 import com.google.common.base.CaseFormat;
@@ -11,8 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
-import reactAdmin.repositories.BaseRepository;
-import reactAdmin.specifications.ReactAdminSpecifications;
+import reactAdmin.rest.repositories.BaseRepository;
+import reactAdmin.rest.specifications.ReactAdminSpecifications;
 
 import java.util.ArrayList;
 import java.util.HashMap;

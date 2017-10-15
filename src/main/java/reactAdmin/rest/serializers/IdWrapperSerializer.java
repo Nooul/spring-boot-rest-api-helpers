@@ -1,4 +1,4 @@
-package reactAdmin.serializers;
+package reactAdmin.rest.serializers;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;

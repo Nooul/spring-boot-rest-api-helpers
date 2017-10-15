@@ -1,4 +1,4 @@
-package reactAdmin.providers;
+package reactAdmin.rest.providers;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

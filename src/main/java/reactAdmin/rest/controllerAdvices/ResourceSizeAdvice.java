@@ -1,4 +1,4 @@
-package reactAdmin.controllerAdvices;
+package reactAdmin.rest.controllerAdvices;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.Page;

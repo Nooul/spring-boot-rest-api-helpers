@@ -1,4 +1,4 @@
-package reactAdmin.repositories;
+package reactAdmin.rest.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

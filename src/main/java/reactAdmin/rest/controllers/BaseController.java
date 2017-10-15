@@ -1,9 +1,9 @@
-package reactAdmin.controllers;
+package reactAdmin.rest.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import reactAdmin.repositories.BaseRepository;
-import reactAdmin.specifications.ReactAdminSpecifications;
-import reactAdmin.utils.ApiUtils;
+import reactAdmin.rest.repositories.BaseRepository;
+import reactAdmin.rest.specifications.ReactAdminSpecifications;
+import reactAdmin.rest.utils.ApiUtils;
 
 public abstract class BaseController<T> {
 
