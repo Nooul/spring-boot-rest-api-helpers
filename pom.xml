@@ -53,9 +53,9 @@
             <version>2.9.7</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.3.6</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.2-jre</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
