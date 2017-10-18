@@ -30,6 +30,7 @@ public class WrapperAdvice implements ResponseBodyAdvice {
                 (body instanceof Set) ||
                 (body instanceof Page) ||
                 (body instanceof InputStreamResource) ||
+                (body instanceof byte[]) ||
                 (body instanceof LinkedHashMap && ((LinkedHashMap)(body)).containsKey("exception"))
             ))
         {
