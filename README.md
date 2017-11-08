@@ -30,7 +30,7 @@ and add this as a dependency in your pom.xml dependencies:
         <dependency>
             <groupId>com.github.zifnab87</groupId>
             <artifactId>react-admin-java-rest</artifactId>
-            <version>9d71d60</version> // or latest short commit id
+            <version>128bce3</version> <!-- or latest short commit id -->
         </dependency>
         
 ## Usage
