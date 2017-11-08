@@ -70,16 +70,17 @@ public class ApiUtils {
             List idsList = (ArrayList) filter.toMap().get("id");
             return repo.findByIdIn(makeListsInteger(idsList), new PageRequest(page, size, sortDir, sortBy));
         }
-        else if (filter.has("q")) {
-            String text = (String) filter.get("q");
-            return repo.findAll(Specifications.where(specifications.seachInAllAttributes(text)), new PageRequest(page,size, sortDir, sortBy));
-        }
         else {
+            String text = "";
+            if (filter.has("q")) {
+                text = (String) filter.get("q");
+            }
+
             HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
             if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                 map = convertToCamelCase(map);
             }
-            return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)), new PageRequest(page,size, sortDir, sortBy));
+            return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text)), new PageRequest(page,size, sortDir, sortBy));
         }
     }
 
