@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
+import reactAdmin.rest.entities.FilterWrapper;
 import reactAdmin.rest.repositories.BaseRepository;
 import reactAdmin.rest.specifications.ReactAdminSpecifications;
 
@@ -25,8 +26,7 @@ public class ApiUtils {
     @Autowired
     private Environment env;
 
-    public <T> Page<T> filterByHelper(BaseRepository<T> repo, ReactAdminSpecifications<T> specifications, String filterStr, String rangeStr, String sortStr) {
-        String usesSnakeCase = env.getProperty("react-admin-api.use-snake-case");
+    public FilterWrapper extractFilterWrapper(String filterStr, String rangeStr, String sortStr) {
         JSONObject filter = null;
         if (filterStr != null) {
             filter = JSON.toJsonObject(filterStr);
@@ -35,6 +35,24 @@ public class ApiUtils {
         if (rangeStr != null) {
             range = JSON.toJsonArray(rangeStr);
         }
+
+        JSONArray sort = null;
+        if (sortStr != null) {
+            sort = JSON.toJsonArray(sortStr);
+        }
+
+        return new FilterWrapper(filter, range, sort);
+    }
+
+    public <T> Page<T> filterByHelper(BaseRepository<T> repo, ReactAdminSpecifications<T> specifications, FilterWrapper filterWrapper) {
+        String usesSnakeCase = env.getProperty("react-admin-api.use-snake-case");
+
+        String sortBy = "id";
+        String order = "DESC";
+        JSONObject filter = filterWrapper.filter;
+        JSONArray range = filterWrapper.range;
+        JSONArray sort = filterWrapper.sort;
+
         int page = 0;
         int size = Integer.MAX_VALUE;
         if (range != null) {
@@ -42,12 +60,8 @@ public class ApiUtils {
             size = (Integer) range.get(1);
         }
 
-        JSONArray sort = null;
-        if (sortStr != null) {
-            sort = JSON.toJsonArray(sortStr);
-        }
-        String sortBy = "id";
-        String order = "DESC";
+
+
         if (range != null) {
             if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                 sortBy = convertToCamelCase((String) sort.get(0));
