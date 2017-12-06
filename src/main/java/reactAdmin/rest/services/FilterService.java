@@ -1,13 +1,14 @@
-package reactAdmin.rest.controllers;
+package reactAdmin.rest.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import reactAdmin.rest.entities.FilterWrapper;
 import reactAdmin.rest.repositories.BaseRepository;
 import reactAdmin.rest.specifications.ReactAdminSpecifications;
 import reactAdmin.rest.utils.ApiUtils;
 
-public abstract class BaseController<T> {
-
+@Service
+public class FilterService<T> {
     @Autowired
     protected ApiUtils utils;
 
