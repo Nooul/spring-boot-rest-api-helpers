@@ -93,16 +93,34 @@ public class FilterService<T> {
             return repo.findByIdIn(makeListsInteger(idsList), new PageRequest(page, size, sortDir, sortBy));
         }
         else {
+            boolean containsQ = false;
             String text = "";
             if (filter.has("q")) {
                 text = (String) filter.get("q");
+                containsQ = true;
             }
 
             HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
+
+            if (containsQ) {
+                map.remove("q");
+            }
+
             if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                 map = convertToCamelCase(map);
             }
-            return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text)), new PageRequest(page,size, sortDir, sortBy));
+            if (map.isEmpty() && containsQ) {
+                return repo.findAll(Specifications.where(specifications.seachInAllAttributes(text)), new PageRequest(page,size, sortDir, sortBy));
+            }
+            else if(!map.isEmpty() && !containsQ) {
+                return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)), new PageRequest(page,size, sortDir, sortBy));
+            }
+            else if(!map.isEmpty() && containsQ) {
+                return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text)), new PageRequest(page,size, sortDir, sortBy));
+            }
+            else {
+                return repo.findAll(new PageRequest(page,size, sortDir, sortBy));
+            }
         }
     }
 

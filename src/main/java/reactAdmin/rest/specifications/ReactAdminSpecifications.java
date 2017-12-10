@@ -24,7 +24,7 @@ public class ReactAdminSpecifications<T> {
         return new Specification<T>() {
             @Override
             public Predicate toPredicate(Root<T> root, CriteriaQuery<?> cq, CriteriaBuilder builder) {
-                return builder.or(root.getModel().getDeclaredSingularAttributes().stream().filter(a-> {
+                return builder.or(root.getModel().getAttributes().stream().filter(a-> {
                     if (a.getJavaType().getSimpleName().equalsIgnoreCase("string")) {
                         return true;
                     }
