@@ -45,12 +45,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>23.2-jre</version>
+            <version>23.5-jre</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20160810</version>
+            <version>20171018</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
