@@ -26,6 +26,7 @@ public class WrapperAdvice implements ResponseBodyAdvice {
     @Override
     @SuppressWarnings("unchecked")
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+        
         if (! ( (body instanceof List) ||
                 (body instanceof Set) ||
                 (body instanceof Page) ||
@@ -48,7 +49,9 @@ public class WrapperAdvice implements ResponseBodyAdvice {
         private final List<T> content = new ArrayList<>();
 
         public SingleObjectWrapper(T obj) {
-            this.content.add(obj);
+            if (obj != null) {
+                this.content.add(obj);
+            }
         }
     }
 
