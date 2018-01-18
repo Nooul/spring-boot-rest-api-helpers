@@ -48,7 +48,7 @@ public class FilterService<T> {
         return new FilterWrapper(filter, range, sort);
     }
 
-    public Iterable<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T> repo) {
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T> repo) {
         return filterByHelper(repo, specifications, filterWrapper);
     }
 

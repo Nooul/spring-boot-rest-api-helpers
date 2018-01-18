@@ -4,16 +4,14 @@ import lombok.Data;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 //https://stackoverflow.com/a/40333275/986160
 @ControllerAdvice
@@ -35,32 +33,33 @@ public class WrapperAdvice implements ResponseBodyAdvice {
                 (body instanceof LinkedHashMap && ((LinkedHashMap)(body)).containsKey("exception"))
             ))
         {
-            return new SingleObjectWrapper<>(body);
+            return page(body);
         }
-        else if (body instanceof List) {
-            return new ListObjectWrapper((List)body);
+        else if (body instanceof List || body instanceof Set) {
+            return pageList((List)body);
         }
         return body;
     }
 
 
-    @Data
-    class SingleObjectWrapper<T> {
-        private final List<T> content = new ArrayList<>();
-
-        public SingleObjectWrapper(T obj) {
-            if (obj != null) {
-                this.content.add(obj);
-            }
+    public static <T> Page<T> page(T obj) {
+        if (obj == null) {
+            return new PageImpl<>(new ArrayList<>());
         }
+        return new PageImpl<>(new ArrayList<>(Arrays.asList(obj)));
     }
 
-    @Data
-    class ListObjectWrapper<T> {
-        private List<T> content = new ArrayList<>();
-
-        public ListObjectWrapper(final List<T> obj) {
-            this.content = obj;
+    public static <T> Page<T> pageList(List<T> list) {
+        if (list == null) {
+            return new PageImpl<>(new ArrayList<>());
         }
+        return new PageImpl<>(new ArrayList<>(list));
+    }
+
+    public static <T> Page<T> pagePage(Page page) {
+        if (page == null) {
+            return new PageImpl<>(new ArrayList<>());
+        }
+        return page;
     }
 }
