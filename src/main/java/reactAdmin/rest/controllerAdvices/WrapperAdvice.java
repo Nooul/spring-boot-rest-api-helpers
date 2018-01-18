@@ -35,9 +35,6 @@ public class WrapperAdvice implements ResponseBodyAdvice {
         {
             return page(body);
         }
-        else if (body instanceof List || body instanceof Set) {
-            return pageList((List)body);
-        }
         return body;
     }
 
