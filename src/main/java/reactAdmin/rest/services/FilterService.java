@@ -74,7 +74,7 @@ public class FilterService<T> {
         int page = 0;
         int size = Integer.MAX_VALUE;
         if (range != null) {
-            page = (Integer) range.get(0) - 1;
+            page = (Integer) range.get(0);
             size = (Integer) range.get(1);
         }
 
