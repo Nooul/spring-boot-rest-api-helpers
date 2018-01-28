@@ -48,11 +48,21 @@ public class FilterService<T> {
         return new FilterWrapper(filter, range, sort);
     }
 
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T> repo, List<String> searchOnlyInFields) {
+        return filterByHelper(repo, specifications, filterWrapper, searchOnlyInFields);
+    }
+
     public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T> repo) {
         return filterByHelper(repo, specifications, filterWrapper);
     }
 
+
     private <T> Page<T> filterByHelper(BaseRepository<T> repo, ReactAdminSpecifications<T> specifications, FilterWrapper filterWrapper) {
+        return filterByHelper(repo,specifications, filterWrapper, new ArrayList<>());
+    }
+
+
+    private <T> Page<T> filterByHelper(BaseRepository<T> repo, ReactAdminSpecifications<T> specifications, FilterWrapper filterWrapper, List<String> searchOnlyInFields) {
         String usesSnakeCase = env.getProperty("react-admin-api.use-snake-case");
 
         String sortBy = "id";
@@ -81,7 +91,7 @@ public class FilterService<T> {
         }
 
         Sort.Direction sortDir = Sort.Direction.DESC;
-        if (order.equals("ASC")) {
+        if (order.equalsIgnoreCase("ASC")) {
             sortDir = Sort.Direction.ASC;
         }
 
@@ -110,13 +120,13 @@ public class FilterService<T> {
                 map = convertToCamelCase(map);
             }
             if (map.isEmpty() && containsQ) {
-                return repo.findAll(Specifications.where(specifications.seachInAllAttributes(text)), new PageRequest(page,size, sortDir, sortBy));
+                return repo.findAll(Specifications.where(specifications.seachInAllAttributes(text, searchOnlyInFields)), new PageRequest(page,size, sortDir, sortBy));
             }
             else if(!map.isEmpty() && !containsQ) {
                 return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)), new PageRequest(page,size, sortDir, sortBy));
             }
             else if(!map.isEmpty() && containsQ) {
-                return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text)), new PageRequest(page,size, sortDir, sortBy));
+                return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text, searchOnlyInFields)), new PageRequest(page,size, sortDir, sortBy));
             }
             else {
                 return repo.findAll(new PageRequest(page,size, sortDir, sortBy));

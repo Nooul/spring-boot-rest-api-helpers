@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class ReactAdminSpecifications<T> {
 
-    public Specification<T> seachInAllAttributes(String text) {
+    public Specification<T> seachInAllAttributes(String text, List<String> includeOnlyFields) {
 
         if (!text.contains("%")) {
             text = "%"+text+"%";
@@ -25,7 +25,8 @@ public class ReactAdminSpecifications<T> {
             @Override
             public Predicate toPredicate(Root<T> root, CriteriaQuery<?> cq, CriteriaBuilder builder) {
                 return builder.or(root.getModel().getAttributes().stream().filter(a-> {
-                    if (a.getJavaType().getSimpleName().equalsIgnoreCase("string")) {
+
+                    if (a.getJavaType().getSimpleName().equalsIgnoreCase("string") && (includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName()))) {
                         return true;
                     }
                     else {
