@@ -35,8 +35,11 @@ public class WrapperAdvice implements ResponseBodyAdvice {
         {
             return page(body);
         }
-        else if (body instanceof List || body instanceof Set) {
+        else if (body instanceof List) {
             return pageList((List)body);
+        }
+        else if(body instanceof Set) {
+            return pageSet((Set)body);
         }
         return body;
     }
@@ -54,6 +57,13 @@ public class WrapperAdvice implements ResponseBodyAdvice {
             return new PageImpl<>(new ArrayList<>());
         }
         return new PageImpl<>(new ArrayList<>(list));
+    }
+
+    public static <T> Page<T> pageSet(Set<T> set) {
+        if (set == null) {
+            return new PageImpl<>(new ArrayList<>());
+        }
+        return new PageImpl<>(new ArrayList<>(set));
     }
 
     public static <T> Page<T> pagePage(Page page) {
