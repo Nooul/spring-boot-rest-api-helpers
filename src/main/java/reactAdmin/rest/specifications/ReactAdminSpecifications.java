@@ -94,7 +94,7 @@ public class ReactAdminSpecifications<T> {
                                 predicates.add(pred);
                             }
                         }
-                        if (map.containsKey(a.getName()+"Gte")) {
+                        else if (map.containsKey(a.getName()+"Gte")) {
                             Object val = map.get(a.getName()+"Gte");
                             if (val instanceof String) {
                                 pred = builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
@@ -105,6 +105,30 @@ public class ReactAdminSpecifications<T> {
                                 predicates.add(pred);
                             }
                         }
+                        if (map.containsKey(a.getName()+"Lt")) {
+                            Object val = map.get(a.getName()+"Lt");
+                            if (val instanceof String) {
+                                pred = builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
+                                predicates.add(pred);
+                            }
+                            else if(val instanceof Integer) {
+                                pred = builder.lessThan(root.get(a.getName()), (Integer)val);
+                                predicates.add(pred);
+                            }
+                        }
+                        else if (map.containsKey(a.getName()+"Gt")) {
+                            Object val = map.get(a.getName()+"Gt");
+                            if (val instanceof String) {
+                                pred = builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
+                                predicates.add(pred);
+                            }
+                            else if(val instanceof Integer) {
+                                pred = builder.greaterThan(root.get(a.getName()), (Integer)val);
+                                predicates.add(pred);
+                            }
+                        }
+
+
                     });
                 return builder.and(predicates.toArray(new Predicate[0]));
             }
