@@ -94,7 +94,7 @@ public class ReactAdminSpecifications<T> {
                                 predicates.add(pred);
                             }
                         }
-                        else if (map.containsKey(a.getName()+"Gte")) {
+                        if (map.containsKey(a.getName()+"Gte")) {
                             Object val = map.get(a.getName()+"Gte");
                             if (val instanceof String) {
                                 pred = builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
@@ -116,7 +116,7 @@ public class ReactAdminSpecifications<T> {
                                 predicates.add(pred);
                             }
                         }
-                        else if (map.containsKey(a.getName()+"Gt")) {
+                        if (map.containsKey(a.getName()+"Gt")) {
                             Object val = map.get(a.getName()+"Gt");
                             if (val instanceof String) {
                                 pred = builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
