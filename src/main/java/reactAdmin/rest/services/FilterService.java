@@ -99,7 +99,14 @@ public class FilterService<T> {
             return repo.findAll(new PageRequest(page, size, sortDir, sortBy));
         }
         else if (filter.has("id")) {
-            List idsList = (ArrayList) filter.toMap().get("id");
+            Object objIds = filter.toMap().get("id");
+            List idsList = new ArrayList();
+            if (objIds instanceof ArrayList) {
+                idsList = (ArrayList) objIds;
+            }
+            else if(objIds instanceof String) {
+                idsList.add(Integer.valueOf((String)objIds));
+            }
             return repo.findByIdIn(makeListsInteger(idsList), new PageRequest(page, size, sortDir, sortBy));
         }
         else {
