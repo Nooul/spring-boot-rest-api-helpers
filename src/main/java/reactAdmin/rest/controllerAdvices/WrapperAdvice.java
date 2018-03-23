@@ -10,6 +10,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import reactAdmin.rest.entities.ErrorDetails;
 
 import java.util.*;
 
@@ -25,7 +26,8 @@ public class WrapperAdvice implements ResponseBodyAdvice {
     @SuppressWarnings("unchecked")
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
         
-        if (! ( (body instanceof List) ||
+        if (!  ((body instanceof ErrorDetails) ||
+                (body instanceof List) ||
                 (body instanceof Set) ||
                 (body instanceof Page) ||
                 (body instanceof InputStreamResource) ||
