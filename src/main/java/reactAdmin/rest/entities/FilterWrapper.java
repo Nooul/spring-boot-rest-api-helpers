@@ -1,16 +1,15 @@
 package reactAdmin.rest.entities;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+@Getter
+@RequiredArgsConstructor
 public class FilterWrapper {
-    public JSONArray sort;
-    public JSONObject filter;
-    public JSONArray range;
+    private final JSONObject filter;
+    private final JSONArray range;
+    private final JSONArray sort;
 
-    public FilterWrapper(JSONObject filter, JSONArray range, JSONArray sort) {
-        this.sort = sort;
-        this.filter = filter;
-        this.range = range;
-    }
 }

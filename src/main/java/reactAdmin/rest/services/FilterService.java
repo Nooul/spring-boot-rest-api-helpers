@@ -8,26 +8,24 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import reactAdmin.rest.entities.FilterWrapper;
 import reactAdmin.rest.repositories.BaseRepository;
-import reactAdmin.rest.specifications.ReactAdminSpecifications;
+import reactAdmin.rest.specifications.CustomSpecifications;
 import reactAdmin.rest.utils.JSON;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
 
 @Service
-public class FilterService<T> {
+public class FilterService<T,ID extends Serializable> {
 
     @Autowired
     private Environment env;
 
     @Autowired
-    private ReactAdminSpecifications<T> specifications;
+    private CustomSpecifications<T> specifications;
 
 
     public FilterWrapper extractFilterWrapper(String filterStr, String rangeStr, String sortStr) {
@@ -48,28 +46,28 @@ public class FilterService<T> {
         return new FilterWrapper(filter, range, sort);
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T> repo, List<String> searchOnlyInFields) {
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, ID> repo, List<String> searchOnlyInFields) {
         return filterByHelper(repo, specifications, filterWrapper, searchOnlyInFields);
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T> repo) {
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T,ID> repo) {
         return filterByHelper(repo, specifications, filterWrapper);
     }
 
 
-    private <T> Page<T> filterByHelper(BaseRepository<T> repo, ReactAdminSpecifications<T> specifications, FilterWrapper filterWrapper) {
+    private <T> Page<T> filterByHelper(BaseRepository<T,ID> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper) {
         return filterByHelper(repo,specifications, filterWrapper, new ArrayList<>());
     }
 
 
-    private <T> Page<T> filterByHelper(BaseRepository<T> repo, ReactAdminSpecifications<T> specifications, FilterWrapper filterWrapper, List<String> searchOnlyInFields) {
-        String usesSnakeCase = env.getProperty("react-admin-api.use-snake-case");
+    private <T> Page<T> filterByHelper(BaseRepository<T, ID> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper, List<String> searchOnlyInFields) {
+        String usesSnakeCase = env.getProperty("custom-filter-service.use-snake-case");
 
         String sortBy = "id";
         String order = "DESC";
-        JSONObject filter = filterWrapper.filter;
-        JSONArray range = filterWrapper.range;
-        JSONArray sort = filterWrapper.sort;
+        JSONObject filter = filterWrapper.getFilter();
+        JSONArray range = filterWrapper.getRange();
+        JSONArray sort = filterWrapper.getSort();
 
         int page = 0;
         int size = Integer.MAX_VALUE;
@@ -96,7 +94,7 @@ public class FilterService<T> {
         }
 
         if (filter == null || filter.length() == 0) {
-            return repo.findAll(new PageRequest(page, size, sortDir, sortBy));
+            return repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
         }
         else if (filter.has("id")) {
             Object objIds = filter.toMap().get("id");
@@ -105,9 +103,9 @@ public class FilterService<T> {
                 idsList = (ArrayList) objIds;
             }
             else if(objIds instanceof String) {
-                idsList.add(Integer.valueOf((String)objIds));
+                idsList.add(Long.valueOf((String)objIds));
             }
-            return repo.findByIdIn(makeListsInteger(idsList), new PageRequest(page, size, sortDir, sortBy));
+            return repo.findByIdIn((Collection<ID>) makeListsInteger(idsList), PageRequest.of(page, size, sortDir, sortBy));
         }
         else {
             boolean containsQ = false;
@@ -127,16 +125,16 @@ public class FilterService<T> {
                 map = convertToCamelCase(map);
             }
             if (map.isEmpty() && containsQ) {
-                return repo.findAll(Specifications.where(specifications.seachInAllAttributes(text, searchOnlyInFields)), new PageRequest(page,size, sortDir, sortBy));
+                return repo.findAll(Specification.where(specifications.seachInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
             }
             else if(!map.isEmpty() && !containsQ) {
-                return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)), new PageRequest(page,size, sortDir, sortBy));
+                return repo.findAll(Specification.where(specifications.equalToEachColumn(map)), PageRequest.of(page,size, sortDir, sortBy));
             }
             else if(!map.isEmpty() && containsQ) {
-                return repo.findAll(Specifications.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text, searchOnlyInFields)), new PageRequest(page,size, sortDir, sortBy));
+                return repo.findAll(Specification.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
             }
             else {
-                return repo.findAll(new PageRequest(page,size, sortDir, sortBy));
+                return repo.findAll(PageRequest.of(page,size, sortDir, sortBy));
             }
         }
     }
@@ -155,14 +153,14 @@ public class FilterService<T> {
         return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, snakeCaseStr);
     }
 
-    private List<Integer> makeListsInteger(List list) {
-        if (!list.isEmpty() && list.get(0) instanceof Integer) {
-            return (List<Integer>) list;
+    private List<Long> makeListsInteger(List list) {
+        if (!list.isEmpty() && (list.get(0) instanceof Long || list.get(0) instanceof Integer)) {
+            return (List<Long>) list;
         }
         else if (!list.isEmpty() && list.get(0) instanceof String) {
-            List<Integer> intList = new ArrayList<>();
+            List<Long> intList = new ArrayList<>();
             for (Object o : list) {
-                intList.add(Integer.parseInt((String)o));
+                intList.add(Long.parseLong((String)o));
             }
             return intList;
         }
