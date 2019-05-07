@@ -22,6 +22,8 @@ public class Actor {
 
     private String lastName;
 
+    private int birthYear;
+
     @ManyToMany
     private List<Movie> movies = new ArrayList<>();
 

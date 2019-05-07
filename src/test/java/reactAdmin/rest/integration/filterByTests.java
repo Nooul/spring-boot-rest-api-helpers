@@ -114,40 +114,42 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void reference_many_to_many_null__fetch_actors_with_no_movies() {
+    public void range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
+        matrix.setYearReleased(1999);
         movieRepository.save(matrix);
 
         Movie constantine = new Movie();
         constantine.setName("Constantine");
+        constantine.setYearReleased(2005);
         movieRepository.save(constantine);
 
         Movie it = new Movie();
         it.setName("IT");
+        it.setYearReleased(2017);
         movieRepository.save(it);
 
-        Actor keanu = new Actor();
-        keanu.setFirstName("Keanu");
-        keanu.setLastName("Reeves");
-        keanu.setMovies(Arrays.asList(matrix, constantine));
-        actorRepository.save(keanu);
+        Iterable<Movie> moviesAfterOrOn2005 = movieController.filterBy("{yearReleasedGte: 2005}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn2005));
 
-        Actor noMovieActor = new Actor();
-        noMovieActor.setFirstName("No Movie");
-        noMovieActor.setLastName("Whatsoever");
-        actorRepository.save(noMovieActor);
+        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{yearReleasedGt: 2005}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter2005));
 
+        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{yearReleasedLte: 2005}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesBeforeOrOn2005));
 
-        Actor noMovieActor2 = new Actor();
-        noMovieActor2.setFirstName("No Movie");
-        noMovieActor2.setLastName("Whatsoever 2");
-        actorRepository.save(noMovieActor2);
+        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{yearReleasedLt: 2005}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
 
+        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{yearReleasedGt: 1999, yearReleasedLt:2017}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter1999Before2017));
 
-        Iterable<Actor> noMovieActors = actorController.filterBy("{movies: null}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(noMovieActors));
+        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{yearReleasedGte: 2005, yearReleasedLte:2017}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
     }
+
+
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)

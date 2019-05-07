@@ -22,5 +22,7 @@ public class Partner {
     private String firstName;
 
     private String lastName;
+
+    private int birthYear;
 }
 

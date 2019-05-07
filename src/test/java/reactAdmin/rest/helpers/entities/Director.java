@@ -20,6 +20,8 @@ public class Director {
 
     private String lastName;
 
+    private int birthYear;
+
     @OneToOne
     private Partner partner;
 
