@@ -69,28 +69,22 @@ public class CustomSpecifications<T> {
                     boolean isConjunction = key.endsWith("Or");
 
                     if (isKeyClean) {
-                        if (isValueNull && !isAttributeReferenced) {
+                        if(isValueCollection) {
+                            pred = createConjunctionPredicate(builder, root, a, (Collection) val);
+                        }
+                        else if(isValueNull) {
                             pred = root.get(a.getName()).isNull();
-                        } else if (isAttributePrimitive) {
-
-                            if (!isValueCollection) {
+                        }
+                        else {
+                            if (isAttributeEnum) {
+                                pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
+                            }
+                            else if (isAttributePrimitive) {
                                 pred = builder.equal(root.get(a.getName()), val);
-                            } else {
-                                pred = createConjunctionPredicate(builder, root, a, (Collection) val);
                             }
-                        } else if (isAttributeEnum) {
-                            pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
-
-                        } else if (isAttributeReferenced) {
-                            if (isValueNull) {
-                                pred = root.get(a.getName()).isNull();
-                            } else if (!isValueCollection) {
+                            else if (isAttributeReferenced) {
                                 pred = root.join(a.getName()).get("id").in(val);
-                            } else {
-                                pred = createConjunctionPredicate(builder, root, a, (Collection) val);
                             }
-                        } else {
-                            pred = builder.equal(root.join(a.getName()).get("id"), val);
                         }
                     }
                     else if (isLte) {
