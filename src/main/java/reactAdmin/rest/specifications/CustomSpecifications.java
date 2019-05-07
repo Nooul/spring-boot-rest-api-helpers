@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.Predicate;
 import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.SingularAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -125,10 +124,7 @@ public class CustomSpecifications<T> {
         else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
             val = ((Map) ((ArrayList) val).get(0)).get("id");
         }
-
-        else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
-            val = ((Map) ((ArrayList) val).get(0)).get("id");
-        }
+        
         return val;
     }
 
