@@ -102,20 +102,6 @@ public class FilterService<T,I extends Serializable> {
         if (filter == null || filter.length() == 0) {
             return repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
         }
-        else if (filter.has("id")) {
-            Object objIds = filter.toMap().get("id");
-            List idsList = new ArrayList();
-            if (objIds instanceof ArrayList) {
-                idsList = (ArrayList) objIds;
-            }
-            else if(objIds instanceof String) {
-                idsList.add(Long.valueOf((String)objIds));
-            }
-            else if(objIds instanceof Number) {
-                idsList.add(objIds);
-            }
-            return repo.findByIdIn((Collection<I>) makeListsInteger(idsList), PageRequest.of(page, size, sortDir, sortBy));
-        }
         else {
             boolean containsQ = false;
             String text = "";
@@ -160,16 +146,5 @@ public class FilterService<T,I extends Serializable> {
 
     private String convertToCamelCase(String snakeCaseStr) {
         return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, snakeCaseStr);
-    }
-
-    private List<Long> makeListsInteger(List list) {
-
-        List<Long> intList = new ArrayList<>();
-        for (Object el : list) {
-            if (el instanceof Number) {
-                intList.add(Long.parseLong(el.toString()));
-            }
-        }
-        return intList;
     }
 }

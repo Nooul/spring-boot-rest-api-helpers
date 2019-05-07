@@ -206,6 +206,7 @@ public class CustomSpecifications<T> {
     private boolean isPrimitive(Attribute attribute) {
         String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
         return attributeJavaClass.startsWith("int") ||
+                attributeJavaClass.startsWith("long") ||
                 attributeJavaClass.equals("boolean") ||
                 attributeJavaClass.equals("string") ||
                 attributeJavaClass.equals("float") ||
