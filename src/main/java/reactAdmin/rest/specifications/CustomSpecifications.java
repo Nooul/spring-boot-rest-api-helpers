@@ -28,22 +28,11 @@ public class CustomSpecifications<T> {
         );
     }
 
-    public static boolean isManyToMany(String className) {
+    public static boolean isRefType(String className) {
         List<String> allowdRefTypes = new ArrayList<>();
         allowdRefTypes.add("set");
+        allowdRefTypes.add("list");
         return allowdRefTypes.contains(className.toLowerCase());
-    }
-
-    //https://stackoverflow.com/questions/604424/how-to-get-an-enum-value-from-a-string-value-in-java
-    //https://stackoverflow.com/a/1723239
-    public static <E extends Enum<E>> E getEnumFromString(Class<?> c, String string) {
-        if (c != null && string != null) {
-            try {
-                return Enum.valueOf((Class<E>) c, string.trim().toUpperCase());
-            } catch (IllegalArgumentException ex) {
-            }
-        }
-        return null;
     }
 
     public Specification<T> equalToEachColumn(Map<String, Object> map) {
@@ -53,41 +42,42 @@ public class CustomSpecifications<T> {
             final List<Predicate> predicates = new ArrayList<>();
             root.getModel().getAttributes().stream().forEach(a ->
             {
-                Predicate pred = null;
-                if (!map.containsKey(a.getName())) {
-                    pred = builder.conjunction();
-                } else if (map.containsKey(a.getName())) {
+                Predicate pred = builder.conjunction();
+                if (map.containsKey(a.getName())) {
                     Object val = map.get(a.getName());
                     String attributeJavaClass = a.getJavaType().getSimpleName().toLowerCase();
-                    String parentJavaClass = a.getJavaType().getSuperclass().getSimpleName().toLowerCase();
 
-                    if (val instanceof Map) {
-                        val = ((Map) val).get("id");
+                    String parentJavaClass = "";
+                    if (a.getJavaType().getSuperclass() != null) {
+                        parentJavaClass = a.getJavaType().getSuperclass().getSimpleName().toLowerCase();
                     }
 
-                    if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
-                        val = ((Map) ((ArrayList) val).get(0)).get("id");
+
+                    val = extractId(val);
+                    if (val == null) {
+                        pred = builder.isNull(root.get(a.getName()));
                     }
-                    if (attributeJavaClass.startsWith("int") ||
+
+                    else if (attributeJavaClass.startsWith("int") ||
                             attributeJavaClass.equals("boolean") ||
                             attributeJavaClass.equals("string") ||
                             attributeJavaClass.equals("float") ||
                             attributeJavaClass.equals("double")) {
 
-                    } else if (parentJavaClass.equals("enum")) {
+                    }
+                    else if (parentJavaClass.equals("enum")) {
+                        pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
 
-                        pred = builder.equal(root.get(a.getName()), Enum.<Enum>valueOf(Class.class.cast(a.getJavaType()), (String) val));
-
-                    } else if (CustomSpecifications.isManyToMany(attributeJavaClass)) {
+                    }
+                    else if (CustomSpecifications.isRefType(attributeJavaClass)) {
                         pred = builder.isTrue(root.join(a.getName()).get("id").in(val));
-                    } else {
-                        if (val == null) {
-                            pred = builder.isNull(root.get(a.getName()));
-                        } else {
-                            pred = builder.equal(root.get(a.getName()).get("id"), val);
-                        }
+                    }
+                    else {
+                        pred = builder.equal(root.get(a.getName()).get("id"), val);
+
                     }
                 }
+
                 if (pred == null) {
                     pred = builder.conjunction();
                 }
@@ -138,5 +128,21 @@ public class CustomSpecifications<T> {
             });
             return builder.and(predicates.toArray(new Predicate[0]));
         };
+
+    }
+
+    private Object extractId(Object val) {
+        if (val instanceof Map) {
+            val = ((Map) val).get("id");
+        }
+
+        else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
+            val = ((Map) ((ArrayList) val).get(0)).get("id");
+        }
+
+        else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
+            val = ((Map) ((ArrayList) val).get(0)).get("id");
+        }
+        return val;
     }
 }
