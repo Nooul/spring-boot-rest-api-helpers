@@ -48,12 +48,8 @@ public class CustomSpecifications<T> {
                 Object val = extractId(e.getValue());
                 String cleanKey = cleanUpKey(key);
                 Attribute a = root.getModel().getAttribute(cleanKey);
-                String attrName = a.getName();
                 Predicate pred = builder.conjunction();
                 if (attributes.contains(a)) {
-                    //val = extractId(val);
-//                    boolean isAttributeSingular = singularAttributes.contains(a);
-//                    boolean isAttributePlural = pluralAttributes.contains(a);
                     boolean isAttributePrimitive = isPrimitive(a);
                     boolean isAttributeReferenced = a.isAssociation();//isCollection(a) || (!isPrimitive(a) && !isEnum(a));
                     boolean isAttributeEnum = isEnum(a);
@@ -75,16 +71,11 @@ public class CustomSpecifications<T> {
                         else if(isValueNull) {
                             pred = root.get(a.getName()).isNull();
                         }
+                        else if (isAttributeReferenced) {
+                            pred = root.join(a.getName()).get("id").in(val);
+                        }
                         else {
-                            if (isAttributeEnum) {
-                                pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
-                            }
-                            else if (isAttributePrimitive) {
-                                pred = builder.equal(root.get(a.getName()), val);
-                            }
-                            else if (isAttributeReferenced) {
-                                pred = root.join(a.getName()).get("id").in(val);
-                            }
+                            pred = createEqualityPredicate(builder, root, a, val);
                         }
                     }
                     else if (isLte) {
@@ -102,7 +93,7 @@ public class CustomSpecifications<T> {
                     predicates.add(pred);
                 }
             }
-            return builder.and(predicates.toArray(new Predicate[0]));
+            return builder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
     }
 
@@ -116,6 +107,16 @@ public class CustomSpecifications<T> {
         }
         return key;
 
+    }
+
+    private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (isEnum(a)) {
+            return builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
+        }
+        else if (isPrimitive(a)) {
+            return builder.equal(root.get(a.getName()), val);
+        }
+        throw new IllegalArgumentException("equality is currently supported on primitives and enums");
     }
 
     private Predicate createGtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
@@ -166,7 +167,7 @@ public class CustomSpecifications<T> {
             }
             orPredicates.add(orPred);
         }
-        return builder.or(orPredicates.toArray(new Predicate[0]));
+        return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
 
     }
 
@@ -189,14 +190,6 @@ public class CustomSpecifications<T> {
                 attributeJavaClass.equals("float") ||
                 attributeJavaClass.equals("double");
     }
-
-//    private boolean isCollection(Attribute attribute) {
-//        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
-//        List<String> allowdRefTypes = new ArrayList<>();
-//        allowdRefTypes.add("set");
-//        allowdRefTypes.add("list");
-//        return allowdRefTypes.contains(attributeJavaClass.toLowerCase());
-//    }
 
     private boolean isEnum(Attribute attribute) {
         String parentJavaClass = "";
