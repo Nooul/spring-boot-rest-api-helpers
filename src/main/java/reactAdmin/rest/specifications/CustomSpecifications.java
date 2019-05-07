@@ -94,36 +94,19 @@ public class CustomSpecifications<T> {
                         }
                     }
                     else if (isLte) {
-                        if (val instanceof String) {
-                            pred = builder.lessThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
-                        } else if (val instanceof Integer) {
-                            pred = builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
-                        }
+                        pred = createLtePredicate(builder, root, a, val);
                     } else if (isGte) {
-                        if (val instanceof String) {
-                            pred = builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
-                        } else if (val instanceof Integer) {
-                            pred = builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
-                        }
+                        pred = createGtePredicate(builder, root, a, val);
                     } else if (isLt) {
-                        if (val instanceof String) {
-                            pred = builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
-                        } else if (val instanceof Integer) {
-                            pred = builder.lessThan(root.get(a.getName()), (Integer) val);
-                        }
+                        pred = createLtPredicate(builder, root, a, val);
                     } else if (isGt) {
-                        if (val instanceof String) {
-                            pred = builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
-                        } else if (val instanceof Integer) {
-                            pred = builder.greaterThan(root.get(a.getName()), (Integer) val);
-                        }
+                        pred = createGtPredicate(builder, root, a, val);
                     }
                     if (pred == null) {
                         pred = builder.conjunction();
                     }
                     predicates.add(pred);
                 }
-
             }
             return builder.and(predicates.toArray(new Predicate[0]));
         };
@@ -139,6 +122,42 @@ public class CustomSpecifications<T> {
         }
         return key;
 
+    }
+
+    private Predicate createGtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val instanceof String) {
+            return builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.greaterThan(root.get(a.getName()), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+    private Predicate createGtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val instanceof String) {
+            return builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+    private Predicate createLtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val instanceof String) {
+            return builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.lessThan(root.get(a.getName()), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+    private Predicate createLtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val instanceof String) {
+            return builder.lessThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
     }
 
     private Predicate createConjunctionPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
