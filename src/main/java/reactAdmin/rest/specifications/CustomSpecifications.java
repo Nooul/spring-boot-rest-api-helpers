@@ -46,8 +46,9 @@ public class CustomSpecifications<T> {
                 Object val = extractId(e.getValue());
                 String cleanKey = cleanUpKey(key);
                 Attribute a = root.getModel().getAttribute(cleanKey);
+                String attrName = a.getName();
                 Predicate pred = builder.conjunction();
-                if (cleanKey.equals(key) && attributes.contains(a)) {
+                if (attributes.contains(a)) {
                     //val = extractId(val);
 //                    boolean isAttributeSingular = singularAttributes.contains(a);
 //                    boolean isAttributePlural = pluralAttributes.contains(a);
@@ -56,77 +57,82 @@ public class CustomSpecifications<T> {
                     boolean isAttributeEnum = isEnum(a);
                     boolean isValueNull = val == null;
                     boolean isValueCollection = val instanceof Collection;
+                    boolean isKeyClean = cleanKey.equals(key);
 
-                    if (isValueNull && !isAttributeReferenced) {
-                        pred = root.get(a.getName()).isNull();
-                    } else if (isAttributePrimitive) {
+                    boolean isNegation = key.endsWith("Not");
+                    boolean isGt = key.endsWith("Gt");
+                    boolean isGte = key.endsWith("Gte");
+                    boolean isLt = key.endsWith("Lt");
+                    boolean isLte = key.endsWith("Lte");
+                    boolean isConjunction = key.endsWith("Or");
 
-                        if (!isValueCollection) {
-                            pred = builder.equal(root.get(a.getName()), val);
-                        } else {
-                            Collection colVal = (Collection) val;
-                            List<Predicate> orPredicates = new ArrayList<>();
-                            for (Object el : colVal) {
-                                Predicate orPred = builder.equal(root.get(a.getName()), el);
-                                orPredicates.add(orPred);
-                            }
-                            pred = builder.or(orPredicates.toArray(new Predicate[0]));
-                        }
-                    } else if (isAttributeEnum) {
-                        pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
-
-                    } else if (isAttributeReferenced) {
-                        if (isValueNull) {
+                    if (isKeyClean) {
+                        if (isValueNull && !isAttributeReferenced) {
                             pred = root.get(a.getName()).isNull();
-                        } else if (!isValueCollection) {
-                            pred = root.join(a.getName()).get("id").in(val);
-                        } else {
-                            Collection colVal = (Collection) val;
-                            List<Predicate> orPredicates = new ArrayList<>();
-                            for (Object el : colVal) {
-                                Predicate orPred = root.join(a.getName()).get("id").in(el);
-                                orPredicates.add(orPred);
+                        } else if (isAttributePrimitive) {
+
+                            if (!isValueCollection) {
+                                pred = builder.equal(root.get(a.getName()), val);
+                            } else {
+                                Collection colVal = (Collection) val;
+                                List<Predicate> orPredicates = new ArrayList<>();
+                                for (Object el : colVal) {
+                                    Predicate orPred = builder.equal(root.get(a.getName()), el);
+                                    orPredicates.add(orPred);
+                                }
+                                pred = builder.or(orPredicates.toArray(new Predicate[0]));
                             }
-                            pred = builder.or(orPredicates.toArray(new Predicate[0]));
+                        } else if (isAttributeEnum) {
+                            pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
+
+                        } else if (isAttributeReferenced) {
+                            if (isValueNull) {
+                                pred = root.get(a.getName()).isNull();
+                            } else if (!isValueCollection) {
+                                pred = root.join(a.getName()).get("id").in(val);
+                            } else {
+                                Collection colVal = (Collection) val;
+                                List<Predicate> orPredicates = new ArrayList<>();
+                                for (Object el : colVal) {
+                                    Predicate orPred = root.join(a.getName()).get("id").in(el);
+                                    orPredicates.add(orPred);
+                                }
+                                pred = builder.or(orPredicates.toArray(new Predicate[0]));
+                            }
+                        } else {
+                            pred = builder.equal(root.join(a.getName()).get("id"), val);
                         }
-                    } else {
-                        pred = builder.equal(root.join(a.getName()).get("id"), val);
                     }
-                }
-
-                else if (key.endsWith("Lte")) {
-                    if (val instanceof String) {
-                        pred = builder.lessThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
-                    } else if (val instanceof Integer) {
-                        pred = builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
+                    else if (isLte) {
+                        if (val instanceof String) {
+                            pred = builder.lessThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+                        } else if (val instanceof Integer) {
+                            pred = builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
+                        }
+                    } else if (isGte) {
+                        if (val instanceof String) {
+                            pred = builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+                        } else if (val instanceof Integer) {
+                            pred = builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
+                        }
+                    } else if (isLt) {
+                        if (val instanceof String) {
+                            pred = builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
+                        } else if (val instanceof Integer) {
+                            pred = builder.lessThan(root.get(a.getName()), (Integer) val);
+                        }
+                    } else if (isGt) {
+                        if (val instanceof String) {
+                            pred = builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
+                        } else if (val instanceof Integer) {
+                            pred = builder.greaterThan(root.get(a.getName()), (Integer) val);
+                        }
                     }
-                }
-                else if (key.endsWith("Gte")) {
-                    if (val instanceof String) {
-                        pred = builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
-                    } else if (val instanceof Integer) {
-                        pred = builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
+                    if (pred == null) {
+                        pred = builder.conjunction();
                     }
+                    predicates.add(pred);
                 }
-                else if (key.endsWith("Lt")) {
-                    if (val instanceof String) {
-                        pred = builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
-                    } else if (val instanceof Integer) {
-                        pred = builder.lessThan(root.get(a.getName()), (Integer) val);
-                    }
-                }
-                else if (key.endsWith("Gt")) {
-                    if (val instanceof String) {
-                        pred = builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
-                    } else if (val instanceof Integer) {
-                        pred = builder.greaterThan(root.get(a.getName()), (Integer) val);
-                    }
-                }
-                if (pred == null) {
-                    pred = builder.conjunction();
-                }
-                predicates.add(pred);
-
 
             }
             return builder.and(predicates.toArray(new Predicate[0]));

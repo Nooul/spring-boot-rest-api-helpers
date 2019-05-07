@@ -170,10 +170,6 @@ public class filterByTests {
         movieRepository.save(matrix);
 
 
-
-
-
-
         Iterable<Movie> moviesAfterA = movieController.filterBy("{nameGt: A }", null, null);
         Assert.assertEquals(3, IterableUtil.sizeOf(moviesAfterA));
 
