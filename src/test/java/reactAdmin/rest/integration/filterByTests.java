@@ -238,7 +238,6 @@ public class filterByTests {
     }
 
     @Test
-    @Ignore
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void reference_many_to_many_null__fetch_actors_with_no_movies() {
         Movie matrix = new Movie();

@@ -103,12 +103,16 @@ public class CustomSpecifications<T> {
             }
         }
         return key;
-
     }
 
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val == null) {
-            return root.get(a.getName()).isNull();
+            if (a.isAssociation() && a.isCollection()) {
+                return builder.isEmpty(root.get(a.getName()));
+            }
+            else {
+                return root.get(a.getName()).isNull();
+            }
         }
         else if (isEnum(a)) {
             return builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
