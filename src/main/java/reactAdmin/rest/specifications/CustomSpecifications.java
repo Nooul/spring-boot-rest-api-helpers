@@ -1,14 +1,18 @@
 package reactAdmin.rest.specifications;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.Predicate;
 import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 //from: https://github.com/zifnab87/react-admin-java-rest/blob/master/src/main/java/reactAdmin/rest/specifications/ReactAdminSpecifications.java
 @Service
@@ -36,26 +40,46 @@ public class CustomSpecifications<T> {
         return (Specification<T>) (root, query, builder) -> {
 
             final List<Predicate> predicates = new ArrayList<>();
+
+            Set<SingularAttribute<? super T, ?>> singularAttributes  = root.getModel().getSingularAttributes();
+            Set<PluralAttribute<? super T, ?, ?>> pluralAttributes  = root.getModel().getPluralAttributes();
+
+
             root.getModel().getAttributes().stream().forEach(a ->
             {
+
+
+
+
+
                 Predicate pred = builder.conjunction();
                 if (map.containsKey(a.getName())) {
+
+
                     Object val = map.get(a.getName());
 
-                    val = extractId(val);
+                    boolean isAttributeSingular = singularAttributes.contains(a);
+                    boolean isAttributePlural = pluralAttributes.contains(a);
                     String attributeJavaClass = a.getJavaType().getSimpleName().toLowerCase();
-                    if (val == null) {
+                    boolean isAttributePrimitive = isPrimitive(a);
+                    boolean isAttributeCollection = isCollection(a);
+                    boolean isAttributeEnum = isEnum(a);
+                    boolean isValueNull = val == null;
+
+                    val = extractId(val);
+
+                    if (isValueNull) {
                         pred = builder.isNull(root.get(a.getName()));
                     }
 
-                    else if (isPrimitive(attributeJavaClass)) {
+                    else if (isAttributePrimitive) {
                         pred = builder.equal(root.get(a.getName()), val);
                     }
-                    else if (isEnum(a)) {
+                    else if (isAttributeEnum) {
                         pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
 
                     }
-                    else if (isCollection(attributeJavaClass)) {
+                    else if (isAttributeCollection) {
                         pred = builder.isTrue(root.join(a.getName()).get("id").in(val));
                     }
                     else {
@@ -128,8 +152,8 @@ public class CustomSpecifications<T> {
         return val;
     }
 
-    private boolean isPrimitive(String attributeJavaClass) {
-
+    private boolean isPrimitive(Attribute attribute) {
+        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
         return attributeJavaClass.startsWith("int") ||
                 attributeJavaClass.equals("boolean") ||
                 attributeJavaClass.equals("string") ||
@@ -137,7 +161,8 @@ public class CustomSpecifications<T> {
                 attributeJavaClass.equals("double");
     }
 
-    private boolean isCollection(String attributeJavaClass) {
+    private boolean isCollection(Attribute attribute) {
+        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
         List<String> allowdRefTypes = new ArrayList<>();
         allowdRefTypes.add("set");
         allowdRefTypes.add("list");
