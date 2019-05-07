@@ -176,4 +176,26 @@ public class filterByTests {
         Assert.assertEquals(1, IterableUtil.sizeOf(movieById));
     }
 
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void fetch_by_id__fetch_movie_by_exact_match_of_name() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+
+        Iterable<Movie> movieByName = movieController.filterBy("{name:"+matrix.getName()+"}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+    }
+
+
+
 }

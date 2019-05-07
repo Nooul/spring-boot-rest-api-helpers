@@ -5,6 +5,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.Predicate;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.SingularAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,12 +30,7 @@ public class CustomSpecifications<T> {
         );
     }
 
-    public static boolean isRefType(String className) {
-        List<String> allowdRefTypes = new ArrayList<>();
-        allowdRefTypes.add("set");
-        allowdRefTypes.add("list");
-        return allowdRefTypes.contains(className.toLowerCase());
-    }
+
 
     public Specification<T> equalToEachColumn(Map<String, Object> map) {
 
@@ -45,36 +42,25 @@ public class CustomSpecifications<T> {
                 Predicate pred = builder.conjunction();
                 if (map.containsKey(a.getName())) {
                     Object val = map.get(a.getName());
-                    String attributeJavaClass = a.getJavaType().getSimpleName().toLowerCase();
-
-                    String parentJavaClass = "";
-                    if (a.getJavaType().getSuperclass() != null) {
-                        parentJavaClass = a.getJavaType().getSuperclass().getSimpleName().toLowerCase();
-                    }
-
 
                     val = extractId(val);
+                    String attributeJavaClass = a.getJavaType().getSimpleName().toLowerCase();
                     if (val == null) {
                         pred = builder.isNull(root.get(a.getName()));
                     }
 
-                    else if (attributeJavaClass.startsWith("int") ||
-                            attributeJavaClass.equals("boolean") ||
-                            attributeJavaClass.equals("string") ||
-                            attributeJavaClass.equals("float") ||
-                            attributeJavaClass.equals("double")) {
-
+                    else if (isPrimitive(attributeJavaClass)) {
+                        pred = builder.equal(root.get(a.getName()), val);
                     }
-                    else if (parentJavaClass.equals("enum")) {
+                    else if (isEnum(a)) {
                         pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
 
                     }
-                    else if (CustomSpecifications.isRefType(attributeJavaClass)) {
+                    else if (isCollection(attributeJavaClass)) {
                         pred = builder.isTrue(root.join(a.getName()).get("id").in(val));
                     }
                     else {
                         pred = builder.equal(root.get(a.getName()).get("id"), val);
-
                     }
                 }
 
@@ -145,4 +131,29 @@ public class CustomSpecifications<T> {
         }
         return val;
     }
+
+    private boolean isPrimitive(String attributeJavaClass) {
+
+        return attributeJavaClass.startsWith("int") ||
+                attributeJavaClass.equals("boolean") ||
+                attributeJavaClass.equals("string") ||
+                attributeJavaClass.equals("float") ||
+                attributeJavaClass.equals("double");
+    }
+
+    private boolean isCollection(String attributeJavaClass) {
+        List<String> allowdRefTypes = new ArrayList<>();
+        allowdRefTypes.add("set");
+        allowdRefTypes.add("list");
+        return allowdRefTypes.contains(attributeJavaClass.toLowerCase());
+    }
+
+    private boolean isEnum(Attribute attribute) {
+        String parentJavaClass = "";
+        if (attribute.getJavaType().getSuperclass() != null) {
+            parentJavaClass = attribute.getJavaType().getSuperclass().getSimpleName().toLowerCase();
+        }
+        return parentJavaClass.equals("enum");
+    }
+
 }
