@@ -28,7 +28,7 @@ public class MovieController {
             @RequestParam(required = false, name = "filter") String filterStr,
             @RequestParam(required = false, name = "range") String rangeStr, @RequestParam(required = false, name="sort") String sortStr) {
         FilterWrapper wrapper = filterService.extractFilterWrapper(filterStr, rangeStr, sortStr);
-        return filterService.filterBy(wrapper, repository, Arrays.asList("title"));
+        return filterService.filterBy(wrapper, repository, Arrays.asList("name"));
     }
 }
 

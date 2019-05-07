@@ -197,5 +197,26 @@ public class filterByTests {
     }
 
 
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void full_text_search() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+
+        Iterable<Movie> movieByFullText = movieController.filterBy("{q:atr}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(movieByFullText));
+    }
+
+
 
 }

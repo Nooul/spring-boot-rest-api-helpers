@@ -124,7 +124,7 @@ public class CustomSpecifications<T> {
         else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
             val = ((Map) ((ArrayList) val).get(0)).get("id");
         }
-        
+
         return val;
     }
 
