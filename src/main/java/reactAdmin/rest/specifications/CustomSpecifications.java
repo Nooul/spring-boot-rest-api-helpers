@@ -142,7 +142,7 @@ public class CustomSpecifications<T> {
 
     private Predicate createGtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val instanceof String) {
-            return builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
+            return builder.greaterThan(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
             return builder.greaterThan(root.get(a.getName()), (Integer) val);
         }
@@ -151,7 +151,7 @@ public class CustomSpecifications<T> {
 
     private Predicate createGtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val instanceof String) {
-            return builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+            return builder.greaterThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
             return builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
         }
@@ -160,7 +160,7 @@ public class CustomSpecifications<T> {
 
     private Predicate createLtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val instanceof String) {
-            return builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
+            return builder.lessThan(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
             return builder.lessThan(root.get(a.getName()), (Integer) val);
         }
@@ -169,7 +169,7 @@ public class CustomSpecifications<T> {
 
     private Predicate createLtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val instanceof String) {
-            return builder.lessThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+            return builder.lessThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
             return builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
         }

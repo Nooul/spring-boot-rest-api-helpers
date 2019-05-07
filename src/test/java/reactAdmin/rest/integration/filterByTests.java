@@ -149,7 +149,6 @@ public class filterByTests {
     }
 
     @Test
-    @Ignore
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void string_range_queries() {
 
@@ -173,20 +172,12 @@ public class filterByTests {
         Iterable<Movie> moviesAfterA = movieController.filterBy("{nameGt: A }", null, null);
         Assert.assertEquals(3, IterableUtil.sizeOf(moviesAfterA));
 
-//        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{yearReleasedGt: 2005}", null, null);
-//        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter2005));
-//
-//        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{yearReleasedLte: 2005}", null, null);
-//        Assert.assertEquals(2, IterableUtil.sizeOf(moviesBeforeOrOn2005));
-//
-//        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{yearReleasedLt: 2005}", null, null);
-//        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
-//
-//        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{yearReleasedGt: 1999, yearReleasedLt:2017}", null, null);
-//        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter1999Before2017));
-//
-//        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{yearReleasedGte: 2005, yearReleasedLte:2017}", null, null);
-//        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
+        Iterable<Movie> moviesBeforeD = movieController.filterBy("{nameLt: D }", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBeforeD));
+
+        Iterable<Movie> moviesAfterDBeforeM = movieController.filterBy("{nameGt: D, nameLt:M }", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfterDBeforeM));
+
     }
 
 
