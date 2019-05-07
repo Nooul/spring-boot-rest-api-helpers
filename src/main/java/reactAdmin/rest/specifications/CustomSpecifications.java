@@ -4,7 +4,9 @@ package reactAdmin.rest.specifications;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
@@ -74,13 +76,7 @@ public class CustomSpecifications<T> {
                             if (!isValueCollection) {
                                 pred = builder.equal(root.get(a.getName()), val);
                             } else {
-                                Collection colVal = (Collection) val;
-                                List<Predicate> orPredicates = new ArrayList<>();
-                                for (Object el : colVal) {
-                                    Predicate orPred = builder.equal(root.get(a.getName()), el);
-                                    orPredicates.add(orPred);
-                                }
-                                pred = builder.or(orPredicates.toArray(new Predicate[0]));
+                                pred = createConjunctionPredicate(builder, root, a, (Collection) val);
                             }
                         } else if (isAttributeEnum) {
                             pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
@@ -91,13 +87,7 @@ public class CustomSpecifications<T> {
                             } else if (!isValueCollection) {
                                 pred = root.join(a.getName()).get("id").in(val);
                             } else {
-                                Collection colVal = (Collection) val;
-                                List<Predicate> orPredicates = new ArrayList<>();
-                                for (Object el : colVal) {
-                                    Predicate orPred = root.join(a.getName()).get("id").in(el);
-                                    orPredicates.add(orPred);
-                                }
-                                pred = builder.or(orPredicates.toArray(new Predicate[0]));
+                                pred = createConjunctionPredicate(builder, root, a, (Collection) val);
                             }
                         } else {
                             pred = builder.equal(root.join(a.getName()).get("id"), val);
@@ -148,6 +138,22 @@ public class CustomSpecifications<T> {
             }
         }
         return key;
+
+    }
+
+    private Predicate createConjunctionPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
+        List<Predicate> orPredicates = new ArrayList<>();
+        for (Object el : colVal) {
+            Predicate orPred;
+            if (!a.isAssociation()) {
+                orPred= builder.equal(root.get(a.getName()), el);
+            }
+            else {
+                orPred = root.join(a.getName()).get("id").in(el);
+            }
+            orPredicates.add(orPred);
+        }
+        return builder.or(orPredicates.toArray(new Predicate[0]));
 
     }
 
