@@ -66,17 +66,14 @@ public class CustomSpecifications<T> {
 
                     if (isKeyClean) {
                         if(isValueCollection) {
-                            pred = createConjunctionPredicate(builder, root, a, (Collection) val);
-                        }
-                        else if(isValueNull) {
-                            pred = root.get(a.getName()).isNull();
-                        }
-                        else if (isAttributeReferenced) {
-                            pred = root.join(a.getName()).get("id").in(val);
+                            pred = createConjunctiveEqualityPredicate(builder, root, a, (Collection) val);
                         }
                         else {
                             pred = createEqualityPredicate(builder, root, a, val);
                         }
+                    }
+                    else if (isNegation) {
+                        pred = createNegationPredicate(builder, root, a, val);
                     }
                     else if (isLte) {
                         pred = createLtePredicate(builder, root, a, val);
@@ -110,14 +107,38 @@ public class CustomSpecifications<T> {
     }
 
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
-        if (isEnum(a)) {
+        if (val == null) {
+            return root.get(a.getName()).isNull();
+        }
+        else if (isEnum(a)) {
             return builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
         }
         else if (isPrimitive(a)) {
             return builder.equal(root.get(a.getName()), val);
         }
+        else if(a.isAssociation()) {
+            return root.join(a.getName()).get("id").in(val);
+        }
         throw new IllegalArgumentException("equality is currently supported on primitives and enums");
     }
+
+    private Predicate createNegationPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val == null) {
+            return root.get(a.getName()).isNotNull();
+        }
+        else if (isEnum(a)) {
+            return builder.notEqual(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
+        }
+        else if (isPrimitive(a)) {
+            return builder.notEqual(root.get(a.getName()), val);
+        }
+        else if(a.isAssociation()) {
+            return builder.not(root.join(a.getName()).get("id").in(val));
+        }
+        throw new IllegalArgumentException("negation is currently supported on primitives and enums");
+    }
+
+
 
     private Predicate createGtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val instanceof String) {
@@ -155,12 +176,12 @@ public class CustomSpecifications<T> {
         throw new IllegalArgumentException("val type not supported yet");
     }
 
-    private Predicate createConjunctionPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
+    private Predicate createConjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
         List<Predicate> orPredicates = new ArrayList<>();
         for (Object el : colVal) {
             Predicate orPred;
             if (!a.isAssociation()) {
-                orPred= builder.equal(root.get(a.getName()), el);
+                orPred = builder.equal(root.get(a.getName()), el);
             }
             else {
                 orPred = root.join(a.getName()).get("id").in(el);

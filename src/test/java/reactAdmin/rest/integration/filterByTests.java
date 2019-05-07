@@ -220,6 +220,33 @@ public class filterByTests {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void reference_many_to_one_null__fetch_movies_with_director_not_null() {
+        Director lana = new Director();
+        lana.setFirstName("Lana");
+        lana.setLastName("Wachowski");
+        directorRepository.save(lana);
+
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setDirector(lana);
+        movieRepository.save(matrix);
+
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Iterable<Movie> directorNotNullMovies = movieController.filterBy("{directorNot: null}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(directorNotNullMovies));
+    }
+
+    @Test
     @Ignore
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void reference_many_to_many_null__fetch_actors_with_no_movies() {
