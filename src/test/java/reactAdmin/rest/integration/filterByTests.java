@@ -1,6 +1,5 @@
 package reactAdmin.rest.integration;
 
-import net.minidev.json.annotate.JsonIgnore;
 import org.assertj.core.util.IterableUtil;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -179,6 +178,43 @@ public class filterByTests {
         Assert.assertEquals(2, IterableUtil.sizeOf(noDirectorMovies));
     }
 
+    @Test
+    @Ignore
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void reference_many_to_many_null__fetch_actors_with_no_movies() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Actor noMovieActor = new Actor();
+        noMovieActor.setFirstName("No Movie");
+        noMovieActor.setLastName("Whatsoever");
+        actorRepository.save(noMovieActor);
+
+
+        Actor noMovieActor2 = new Actor();
+        noMovieActor2.setFirstName("No Movie");
+        noMovieActor2.setLastName("Whatsoever 2");
+        actorRepository.save(noMovieActor2);
+
+
+        Iterable<Actor> noMovieActors = actorController.filterBy("{movies: null}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(noMovieActors));
+    }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -241,45 +277,6 @@ public class filterByTests {
         Iterable<Movie> moviesByActors = movieController.filterBy("{actors: [" + keanu.getId()+ ", "+ jaeden.getId() +"]}", null, null);
 
         Assert.assertEquals(3, IterableUtil.sizeOf(moviesByActors));
-    }
-
-    @Test
-    @Ignore
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void conjunctive_reference_match__fetch_actors_that_have_played_on_all_queried_movies() {
-        Movie matrix = new Movie();
-        matrix.setName("The Matrix");
-        movieRepository.save(matrix);
-
-        Movie constantine = new Movie();
-        constantine.setName("Constantine");
-        movieRepository.save(constantine);
-
-        Movie it = new Movie();
-        it.setName("IT");
-        movieRepository.save(it);
-
-        Actor keanu = new Actor();
-        keanu.setFirstName("Keanu");
-        keanu.setLastName("Reeves");
-        keanu.setMovies(Arrays.asList(matrix, constantine));
-        actorRepository.save(keanu);
-
-        Actor jaeden = new Actor();
-        jaeden.setFirstName("Jaeden");
-        jaeden.setLastName("Martell");
-        jaeden.setMovies(Arrays.asList(it));
-        actorRepository.save(jaeden);
-
-
-        Iterable<Actor> matrixOrItActors = actorController.filterBy("{movies: [" + matrix.getId()+ ", "+ it.getId() +"]}", null, null);
-        Assert.assertEquals(3, IterableUtil.sizeOf(matrixOrItActors));
-        Iterable<Actor> matrixAndItActors = actorController.filterBy("{movies: " + matrix.getId()+ ", movies: "+ it.getId() +"}", null, null);
-        Assert.assertEquals(0, IterableUtil.sizeOf(matrixAndItActors));
-        Iterable<Actor> matrixAndConstantineActors = actorController.filterBy("{movies: " + matrix.getId()+ ", movies: "+ constantine.getId() +"}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(matrixAndConstantineActors));
-
-
     }
 
     @Test

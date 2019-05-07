@@ -39,18 +39,16 @@ public class CustomSpecifications<T> {
             Set<SingularAttribute<? super T, ?>> singularAttributes = root.getModel().getSingularAttributes();
             Set<PluralAttribute<? super T, ?, ?>> pluralAttributes = root.getModel().getPluralAttributes();
 
+            Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
 
-            root.getModel().getAttributes().stream().forEach(a ->
-            {
-
-
+            for (Map.Entry e : map.entrySet()) {
+                String key = (String) e.getKey();
+                Object val = extractId(e.getValue());
+                String cleanKey = cleanUpKey(key);
+                Attribute a = root.getModel().getAttribute(cleanKey);
                 Predicate pred = builder.conjunction();
-                if (map.containsKey(a.getName())) {
-
-
-                    Object val = map.get(a.getName());
-
-                    val = extractId(val);
+                if (cleanKey.equals(key) && attributes.contains(a)) {
+                    //val = extractId(val);
 //                    boolean isAttributeSingular = singularAttributes.contains(a);
 //                    boolean isAttributePlural = pluralAttributes.contains(a);
                     boolean isAttributePrimitive = isPrimitive(a);
@@ -61,13 +59,11 @@ public class CustomSpecifications<T> {
 
                     if (isValueNull && !isAttributeReferenced) {
                         pred = root.get(a.getName()).isNull();
-                    }
-                    else if (isAttributePrimitive) {
+                    } else if (isAttributePrimitive) {
 
                         if (!isValueCollection) {
                             pred = builder.equal(root.get(a.getName()), val);
-                        }
-                        else {
+                        } else {
                             Collection colVal = (Collection) val;
                             List<Predicate> orPredicates = new ArrayList<>();
                             for (Object el : colVal) {
@@ -76,19 +72,15 @@ public class CustomSpecifications<T> {
                             }
                             pred = builder.or(orPredicates.toArray(new Predicate[0]));
                         }
-                    }
-                    else if (isAttributeEnum) {
+                    } else if (isAttributeEnum) {
                         pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
 
-                    }
-                    else if (isAttributeReferenced) {
-                        if (isValueNull){
+                    } else if (isAttributeReferenced) {
+                        if (isValueNull) {
                             pred = root.get(a.getName()).isNull();
-                        }
-                        else if (!isValueCollection) {
+                        } else if (!isValueCollection) {
                             pred = root.join(a.getName()).get("id").in(val);
-                        }
-                        else {
+                        } else {
                             Collection colVal = (Collection) val;
                             List<Predicate> orPredicates = new ArrayList<>();
                             for (Object el : colVal) {
@@ -97,64 +89,62 @@ public class CustomSpecifications<T> {
                             }
                             pred = builder.or(orPredicates.toArray(new Predicate[0]));
                         }
-                    }
-                    else {
+                    } else {
                         pred = builder.equal(root.join(a.getName()).get("id"), val);
                     }
                 }
 
+                else if (key.endsWith("Lte")) {
+                    if (val instanceof String) {
+                        pred = builder.lessThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+                    } else if (val instanceof Integer) {
+                        pred = builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
+                    }
+                }
+                else if (key.endsWith("Gte")) {
+                    if (val instanceof String) {
+                        pred = builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
+                    } else if (val instanceof Integer) {
+                        pred = builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
+                    }
+                }
+                else if (key.endsWith("Lt")) {
+                    if (val instanceof String) {
+                        pred = builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
+                    } else if (val instanceof Integer) {
+                        pred = builder.lessThan(root.get(a.getName()), (Integer) val);
+                    }
+                }
+                else if (key.endsWith("Gt")) {
+                    if (val instanceof String) {
+                        pred = builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
+                    } else if (val instanceof Integer) {
+                        pred = builder.greaterThan(root.get(a.getName()), (Integer) val);
+                    }
+                }
                 if (pred == null) {
                     pred = builder.conjunction();
                 }
                 predicates.add(pred);
 
-                if (map.containsKey(a.getName() + "Lte")) {
-                    Object val = map.get(a.getName() + "Lte");
-                    if (val instanceof String) {
-                        pred = builder.lessThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
-                        predicates.add(pred);
-                    } else if (val instanceof Integer) {
-                        pred = builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
-                        predicates.add(pred);
-                    }
-                }
-                if (map.containsKey(a.getName() + "Gte")) {
-                    Object val = map.get(a.getName() + "Gte");
-                    if (val instanceof String) {
-                        pred = builder.greaterThanOrEqualTo(root.get(a.getName()), ((String) val).toLowerCase());
-                        predicates.add(pred);
-                    } else if (val instanceof Integer) {
-                        pred = builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
-                        predicates.add(pred);
-                    }
-                }
-                if (map.containsKey(a.getName() + "Lt")) {
-                    Object val = map.get(a.getName() + "Lt");
-                    if (val instanceof String) {
-                        pred = builder.lessThan(root.get(a.getName()), ((String) val).toLowerCase());
-                        predicates.add(pred);
-                    } else if (val instanceof Integer) {
-                        pred = builder.lessThan(root.get(a.getName()), (Integer) val);
-                        predicates.add(pred);
-                    }
-                }
-                if (map.containsKey(a.getName() + "Gt")) {
-                    Object val = map.get(a.getName() + "Gt");
-                    if (val instanceof String) {
-                        pred = builder.greaterThan(root.get(a.getName()), ((String) val).toLowerCase());
-                        predicates.add(pred);
-                    } else if (val instanceof Integer) {
-                        pred = builder.greaterThan(root.get(a.getName()), (Integer) val);
-                        predicates.add(pred);
-                    }
-                }
 
-
-            });
+            }
             return builder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    private String cleanUpKey(String key) {
+
+        List<String> postfixes = Arrays.asList("Gte", "Gt", "Lte", "Lt", "Not", "Or");
+        for (String postfix: postfixes) {
+            if (key.endsWith(postfix)) {
+                return key.substring(0, key.length() - postfix.length());
+            }
+        }
+        return key;
 
     }
+
 
     private Object extractId(Object val) {
         if (val instanceof Map) {

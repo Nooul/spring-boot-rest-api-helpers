@@ -19,7 +19,6 @@ public class Movie {
 
     private String name;
 
-
     private int yearReleased;
 
     @ManyToOne
