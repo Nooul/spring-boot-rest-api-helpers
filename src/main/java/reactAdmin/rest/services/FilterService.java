@@ -1,6 +1,7 @@
 package reactAdmin.rest.services;
 
 import com.google.common.base.CaseFormat;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,8 @@ import java.io.Serializable;
 import java.util.*;
 
 @Service
-public class FilterService<T,ID extends Serializable> {
+//from: https://github.com/zifnab87/react-admin-java-rest/blob/master/src/main/java/reactAdmin/rest/services/FilterService.java
+public class FilterService<T,I extends Serializable> {
 
     @Autowired
     private Environment env;
@@ -29,38 +31,42 @@ public class FilterService<T,ID extends Serializable> {
 
 
     public FilterWrapper extractFilterWrapper(String filterStr, String rangeStr, String sortStr) {
-        JSONObject filter = null;
-        if (filterStr != null) {
-            filter = JSON.toJsonObject(filterStr);
+        JSONObject filter;
+        if (StringUtils.isBlank(filterStr)) {
+            filterStr = "{}";
         }
-        JSONArray range = null;
-        if (rangeStr != null) {
-            range = JSON.toJsonArray(rangeStr);
+        filter = JSON.toJsonObject(filterStr);
+        JSONArray range;
+        if (StringUtils.isBlank(rangeStr)) {
+            rangeStr = "[]";
         }
+        range = JSON.toJsonArray(rangeStr);
 
-        JSONArray sort = null;
-        if (sortStr != null) {
-            sort = JSON.toJsonArray(sortStr);
+        JSONArray sort;
+        if (StringUtils.isBlank(sortStr)) {
+            sortStr = "[]";
         }
+        sort = JSON.toJsonArray(sortStr);
+
 
         return new FilterWrapper(filter, range, sort);
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, ID> repo, List<String> searchOnlyInFields) {
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, List<String> searchOnlyInFields) {
         return filterByHelper(repo, specifications, filterWrapper, searchOnlyInFields);
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T,ID> repo) {
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T,I> repo) {
         return filterByHelper(repo, specifications, filterWrapper);
     }
 
 
-    private <T> Page<T> filterByHelper(BaseRepository<T,ID> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper) {
+    private <T> Page<T> filterByHelper(BaseRepository<T,I> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper) {
         return filterByHelper(repo,specifications, filterWrapper, new ArrayList<>());
     }
 
 
-    private <T> Page<T> filterByHelper(BaseRepository<T, ID> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper, List<String> searchOnlyInFields) {
+    private <T> Page<T> filterByHelper(BaseRepository<T, I> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper, List<String> searchOnlyInFields) {
         String usesSnakeCase = env.getProperty("custom-filter-service.use-snake-case");
 
         String sortBy = "id";
@@ -71,14 +77,14 @@ public class FilterService<T,ID extends Serializable> {
 
         int page = 0;
         int size = Integer.MAX_VALUE;
-        if (range != null) {
+        if (range.length() == 2) {
             page = (Integer) range.get(0);
             size = (Integer) range.get(1);
         }
 
 
 
-        if (range != null) {
+        if (sort.length() == 2) {
             if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                 sortBy = convertToCamelCase((String) sort.get(0));
             }
@@ -105,7 +111,7 @@ public class FilterService<T,ID extends Serializable> {
             else if(objIds instanceof String) {
                 idsList.add(Long.valueOf((String)objIds));
             }
-            return repo.findByIdIn((Collection<ID>) makeListsInteger(idsList), PageRequest.of(page, size, sortDir, sortBy));
+            return repo.findByIdIn((Collection<I>) makeListsInteger(idsList), PageRequest.of(page, size, sortDir, sortBy));
         }
         else {
             boolean containsQ = false;
