@@ -113,7 +113,7 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void range_queries() {
+    public void integer_range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
         matrix.setYearReleased(1999);
@@ -146,6 +146,51 @@ public class filterByTests {
 
         Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{yearReleasedGte: 2005, yearReleasedLte:2017}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
+    }
+
+    @Test
+    @Ignore
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void string_range_queries() {
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setYearReleased(2005);
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setYearReleased(2017);
+        movieRepository.save(it);
+
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setYearReleased(1999);
+        movieRepository.save(matrix);
+
+
+
+
+
+
+        Iterable<Movie> moviesAfterA = movieController.filterBy("{nameGt: A }", null, null);
+        Assert.assertEquals(3, IterableUtil.sizeOf(moviesAfterA));
+
+//        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{yearReleasedGt: 2005}", null, null);
+//        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter2005));
+//
+//        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{yearReleasedLte: 2005}", null, null);
+//        Assert.assertEquals(2, IterableUtil.sizeOf(moviesBeforeOrOn2005));
+//
+//        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{yearReleasedLt: 2005}", null, null);
+//        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
+//
+//        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{yearReleasedGt: 1999, yearReleasedLt:2017}", null, null);
+//        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter1999Before2017));
+//
+//        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{yearReleasedGte: 2005, yearReleasedLte:2017}", null, null);
+//        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
     }
 
 
