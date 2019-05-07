@@ -2,7 +2,6 @@ package reactAdmin.rest.integration;
 
 import org.assertj.core.util.IterableUtil;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +36,6 @@ public class filterByTests {
     private DirectorRepository directorRepository;
 
     @Autowired
-    private PartnerRepository partnerRepository;
-
-    @Autowired
     private MovieController movieController;
 
     @Autowired
@@ -57,15 +53,10 @@ public class filterByTests {
 //        categoryRepository.save(horror);
 //
 //
-//        Partner lanasPartner = new Partner();
-//        lanasPartner.setFirstName("Lana's");
-//        lanasPartner.setLastName("Partner");
-//        partnerRepository.save(lanasPartner);
 //
 //        Director lana = new Director();
 //        lana.setFirstName("Lana");
 //        lana.setLastName("Wachowski");
-//        lana.setPartner(lanasPartner);
 //        directorRepository.save(lana);
 //
 //
@@ -93,15 +84,10 @@ public class filterByTests {
 //        actorRepository.save(keanu);
 //
 //
-//        Partner andysPartner = new Partner();
-//        andysPartner.setFirstName("Andy's");
-//        andysPartner.setLastName("Partner");
-//        partnerRepository.save(andysPartner);
 //
 //        Director andy = new Director();
 //        andy.setFirstName("Andy");
 //        andy.setLastName("Muschietti");
-//        andy.setPartner(andysPartner);
 //        directorRepository.save(andy);
 //
 //        Movie it = new Movie();

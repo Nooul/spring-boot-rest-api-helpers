@@ -27,6 +27,4 @@ public class Actor {
     @ManyToMany
     private List<Movie> movies = new ArrayList<>();
 
-    @OneToOne
-    private Partner partner;
 }
