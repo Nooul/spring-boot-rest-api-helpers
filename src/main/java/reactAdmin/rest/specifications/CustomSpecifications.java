@@ -9,10 +9,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 //from: https://github.com/zifnab87/react-admin-java-rest/blob/master/src/main/java/reactAdmin/rest/specifications/ReactAdminSpecifications.java
 @Service
@@ -34,22 +31,18 @@ public class CustomSpecifications<T> {
     }
 
 
-
     public Specification<T> equalToEachColumn(Map<String, Object> map) {
 
         return (Specification<T>) (root, query, builder) -> {
 
             final List<Predicate> predicates = new ArrayList<>();
 
-            Set<SingularAttribute<? super T, ?>> singularAttributes  = root.getModel().getSingularAttributes();
-            Set<PluralAttribute<? super T, ?, ?>> pluralAttributes  = root.getModel().getPluralAttributes();
+            Set<SingularAttribute<? super T, ?>> singularAttributes = root.getModel().getSingularAttributes();
+            Set<PluralAttribute<? super T, ?, ?>> pluralAttributes = root.getModel().getPluralAttributes();
 
 
             root.getModel().getAttributes().stream().forEach(a ->
             {
-
-
-
 
 
                 Predicate pred = builder.conjunction();
@@ -58,32 +51,56 @@ public class CustomSpecifications<T> {
 
                     Object val = map.get(a.getName());
 
-                    boolean isAttributeSingular = singularAttributes.contains(a);
-                    boolean isAttributePlural = pluralAttributes.contains(a);
-                    String attributeJavaClass = a.getJavaType().getSimpleName().toLowerCase();
+                    val = extractId(val);
+//                    boolean isAttributeSingular = singularAttributes.contains(a);
+//                    boolean isAttributePlural = pluralAttributes.contains(a);
                     boolean isAttributePrimitive = isPrimitive(a);
-                    boolean isAttributeCollection = isCollection(a);
+                    boolean isAttributeReferenced = a.isAssociation();//isCollection(a) || (!isPrimitive(a) && !isEnum(a));
                     boolean isAttributeEnum = isEnum(a);
                     boolean isValueNull = val == null;
+                    boolean isValueCollection = val instanceof Collection;
 
-                    val = extractId(val);
-
-                    if (isValueNull) {
+                    if (isValueNull && !isAttributeReferenced) {
                         pred = builder.isNull(root.get(a.getName()));
                     }
-
                     else if (isAttributePrimitive) {
-                        pred = builder.equal(root.get(a.getName()), val);
+
+                        if (!isValueCollection) {
+                            pred = builder.equal(root.get(a.getName()), val);
+                        }
+                        else {
+                            Collection colVal = (Collection) val;
+                            List<Predicate> orPredicates = new ArrayList<>();
+                            for (Object el : colVal) {
+                                Predicate orPred = builder.equal(root.get(a.getName()), el);
+                                orPredicates.add(orPred);
+                            }
+                            pred = builder.or(orPredicates.toArray(new Predicate[0]));
+                        }
                     }
                     else if (isAttributeEnum) {
                         pred = builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
 
                     }
-                    else if (isAttributeCollection) {
-                        pred = builder.isTrue(root.join(a.getName()).get("id").in(val));
+                    else if (isAttributeReferenced) {
+                        if (isValueNull){
+                            pred = builder.isNull(root.get(a.getName()));
+                        }
+                        else if (!isValueCollection) {
+                            pred = root.join(a.getName()).get("id").in(val);
+                        }
+                        else {
+                            Collection colVal = (Collection) val;
+                            List<Predicate> orPredicates = new ArrayList<>();
+                            for (Object el : colVal) {
+                                Predicate orPred = root.join(a.getName()).get("id").in(el);
+                                orPredicates.add(orPred);
+                            }
+                            pred = builder.or(orPredicates.toArray(new Predicate[0]));
+                        }
                     }
                     else {
-                        pred = builder.equal(root.get(a.getName()).get("id"), val);
+                        pred = builder.equal(root.join(a.getName()).get("id"), val);
                     }
                 }
 
@@ -143,9 +160,7 @@ public class CustomSpecifications<T> {
     private Object extractId(Object val) {
         if (val instanceof Map) {
             val = ((Map) val).get("id");
-        }
-
-        else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
+        } else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
             val = ((Map) ((ArrayList) val).get(0)).get("id");
         }
 
