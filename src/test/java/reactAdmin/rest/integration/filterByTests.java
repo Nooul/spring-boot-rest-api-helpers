@@ -2,7 +2,7 @@ package reactAdmin.rest.integration;
 
 import org.assertj.core.util.IterableUtil;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import reactAdmin.rest.helpers.controllers.MovieController;
-import reactAdmin.rest.helpers.entities.*;
+import reactAdmin.rest.helpers.entities.Actor;
+import reactAdmin.rest.helpers.entities.Movie;
 import reactAdmin.rest.helpers.repositories.*;
 
 import java.util.Arrays;
@@ -129,12 +130,10 @@ public class filterByTests {
 
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id: " + keanu.getId()+ "}}", null, null);
         Iterable<Movie> keanuMovies2 = movieController.filterBy("{actors: "+ keanu.getId()+ "}", null, null);
-        //Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: ["+ keanu.getId()+ "]}", null, null);
-        Iterable<Movie> keanuMovies4 = movieController.filterBy("{actors: [{id: "+ keanu.getId()+ "}]}", null, null);
+        Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{id: "+ keanu.getId()+ "}]}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
-        //Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies4));
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
     }
 
     @Test
@@ -153,7 +152,7 @@ public class filterByTests {
         movieRepository.save(it);
 
 
-        Iterable<Movie> moviesById = movieController.filterBy("{ids: ["+matrix.getId()+", "+constantine.getId()+"]}", null, null);
+        Iterable<Movie> moviesById = movieController.filterBy("{ id: ["+matrix.getId()+","+constantine.getId()+"]}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(moviesById));
     }
 
@@ -173,7 +172,7 @@ public class filterByTests {
         movieRepository.save(it);
 
 
-        Iterable<Movie> movieById = movieController.filterBy("{filter: {id:"+matrix.getId()+"}}", null, null);
+        Iterable<Movie> movieById = movieController.filterBy("{id:"+matrix.getId()+"}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieById));
     }
 

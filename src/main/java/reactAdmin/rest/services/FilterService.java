@@ -111,6 +111,9 @@ public class FilterService<T,I extends Serializable> {
             else if(objIds instanceof String) {
                 idsList.add(Long.valueOf((String)objIds));
             }
+            else if(objIds instanceof Number) {
+                idsList.add(objIds);
+            }
             return repo.findByIdIn((Collection<I>) makeListsInteger(idsList), PageRequest.of(page, size, sortDir, sortBy));
         }
         else {
@@ -160,18 +163,13 @@ public class FilterService<T,I extends Serializable> {
     }
 
     private List<Long> makeListsInteger(List list) {
-        if (!list.isEmpty() && (list.get(0) instanceof Long || list.get(0) instanceof Integer)) {
-            return (List<Long>) list;
-        }
-        else if (!list.isEmpty() && list.get(0) instanceof String) {
-            List<Long> intList = new ArrayList<>();
-            for (Object o : list) {
-                intList.add(Long.parseLong((String)o));
+
+        List<Long> intList = new ArrayList<>();
+        for (Object el : list) {
+            if (el instanceof Number) {
+                intList.add(Long.parseLong(el.toString()));
             }
-            return intList;
         }
-        else {
-            return new ArrayList<>();
-        }
+        return intList;
     }
 }
