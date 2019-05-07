@@ -1,7 +1,6 @@
 package reactAdmin.rest.specifications;
 
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +60,7 @@ public class CustomSpecifications<T> {
                     boolean isValueCollection = val instanceof Collection;
 
                     if (isValueNull && !isAttributeReferenced) {
-                        pred = builder.isNull(root.get(a.getName()));
+                        pred = root.get(a.getName()).isNull();
                     }
                     else if (isAttributePrimitive) {
 
@@ -84,7 +83,7 @@ public class CustomSpecifications<T> {
                     }
                     else if (isAttributeReferenced) {
                         if (isValueNull){
-                            pred = builder.isNull(root.get(a.getName()));
+                            pred = root.get(a.getName()).isNull();
                         }
                         else if (!isValueCollection) {
                             pred = root.join(a.getName()).get("id").in(val);
@@ -176,13 +175,13 @@ public class CustomSpecifications<T> {
                 attributeJavaClass.equals("double");
     }
 
-    private boolean isCollection(Attribute attribute) {
-        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
-        List<String> allowdRefTypes = new ArrayList<>();
-        allowdRefTypes.add("set");
-        allowdRefTypes.add("list");
-        return allowdRefTypes.contains(attributeJavaClass.toLowerCase());
-    }
+//    private boolean isCollection(Attribute attribute) {
+//        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
+//        List<String> allowdRefTypes = new ArrayList<>();
+//        allowdRefTypes.add("set");
+//        allowdRefTypes.add("list");
+//        return allowdRefTypes.contains(attributeJavaClass.toLowerCase());
+//    }
 
     private boolean isEnum(Attribute attribute) {
         String parentJavaClass = "";
