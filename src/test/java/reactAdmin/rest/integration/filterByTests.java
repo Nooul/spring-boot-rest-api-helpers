@@ -402,8 +402,8 @@ public class filterByTests {
         movieRepository.save(it);
 
 
-        Iterable<Movie> movieById = movieController.filterBy("{idNot:"+matrix.getId()+"}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieById));
+        Iterable<Movie> movieByNotId = movieController.filterBy("{idNot:"+matrix.getId()+"}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByNotId));
     }
 
     @Test
@@ -423,6 +423,25 @@ public class filterByTests {
 
         Iterable<Movie> movieByName = movieController.filterBy("{name:"+matrix.getName()+"}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void exact_match_of_primitive__fetch_movie_by_not_name() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Iterable<Movie> movieByNotName = movieController.filterBy("{nameNot:"+matrix.getName()+"}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByNotName));
     }
 
     @Test
