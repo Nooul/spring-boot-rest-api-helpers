@@ -128,7 +128,12 @@ public class CustomSpecifications<T> {
 
     private Predicate createNegationPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val == null) {
-            return root.get(a.getName()).isNotNull();
+            if (a.isAssociation() && a.isCollection()) {
+                return builder.isNotEmpty(root.get(a.getName()));
+            }
+            else {
+                return root.get(a.getName()).isNotNull();
+            }
         }
         else if (isEnum(a)) {
             return builder.notEqual(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
