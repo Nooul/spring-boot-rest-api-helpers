@@ -20,7 +20,7 @@ public class CustomSpecifications<T> {
     @PersistenceContext
     EntityManager em;
 
-    public Specification<T> customSpecificationBuilder(Map<String, Object> map, List<String> includeOnlyFields, String primaryKeyName) {
+    public Specification<T> customSpecificationBuilder(Map<String, Object> map, List<String> includeOnlyFields) {
 
         return (Specification<T>) (root, query, builder) -> {
 
@@ -33,7 +33,8 @@ public class CustomSpecifications<T> {
 
             Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
 
-            System.out.println(primaryKeyName);
+            String rootFullClassName = root.getModel().getJavaType().getName();
+            String primaryKeyName = getIdAttribute(em, rootFullClassName);
             for (Map.Entry e : map.entrySet()) {
                 String key = (String) e.getKey();
                 Object val = extractId(e.getValue(), primaryKeyName);

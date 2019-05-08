@@ -122,7 +122,7 @@ public class FilterService<T,I extends Serializable> {
 
             return repo.findAll(Specification.where(
                     specifications.customSpecificationBuilder(
-                            map, searchOnlyInFields, primaryKeyName)
+                            map, searchOnlyInFields)
             ), PageRequest.of(page,size, sortDir, sortBy));
 
         }
