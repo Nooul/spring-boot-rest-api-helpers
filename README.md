@@ -1,4 +1,4 @@
-# spring-boot-api-helpers
+# spring-boot-rest-api-helpers
 
 Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see demo) that queries like that:
 ```    
@@ -52,7 +52,7 @@ The main important parts include:
 - `@ControllerAdvices` that wrap the results with paging and number of results information
 - `BaseController` class that needs to be extended by each of the resource `RestControllers`
 - `BaseRepository` interface that needs to be extendded by each of resource `Repositories`
-- `ReactAdminSpecifications` does all the magic of Criteria API query generation so that filtering and sorting works
+- `CustomSpecifications` does all the magic of Criteria API query generation so that filtering and sorting works
 - `ObjectMapperProvider` that needs to be used by the Spring Boot Application so serialization and deserialization works without Getters and Setters
 
 ## Installation
@@ -79,9 +79,9 @@ and add this as a dependency in your pom.xml dependencies:
         
 ## Usage
 
-- Add reactAdmin.rest package in the scanBasePackages at the top of your Spring Boot Application class
+- Add springboot.rest package in the scanBasePackages at the top of your Spring Boot Application class
 ```java
-@SpringBootApplication(scanBasePackages = {"com.myproject", "reactAdmin.rest"})
+@SpringBootApplication(scanBasePackages = {"com.myproject", "springboot.rest"})
 ```
 
 - inject and expose as `@Bean` the provided `ObjectMapperProvider`
@@ -97,7 +97,7 @@ and add this as a dependency in your pom.xml dependencies:
 ```
 - configure appplication.properties to use snake-case or camelCase for properties in API
 ```
-react-admin-api.use-snake-case = false
+spring-boot-rest-api-helpers.use-snake-case = false
 ```
 - for each of the admin-on-rest resources create a class `XYZ` that is annotated with `@Entity`
 - for each of the admin-on-rest resources create an interface `XYZRepository` that extends `BaseRepository<XYZ>`
