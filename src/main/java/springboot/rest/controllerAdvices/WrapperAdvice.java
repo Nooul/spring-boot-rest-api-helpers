@@ -1,4 +1,5 @@
 package springboot.rest.controllerAdvices;
+
 import lombok.NonNull;
 import lombok.Value;
 import org.springframework.core.MethodParameter;
@@ -12,7 +13,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import java.util.Arrays;
 
 //https://stackoverflow.com/a/40333275/986160
-@ControllerAdvice("springboot.rest")
 public class WrapperAdvice implements ResponseBodyAdvice {
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
@@ -40,6 +40,6 @@ public class WrapperAdvice implements ResponseBodyAdvice {
 
     public static boolean isArray(Object obj)
     {
-        return obj != null && obj.getClass().isArray() && !(obj instanceof byte[]);
+        return obj != null && (obj.getClass().isArray() || obj instanceof Iterable) && !(obj instanceof byte[]);
     }
 }
