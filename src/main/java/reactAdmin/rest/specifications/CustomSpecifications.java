@@ -103,8 +103,7 @@ public class CustomSpecifications<T> {
 
     // https://stackoverflow.com/a/16911313/986160
     //https://stackoverflow.com/a/47793003/986160
-    public String getIdAttribute(EntityManager em,
-                                                              String fullClassName) {
+    public String getIdAttribute(EntityManager em, String fullClassName) {
         Class<? extends Object> clazz = null;
         try {
             clazz = Class.forName(fullClassName);
@@ -171,10 +170,7 @@ public class CustomSpecifications<T> {
             return builder.equal(root.get(a.getName()), val);
         }
         else if(a.isAssociation()) {
-            Path rootJoinGetName = root.join(a.getName());
-            String referencedClassName = rootJoinGetName.getJavaType().getName();
-            String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
-            return rootJoinGetName.get(referencedPrimaryKey).in(val);
+            return prepareJoinAssociatedPredicate(root, a, val);
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
@@ -187,10 +183,6 @@ public class CustomSpecifications<T> {
     private Predicate createNotLikePredicate(CriteriaBuilder builder, Root<T> root, Attribute a, String val) {
         return builder.notLike(root.get(a.getName()), val);
     }
-
-
-
-
 
     private Predicate createGtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val instanceof String) {
@@ -228,22 +220,19 @@ public class CustomSpecifications<T> {
         throw new IllegalArgumentException("val type not supported yet");
     }
 
-    private Predicate createConjunctiveInequalityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
-        return builder.not(createDisjunctiveEqualityPredicate(builder, root, a, colVal));
+    private Predicate createConjunctiveInequalityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection values) {
+        return builder.not(createDisjunctiveEqualityPredicate(builder, root, a, values));
     }
 
-    private Predicate createDisjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
+    private Predicate createDisjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection values) {
         List<Predicate> orPredicates = new ArrayList<>();
-        for (Object el : colVal) {
+        for (Object val : values) {
             Predicate orPred;
-            if (!a.isAssociation()) {
-                orPred = builder.equal(root.get(a.getName()), el);
+            if (a.isAssociation()) {
+                orPred = prepareJoinAssociatedPredicate(root, a, val);
             }
             else {
-                Path rootJoinGetName = root.join(a.getName());
-                String referencedClassName = rootJoinGetName.getJavaType().getName();
-                String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
-                orPred = rootJoinGetName.get(referencedPrimaryKey).in(el);
+                orPred = builder.equal(root.get(a.getName()), val);
             }
             orPredicates.add(orPred);
         }
@@ -251,23 +240,28 @@ public class CustomSpecifications<T> {
 
     }
 
-    private Predicate createConjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
+    private Predicate createConjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection values) {
         List<Predicate> andPredicates = new ArrayList<>();
-        for (Object el : colVal) {
+        for (Object val : values) {
             Predicate andPred;
-            if (!a.isAssociation()) {
-                andPred = builder.equal(root.get(a.getName()), el);
+            if (a.isAssociation()) {
+                andPred = prepareJoinAssociatedPredicate(root, a, val);
             }
             else {
-                Path rootJoinGetName = root.join(a.getName());
-                String referencedClassName = rootJoinGetName.getJavaType().getName();
-                String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
-                andPred = rootJoinGetName.get(referencedPrimaryKey).in(el);
+                andPred = builder.equal(root.get(a.getName()), val);
             }
             andPredicates.add(andPred);
         }
         return builder.and(andPredicates.toArray(new Predicate[andPredicates.size()]));
 
+    }
+
+
+    private Predicate prepareJoinAssociatedPredicate(Root root, Attribute a, Object val) {
+        Path rootJoinGetName = root.join(a.getName());
+        String referencedClassName = rootJoinGetName.getJavaType().getName();
+        String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
+        return rootJoinGetName.get(referencedPrimaryKey).in(val);
     }
 
 
