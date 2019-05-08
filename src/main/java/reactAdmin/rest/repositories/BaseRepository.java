@@ -11,7 +11,5 @@ import java.util.Collection;
 
 @NoRepositoryBean
 public interface BaseRepository<T,ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
-    Page<T> findByIdIn(Collection<ID> ids, Pageable pageable);
     Page<T> findAll(Specification<T> spec, Pageable pageable);
-    T findOneById(ID var1);
 }

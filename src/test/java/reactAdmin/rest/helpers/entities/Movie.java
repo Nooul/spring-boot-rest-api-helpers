@@ -30,6 +30,9 @@ public class Movie {
     @ManyToMany(mappedBy="movies")
     private List<Actor> actors = new ArrayList<>();
 
+    @OneToOne
+    private UUID uuid;
+
 
 
 }
