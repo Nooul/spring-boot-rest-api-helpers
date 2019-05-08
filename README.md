@@ -1,6 +1,6 @@
 # spring-boot-rest-api-helpers
 
-Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see demo) that queries like that:
+Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see [documentation](https://marmelab.com/react-admin/DataProviders.html)) that queries like that:
 ```    
     GET /api/v1/movies?filter={id: 1} //get by id = 1
     GET /api/v1/movies?filter={id: [1,2]} // get by id = 1 or id = 2
@@ -49,11 +49,10 @@ public class ActorController {
 
 The main important parts include:
 
-- `@ControllerAdvices` that wrap the results with paging and number of results information
-- `BaseController` class that needs to be extended by each of the resource `RestControllers`
-- `BaseRepository` interface that needs to be extendded by each of resource `Repositories`
-- `CustomSpecifications` does all the magic of Criteria API query generation so that filtering and sorting works
-- `ObjectMapperProvider` that needs to be used by the Spring Boot Application so serialization and deserialization works without Getters and Setters
+- `@ControllerAdvices` that wrap Collections in objects {content: []) with paging and number of results information along with Status Codes based on Exceptions thrown.
+- `BaseRepository` interface that needs to be extended by each of resource `Repositories`
+- `CustomSpecifications` does all the magic of Criteria API query generation so that filtering and sorting works along with `FilterService` that provides some helper methods to the Controller code and helps provide convert the String query params to `FilterWrapper` so that it can be injected behind the scenes.
+- `ObjectMapperProvider` that can be used by the Spring Boot Application in case serialization and deserialization need to work through fields instead of Getters and Setters
 
 ## Installation
 
@@ -103,7 +102,7 @@ spring-boot-rest-api-helpers.use-snake-case = false
 - for each of the admin-on-rest resources create an interface `XYZRepository` that extends `BaseRepository<XYZ>`
 - for each of the admin-on-rest resources create a class `XYZController` annotated with `@RestController` that extends `BaseController`
 
-## Fully working example
+## Fully working example (outdated)
 
 For an example of how it can be used along admin-on-rest there is a fork of [admin-on-rest-demo](https://github.com/marmelab/admin-on-rest-demo)
 that is fully working and uses [react-admin-java-rest](https://github.com/zifnab87/react-admin-java-rest)
