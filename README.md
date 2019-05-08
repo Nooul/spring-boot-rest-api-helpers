@@ -8,11 +8,9 @@ Inspired by built-in fake REST data provider [react-admin](https://github.com/ma
     GET /api/v1/actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
     GET /api/v1/actors?filter={q: Keanu Reeves%} // full text search on all text fields
 ```
-This repo used to be called `react-admin-java-rest` and it was used to provide the needed building blocks for building a real backend API like that can give responses to the above requests in conjuction with react-admin/admin-on-rest (used here together: https://github.com/zifnab87/admin-on-rest-demo-java-rest). Since the time of their first incarnation, it seemed obvious that those API helpers were useful outside of the react-admin REST API realm, so the name spring-boot-rest-api-helpers was given.
+More Inspiration was drawn from languages like [FIQL/RSQL](https://github.com/jirutka/rsql-parser) so recently more features were added along with in-memory integration tests, support for non-number primary keys,  resulting in a total refactoring of the code and fix of a lot of bugs (there are still some edge cases).
 
-More Inspiration was drawn from languages like [FIQL/RSQL](https://github.com/jirutka/rsql-parser) so recently more features were added along with in-memory integration tests - resulting in total refactoring of the code and fix of a lot of bugs (there are still some edge cases) 
-
-Now it is possible to do the following (after url-encode of the query part of the url):
+Now it is possible to also do the following (after url-encode of the query part of the url):
 ```
     GET /movies?filter={idNot: 1} //get by id != 1
     GET /actors?filter={movies: null} = //actors that have played in no movie
@@ -98,9 +96,16 @@ and add this as a dependency in your pom.xml dependencies:
 ```
 spring-boot-rest-api-helpers.use-snake-case = false
 ```
-- for each of the admin-on-rest resources create a class `XYZ` that is annotated with `@Entity`
-- for each of the admin-on-rest resources create an interface `XYZRepository` that extends `BaseRepository<XYZ>`
-- for each of the admin-on-rest resources create a class `XYZController` annotated with `@RestController` that extends `BaseController`
+- for each of the Rest API resources create a class `XYZ` that is annotated with `@Entity`
+- for each of the Rest API resources create an interface `XYZRepository` that extends `BaseRepository<XYZ,KeyType>`
+- for each of the Rest API resources create a class `XYZController` annotated with `@RestController`
+
+for more examples see/run the integration tests
+
+## Previous Versions
+
+This repo used to be called `react-admin-java-rest` and it was used to provide the needed building blocks for building a real backend API like that can give responses to the above requests in conjuction with react-admin/admin-on-rest (used here together: https://github.com/zifnab87/admin-on-rest-demo-java-rest). Since the time of their first incarnation, it seemed obvious that those API helpers were useful outside of the react-admin REST API realm, so the name `spring-boot-rest-api-helpers` was given.
+
 
 ## Fully working example (outdated)
 
