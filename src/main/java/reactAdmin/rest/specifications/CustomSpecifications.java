@@ -66,14 +66,19 @@ public class CustomSpecifications<T> {
 
                     if (isKeyClean) {
                         if(isValueCollection) {
-                            pred = createConjunctiveEqualityPredicate(builder, root, a, (Collection) val);
+                            pred = createDisjunctiveEqualityPredicate(builder, root, a, (Collection) val);
                         }
                         else {
                             pred = createEqualityPredicate(builder, root, a, val);
                         }
                     }
                     else if (isNegation) {
-                        pred = createNegationPredicate(builder, root, a, val);
+                        if(isValueCollection) {
+                            pred = createConjunctiveInequalityPredicate(builder, root, a, (Collection)val);
+                        }
+                        else {
+                            pred = createNegationPredicate(builder, root, a, val);
+                        }
                     }
                     else if (isLte) {
                         pred = createLtePredicate(builder, root, a, val);
@@ -105,6 +110,11 @@ public class CustomSpecifications<T> {
         return key;
     }
 
+    private Predicate createNegationPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        return builder.not(createEqualityPredicate(builder, root, a, val));
+    }
+
+
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val == null) {
             if (a.isAssociation() && a.isCollection()) {
@@ -123,29 +133,9 @@ public class CustomSpecifications<T> {
         else if(a.isAssociation()) {
             return root.join(a.getName()).get("id").in(val);
         }
-        throw new IllegalArgumentException("equality is currently supported on primitives and enums");
+        throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
 
-    private Predicate createNegationPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
-        if (val == null) {
-            if (a.isAssociation() && a.isCollection()) {
-                return builder.isNotEmpty(root.get(a.getName()));
-            }
-            else {
-                return root.get(a.getName()).isNotNull();
-            }
-        }
-        else if (isEnum(a)) {
-            return builder.notEqual(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
-        }
-        else if (isPrimitive(a)) {
-            return builder.notEqual(root.get(a.getName()), val);
-        }
-        else if(a.isAssociation()) {
-            return builder.not(root.join(a.getName()).get("id").in(val));
-        }
-        throw new IllegalArgumentException("negation is currently supported on primitives and enums");
-    }
 
 
 
@@ -185,7 +175,11 @@ public class CustomSpecifications<T> {
         throw new IllegalArgumentException("val type not supported yet");
     }
 
-    private Predicate createConjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
+    private Predicate createConjunctiveInequalityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
+        return builder.not(createDisjunctiveEqualityPredicate(builder, root, a, colVal));
+    }
+
+    private Predicate createDisjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
         List<Predicate> orPredicates = new ArrayList<>();
         for (Object el : colVal) {
             Predicate orPred;

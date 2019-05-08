@@ -387,6 +387,25 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void fetch_by_multiple_ids__fetch_movies_by_not_including_ids() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesByNotIds = movieController.filterBy("{ idNot: ["+matrix.getId()+","+constantine.getId()+"]}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesByNotIds));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void fetch_by_id__fetch_movie_by_id() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
