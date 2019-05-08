@@ -1,6 +1,6 @@
 # spring-boot-rest-api-helpers
 
-Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see demo) that queries like that:
+Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see [documentation](https://marmelab.com/react-admin/DataProviders.html)) that queries like that:
 ```    
     GET /api/v1/movies?filter={id: 1} //get by id = 1
     GET /api/v1/movies?filter={id: [1,2]} // get by id = 1 or id = 2
