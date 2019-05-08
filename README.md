@@ -6,7 +6,7 @@ Inspired by built-in fake REST data provider [react-admin](https://github.com/ma
     GET /api/v1/movies?filter={id: [1,2]} // get by id = 1 or id = 2
     GET /api/v1/actors?filter={movies: 1, firstName: John} = //actors played in movie with id = 1 and their first  name is John
     GET /api/v1/actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
-    GET /api/v1/actors?filter={q: Keanu Reeves%} // full text search on all text fields
+    GET /api/v1/actors?filter={q: %Keanu Re%} // full text search on all text fields
 ```
 More Inspiration was drawn from languages like [FIQL/RSQL](https://github.com/jirutka/rsql-parser) so recently more features were added along with in-memory integration tests, support for non-number primary keys,  resulting in a total refactoring of the code and fix of a lot of bugs (there are still some edge cases).
 
@@ -18,7 +18,7 @@ Now it is possible to also do the following (after url-encode of the query part 
     GET /actors?filter={movies: [1,2]} = //actors played in either movie with id = 1, or movie with id = 2
     GET /actors?filter={moviesAnd: [1,2]} = //actors played in both movies with id = 1 and id = 2
     GET /actors?filter={moviesNot: [1,2]} = //actors played in neither movie with id = 1, nor movie with id = 2
-    GET /actors?filter={name: Keanu Reeves%} // full text search on specific fields just by the inclusion of one or two '%' in the value
+    GET /actors?filter={name: Keanu Ree%} // full text search on specific fields just by the inclusion of one or two '%' in the value
 ```
 The key names are not the ones on the database but the ones exposed by the REST API and are the names of the entity attribute names. Here `movies` is plural because an Actor has `@ManyToMany` annotation on `List<Movie> movies` attribute.  
     
