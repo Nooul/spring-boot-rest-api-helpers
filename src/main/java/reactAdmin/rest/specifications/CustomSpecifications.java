@@ -16,7 +16,7 @@ import java.util.*;
 @Service
 public class CustomSpecifications<T> {
 
-    public Specification<T> seachInAllAttributes(String text, List<String> includeOnlyFields) {
+    public Specification<T> searchInAllAttributes(String text, List<String> includeOnlyFields) {
 
         if (!text.contains("%")) {
             text = "%" + text + "%";

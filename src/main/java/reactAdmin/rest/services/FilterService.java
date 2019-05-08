@@ -120,13 +120,13 @@ public class FilterService<T,I extends Serializable> {
                 map = convertToCamelCase(map);
             }
             if (map.isEmpty() && containsQ) {
-                return repo.findAll(Specification.where(specifications.seachInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
+                return repo.findAll(Specification.where(specifications.searchInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
             }
             else if(!map.isEmpty() && !containsQ) {
                 return repo.findAll(Specification.where(specifications.equalToEachColumn(map)), PageRequest.of(page,size, sortDir, sortBy));
             }
             else if(!map.isEmpty() && containsQ) {
-                return repo.findAll(Specification.where(specifications.equalToEachColumn(map)).and(specifications.seachInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
+                return repo.findAll(Specification.where(specifications.equalToEachColumn(map)).and(specifications.searchInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
             }
             else {
                 return repo.findAll(PageRequest.of(page,size, sortDir, sortBy));
