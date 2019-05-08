@@ -8,7 +8,7 @@ Inspired by built-in fake REST data provider [react-admin](https://github.com/ma
     GET /api/v1/actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
     GET /api/v1/actors?filter={q: Keanu Reeves%} // full text search on all text fields
 ```
-This repo used to be called 'react-admin-java-rest and it was used to provide the needed building blocks for building an ip like the above one. Since the time the first incarnation of those helpers were written it seemed obvious that those helpers are useful outside of the react-admin REST API realm, so the name spring-boot-api-helpers was given.
+This repo used to be called `react-admin-java-rest` and it was used to provide the needed building blocks for building a real backend API like that can give responses to the above requests in conjuction with react-admin/admin-on-rest (used here together: https://github.com/zifnab87/admin-on-rest-demo-java-rest). Since the time of their first incarnation, it seemed obvious that those API helpers were useful outside of the react-admin REST API realm, so the name spring-boot-rest-api-helpers was given.
 
 More Inspiration was drawn from languages like [FIQL/RSQL](https://github.com/jirutka/rsql-parser) so recently more features were added along with in-memory integration tests - resulting in total refactoring of the code and fix of a lot of bugs (there are still some edge cases) 
 
@@ -73,8 +73,8 @@ and add this as a dependency in your pom.xml dependencies:
 
         <dependency>
             <groupId>com.github.zifnab87</groupId>
-            <artifactId>spring-boot-api-helpers</artifactId>
-            <version>128bce3</version> <!-- or latest short commit id -->
+            <artifactId>spring-boot-rest-api-helpers</artifactId>
+            <version>edb1770</version> <!-- or latest short commit id -->
         </dependency>
         
 ## Usage
