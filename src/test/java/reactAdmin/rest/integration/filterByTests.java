@@ -677,4 +677,25 @@ public class filterByTests {
         Iterable<Movie> movieByFullText = movieController.filterBy("{q:atr}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByFullText));
     }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void find_all_works() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Iterable<Movie> allMovies = movieController.filterBy("{}", null, null);
+        Assert.assertEquals(3, IterableUtil.sizeOf(allMovies));
+        Iterable<Movie> allMovies2 = movieController.filterBy(null, null, null);
+        Assert.assertEquals(3, IterableUtil.sizeOf(allMovies2));
+    }
 }
