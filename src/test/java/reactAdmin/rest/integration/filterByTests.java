@@ -521,7 +521,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{name: %The Matr}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy("{name: The Matr%}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
@@ -540,7 +540,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{name: loaded%}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy("{name: %loaded}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
@@ -560,7 +560,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByName = movieController.filterBy("{name: %atri%}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
