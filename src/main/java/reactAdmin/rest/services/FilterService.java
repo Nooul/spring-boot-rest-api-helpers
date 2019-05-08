@@ -103,34 +103,14 @@ public class FilterService<T,I extends Serializable> {
             return repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
         }
         else {
-            boolean containsQ = false;
-            String text = "";
-            if (filter.has("q")) {
-                text = (String) filter.get("q");
-                containsQ = true;
-            }
-
             HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
-
-            if (containsQ) {
-                map.remove("q");
-            }
 
             if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                 map = convertToCamelCase(map);
             }
-            if (map.isEmpty() && containsQ) {
-                return repo.findAll(Specification.where(specifications.searchInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
-            }
-            else if(!map.isEmpty() && !containsQ) {
-                return repo.findAll(Specification.where(specifications.equalToEachColumn(map)), PageRequest.of(page,size, sortDir, sortBy));
-            }
-            else if(!map.isEmpty() && containsQ) {
-                return repo.findAll(Specification.where(specifications.equalToEachColumn(map)).and(specifications.searchInAllAttributes(text, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
-            }
-            else {
-                return repo.findAll(PageRequest.of(page,size, sortDir, sortBy));
-            }
+
+            return repo.findAll(Specification.where(specifications.customSpecificationBuilder(map, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
+
         }
     }
 

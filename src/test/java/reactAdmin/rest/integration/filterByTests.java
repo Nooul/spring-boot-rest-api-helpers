@@ -305,6 +305,49 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void reference_test_conjunctive_equality_in_list__fetch_actors_that_have_played_in_all_movies_of_query() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Actor carrie = new Actor();
+        carrie.setFirstName("Carrie-Anne");
+        carrie.setLastName("Moss");
+        carrie.setMovies(Arrays.asList(matrix));
+        actorRepository.save(carrie);
+
+        Actor noMovieActor = new Actor();
+        noMovieActor.setFirstName("No Movie");
+        noMovieActor.setLastName("Whatsoever");
+        actorRepository.save(noMovieActor);
+
+
+        Actor noMovieActor2 = new Actor();
+        noMovieActor2.setFirstName("No Movie");
+        noMovieActor2.setLastName("Whatsoever 2");
+        actorRepository.save(noMovieActor2);
+
+
+        Iterable<Actor> matrixAndConstantineActors = actorController.filterBy("{moviesAnd: ["+matrix.getId()+","+constantine.getId()+"]}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(matrixAndConstantineActors));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void reference_match__fetch_movie_by_actor_id() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");

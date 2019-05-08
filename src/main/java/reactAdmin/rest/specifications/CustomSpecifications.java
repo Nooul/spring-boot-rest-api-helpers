@@ -16,27 +16,17 @@ import java.util.*;
 @Service
 public class CustomSpecifications<T> {
 
-    public Specification<T> searchInAllAttributes(String text, List<String> includeOnlyFields) {
 
-        if (!text.contains("%")) {
-            text = "%" + text + "%";
-        }
-        final String finalText = text;
-
-        return (Specification<T>) (root, cq, builder) -> builder.or(root.getModel().getAttributes().stream().filter(a ->
-                        (a.getJavaType().getSimpleName().equalsIgnoreCase("string")
-                                && (includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName())))
-                ).map(a -> builder.like(root.get(a.getName()), finalText)
-                ).toArray(Predicate[]::new)
-        );
-    }
-
-
-    public Specification<T> equalToEachColumn(Map<String, Object> map) {
+    public Specification<T> customSpecificationBuilder(Map<String, Object> map, List<String> includeOnlyFields) {
 
         return (Specification<T>) (root, query, builder) -> {
 
             final List<Predicate> predicates = new ArrayList<>();
+            Predicate pred = builder.conjunction();
+            if (map.containsKey("q") && map.get("q") instanceof String) {
+                predicates.add(searchInAllAttributesPredicate(builder, root, (String) map.get("q"), includeOnlyFields));
+                map.remove("q");
+            }
 
             Set<SingularAttribute<? super T, ?>> singularAttributes = root.getModel().getSingularAttributes();
             Set<PluralAttribute<? super T, ?, ?>> pluralAttributes = root.getModel().getPluralAttributes();
@@ -48,7 +38,7 @@ public class CustomSpecifications<T> {
                 Object val = extractId(e.getValue());
                 String cleanKey = cleanUpKey(key);
                 Attribute a = root.getModel().getAttribute(cleanKey);
-                Predicate pred = builder.conjunction();
+
                 if (attributes.contains(a)) {
                     boolean isAttributePrimitive = isPrimitive(a);
                     boolean isAttributeReferenced = a.isAssociation();//isCollection(a) || (!isPrimitive(a) && !isEnum(a));
@@ -62,7 +52,7 @@ public class CustomSpecifications<T> {
                     boolean isGte = key.endsWith("Gte");
                     boolean isLt = key.endsWith("Lt");
                     boolean isLte = key.endsWith("Lte");
-                    boolean isConjunction = key.endsWith("Or");
+                    boolean isConjunction = key.endsWith("And");
 
                     if (isKeyClean) {
                         if(isValueCollection) {
@@ -78,6 +68,11 @@ public class CustomSpecifications<T> {
                         }
                         else {
                             pred = createNegationPredicate(builder, root, a, val);
+                        }
+                    }
+                    else if (isConjunction) {
+                        if(isValueCollection) {
+                            pred = createConjunctiveEqualityPredicate(builder, root, a, (Collection)val);
                         }
                     }
                     else if (isLte) {
@@ -101,13 +96,36 @@ public class CustomSpecifications<T> {
 
     private String cleanUpKey(String key) {
 
-        List<String> postfixes = Arrays.asList("Gte", "Gt", "Lte", "Lt", "Not", "Or");
+        List<String> postfixes = Arrays.asList("Gte", "Gt", "Lte", "Lt", "Not", "And");
         for (String postfix: postfixes) {
             if (key.endsWith(postfix)) {
                 return key.substring(0, key.length() - postfix.length());
             }
         }
         return key;
+    }
+
+    public Predicate searchInAllAttributesPredicate(CriteriaBuilder builder, Root root, String text, List<String> includeOnlyFields) {
+
+        if (!text.contains("%")) {
+            text = "%" + text + "%";
+        }
+        final String finalText = text;
+
+        Set<Attribute> attributes = root.getModel().getAttributes();
+        List<Predicate> orPredicates = new ArrayList<>();
+        for (Attribute a: attributes) {
+            boolean javaTypeIsString = a.getJavaType().getSimpleName().equalsIgnoreCase("string");
+            boolean shouldSearch = includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName());
+            if (javaTypeIsString && shouldSearch) {
+                Predicate orPred = builder.like(root.get(a.getName()), finalText);
+                orPredicates.add(orPred);
+            }
+
+        }
+
+        return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
+
     }
 
     private Predicate createNegationPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
@@ -192,6 +210,22 @@ public class CustomSpecifications<T> {
             orPredicates.add(orPred);
         }
         return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
+
+    }
+
+    private Predicate createConjunctiveEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection colVal) {
+        List<Predicate> andPredicates = new ArrayList<>();
+        for (Object el : colVal) {
+            Predicate andPred;
+            if (!a.isAssociation()) {
+                andPred = builder.equal(root.get(a.getName()), el);
+            }
+            else {
+                andPred = root.join(a.getName()).get("id").in(el);
+            }
+            andPredicates.add(andPred);
+        }
+        return builder.and(andPredicates.toArray(new Predicate[andPredicates.size()]));
 
     }
 
