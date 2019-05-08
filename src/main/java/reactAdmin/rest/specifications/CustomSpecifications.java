@@ -8,8 +8,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.PluralAttribute;
-import javax.persistence.metamodel.SingularAttribute;
 import java.util.*;
 
 //from: https://github.com/zifnab87/react-admin-java-rest/blob/master/src/main/java/reactAdmin/rest/specifications/ReactAdminSpecifications.java
@@ -28,9 +26,6 @@ public class CustomSpecifications<T> {
                 map.remove("q");
             }
 
-            Set<SingularAttribute<? super T, ?>> singularAttributes = root.getModel().getSingularAttributes();
-            Set<PluralAttribute<? super T, ?, ?>> pluralAttributes = root.getModel().getPluralAttributes();
-
             Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
 
             for (Map.Entry e : map.entrySet()) {
@@ -40,13 +35,9 @@ public class CustomSpecifications<T> {
                 Attribute a = root.getModel().getAttribute(cleanKey);
 
                 if (attributes.contains(a)) {
-                    boolean isAttributePrimitive = isPrimitive(a);
-                    boolean isAttributeReferenced = a.isAssociation();//isCollection(a) || (!isPrimitive(a) && !isEnum(a));
-                    boolean isAttributeEnum = isEnum(a);
-                    boolean isValueNull = val == null;
                     boolean isValueCollection = val instanceof Collection;
                     boolean isKeyClean = cleanKey.equals(key);
-
+                    boolean isValTextSearch = (val instanceof String) && ((String)val).contains("%");
                     boolean isNegation = key.endsWith("Not");
                     boolean isGt = key.endsWith("Gt");
                     boolean isGte = key.endsWith("Gte");
@@ -58,6 +49,9 @@ public class CustomSpecifications<T> {
                         if(isValueCollection) {
                             pred = createDisjunctiveEqualityPredicate(builder, root, a, (Collection) val);
                         }
+                        else if (isValTextSearch) {
+                            pred = createLikePredicate(builder, root, a, (String) val);
+                        }
                         else {
                             pred = createEqualityPredicate(builder, root, a, val);
                         }
@@ -65,6 +59,9 @@ public class CustomSpecifications<T> {
                     else if (isNegation) {
                         if(isValueCollection) {
                             pred = createConjunctiveInequalityPredicate(builder, root, a, (Collection)val);
+                        }
+                        else if(isValTextSearch) {
+                            pred = createNotLikePredicate(builder, root, a, (String) val);
                         }
                         else {
                             pred = createNegationPredicate(builder, root, a, val);
@@ -153,6 +150,16 @@ public class CustomSpecifications<T> {
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
+
+
+    private Predicate createLikePredicate(CriteriaBuilder builder, Root<T> root, Attribute a, String val) {
+        return builder.like(root.get(a.getName()), val);
+    }
+
+    private Predicate createNotLikePredicate(CriteriaBuilder builder, Root<T> root, Attribute a, String val) {
+        return builder.notLike(root.get(a.getName()), val);
+    }
+
 
 
 

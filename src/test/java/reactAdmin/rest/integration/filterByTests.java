@@ -508,6 +508,63 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void search_text_on_primitive__fetch_movie_by_name_prefix() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("The Matrix: Reloaded");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Iterable<Movie> movieByName = movieController.filterBy("{name: %The Matr}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void search_text_on_primitive__fetch_movie_by_name_postfix() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("The Matrix: Reloaded");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Iterable<Movie> movieByName = movieController.filterBy("{name: loaded%}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void search_text_on_primitive__fetch_movie_by_name_infix() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("The Matrix: Reloaded");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Iterable<Movie> movieByName = movieController.filterBy("{name: %atri%}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void exact_match_of_primitive__fetch_movie_by_not_name() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
