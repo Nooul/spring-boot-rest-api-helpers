@@ -52,24 +52,35 @@ public class FilterService<T,I extends Serializable> {
         return new FilterWrapper(filter, range, sort);
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, List<String> searchOnlyInFields) {
-        return filterByHelper(repo, specifications, filterWrapper, searchOnlyInFields);
-    }
 
     public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T,I> repo) {
-        return filterByHelper(repo, specifications, filterWrapper);
+        return filterByHelper(repo, specifications, filterWrapper, "id", new ArrayList<>());
+    }
+
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, String primaryKeyName) {
+
+        return filterByHelper(repo, specifications, filterWrapper, primaryKeyName, new ArrayList<>());
+    }
+
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, String primaryKeyName, List<String> searchOnlyInFields) {
+
+        return filterByHelper(repo, specifications, filterWrapper, primaryKeyName, searchOnlyInFields);
+    }
+
+    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, List<String> searchOnlyInFields) {
+
+        return filterByHelper(repo, specifications, filterWrapper, "id", searchOnlyInFields);
     }
 
 
-    private <T> Page<T> filterByHelper(BaseRepository<T,I> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper) {
-        return filterByHelper(repo,specifications, filterWrapper, new ArrayList<>());
-    }
-
-
-    private <T> Page<T> filterByHelper(BaseRepository<T, I> repo, CustomSpecifications<T> specifications, FilterWrapper filterWrapper, List<String> searchOnlyInFields) {
+    private <T> Page<T> filterByHelper(BaseRepository<T, I> repo,
+                                       CustomSpecifications<T> specifications,
+                                       FilterWrapper filterWrapper,
+                                       String primaryKeyName,
+                                       List<String> searchOnlyInFields) {
         String usesSnakeCase = env.getProperty("custom-filter-service.use-snake-case");
 
-        String sortBy = "id";
+        String sortBy = primaryKeyName;
         String order = "DESC";
         JSONObject filter = filterWrapper.getFilter();
         JSONArray range = filterWrapper.getRange();
@@ -109,7 +120,10 @@ public class FilterService<T,I extends Serializable> {
                 map = convertToCamelCase(map);
             }
 
-            return repo.findAll(Specification.where(specifications.customSpecificationBuilder(map, searchOnlyInFields)), PageRequest.of(page,size, sortDir, sortBy));
+            return repo.findAll(Specification.where(
+                    specifications.customSpecificationBuilder(
+                            map, searchOnlyInFields, primaryKeyName)
+            ), PageRequest.of(page,size, sortDir, sortBy));
 
         }
     }

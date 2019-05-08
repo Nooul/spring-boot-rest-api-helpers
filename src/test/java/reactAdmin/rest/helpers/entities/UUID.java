@@ -14,4 +14,8 @@ import javax.persistence.Id;
 public class UUID {
     @Id
     private String uuid;
+
+    public UUID(String uuid) {
+        this.uuid = uuid;
+    }
 }

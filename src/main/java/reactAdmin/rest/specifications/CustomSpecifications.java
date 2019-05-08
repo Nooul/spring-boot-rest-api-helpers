@@ -4,18 +4,23 @@ package reactAdmin.rest.specifications;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.*;
 import java.util.*;
 
 //from: https://github.com/zifnab87/react-admin-java-rest/blob/master/src/main/java/reactAdmin/rest/specifications/ReactAdminSpecifications.java
 @Service
 public class CustomSpecifications<T> {
 
+    @PersistenceContext
+    EntityManager em;
 
-    public Specification<T> customSpecificationBuilder(Map<String, Object> map, List<String> includeOnlyFields) {
+    public Specification<T> customSpecificationBuilder(Map<String, Object> map, List<String> includeOnlyFields, String primaryKeyName) {
 
         return (Specification<T>) (root, query, builder) -> {
 
@@ -28,13 +33,15 @@ public class CustomSpecifications<T> {
 
             Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
 
+            System.out.println(primaryKeyName);
             for (Map.Entry e : map.entrySet()) {
                 String key = (String) e.getKey();
-                Object val = extractId(e.getValue());
+                Object val = extractId(e.getValue(), primaryKeyName);
                 String cleanKey = cleanUpKey(key);
                 Attribute a = root.getModel().getAttribute(cleanKey);
 
                 if (attributes.contains(a)) {
+
                     boolean isValueCollection = val instanceof Collection;
                     boolean isKeyClean = cleanKey.equals(key);
                     boolean isValTextSearch = (val instanceof String) && ((String)val).contains("%");
@@ -44,6 +51,7 @@ public class CustomSpecifications<T> {
                     boolean isLt = key.endsWith("Lt");
                     boolean isLte = key.endsWith("Lte");
                     boolean isConjunction = key.endsWith("And");
+
 
                     if (isKeyClean) {
                         if(isValueCollection) {
@@ -89,6 +97,23 @@ public class CustomSpecifications<T> {
             }
             return builder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
+    }
+
+
+
+    // https://stackoverflow.com/a/16911313/986160
+    //https://stackoverflow.com/a/47793003/986160
+    public String getIdAttribute(EntityManager em,
+                                                              String fullClassName) {
+        Class<? extends Object> clazz = null;
+        try {
+            clazz = Class.forName(fullClassName);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Metamodel m = em.getMetamodel();
+        IdentifiableType<T> of = (IdentifiableType<T>) m.managedType(clazz);
+        return of.getId(of.getIdType().getJavaType()).getName();
     }
 
     private String cleanUpKey(String key) {
@@ -146,7 +171,10 @@ public class CustomSpecifications<T> {
             return builder.equal(root.get(a.getName()), val);
         }
         else if(a.isAssociation()) {
-            return root.join(a.getName()).get("id").in(val);
+            Path rootJoinGetName = root.join(a.getName());
+            String referencedClassName = rootJoinGetName.getJavaType().getName();
+            String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
+            return rootJoinGetName.get(referencedPrimaryKey).in(val);
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
@@ -212,7 +240,10 @@ public class CustomSpecifications<T> {
                 orPred = builder.equal(root.get(a.getName()), el);
             }
             else {
-                orPred = root.join(a.getName()).get("id").in(el);
+                Path rootJoinGetName = root.join(a.getName());
+                String referencedClassName = rootJoinGetName.getJavaType().getName();
+                String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
+                orPred = rootJoinGetName.get(referencedPrimaryKey).in(el);
             }
             orPredicates.add(orPred);
         }
@@ -228,7 +259,10 @@ public class CustomSpecifications<T> {
                 andPred = builder.equal(root.get(a.getName()), el);
             }
             else {
-                andPred = root.join(a.getName()).get("id").in(el);
+                Path rootJoinGetName = root.join(a.getName());
+                String referencedClassName = rootJoinGetName.getJavaType().getName();
+                String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
+                andPred = rootJoinGetName.get(referencedPrimaryKey).in(el);
             }
             andPredicates.add(andPred);
         }
@@ -237,11 +271,11 @@ public class CustomSpecifications<T> {
     }
 
 
-    private Object extractId(Object val) {
+    private Object extractId(Object val, String primaryKeyName) {
         if (val instanceof Map) {
-            val = ((Map) val).get("id");
+            val = ((Map) val).get(primaryKeyName);
         } else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
-            val = ((Map) ((ArrayList) val).get(0)).get("id");
+            val = ((Map) ((ArrayList) val).get(0)).get(primaryKeyName);
         }
 
         return val;

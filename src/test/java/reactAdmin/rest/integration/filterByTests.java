@@ -1,6 +1,7 @@
 package reactAdmin.rest.integration;
 
 import org.assertj.core.util.IterableUtil;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,9 +12,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import reactAdmin.rest.helpers.controllers.ActorController;
 import reactAdmin.rest.helpers.controllers.MovieController;
+import reactAdmin.rest.helpers.controllers.UuidController;
 import reactAdmin.rest.helpers.entities.Actor;
 import reactAdmin.rest.helpers.entities.Director;
 import reactAdmin.rest.helpers.entities.Movie;
+import reactAdmin.rest.helpers.entities.UUID;
 import reactAdmin.rest.helpers.repositories.*;
 
 import java.util.Arrays;
@@ -36,10 +39,18 @@ public class filterByTests {
     private DirectorRepository directorRepository;
 
     @Autowired
+    private UuidRepository uuidRepository;
+
+    @Autowired
     private MovieController movieController;
 
     @Autowired
     private ActorController actorController;
+
+    @Autowired
+    private UuidController uuidController;
+
+
 
 
 //    @Before
@@ -580,6 +591,28 @@ public class filterByTests {
 
         Iterable<Movie> movieByName = movieController.filterBy("{nameNot: The Matr%}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void filter_by_primary_key_that_is_not_called_id() {
+        UUID uuid = new UUID("ad2qewqdscasd2e123");
+        uuidRepository.save(uuid);
+
+        Iterable<UUID> uuidsByUuid = uuidController.filterBy("{uuid: ad2qewqdscasd2e123}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void filter_by_foreign_key_that_is_not_called_id() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setUuid(new UUID("ad2qewqdscasd2e123"));
+        movieRepository.save(matrix);
+
+        Iterable<Movie> movieByUuid = movieController.filterBy("{uuid: ad2qewqdscasd2e123}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(movieByUuid));
     }
 
     @Test
