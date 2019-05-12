@@ -33,8 +33,8 @@ public class CustomSpecifications<T> {
 
             Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
 
-            String rootFullClassName = root.getModel().getJavaType().getName();
-            String primaryKeyName = getIdAttribute(em, rootFullClassName);
+            Class<T> rootFullClass = root.getModel().getJavaType();
+            String primaryKeyName = getIdAttribute(em, rootFullClass);
             for (Map.Entry e : map.entrySet()) {
                 String key = (String) e.getKey();
                 Object val = extractId(e.getValue(), primaryKeyName);
@@ -102,15 +102,9 @@ public class CustomSpecifications<T> {
 
 
 
-    // https://stackoverflow.com/a/16911313/986160
+    //https://stackoverflow.com/a/16911313/986160
     //https://stackoverflow.com/a/47793003/986160
-    public String getIdAttribute(EntityManager em, String fullClassName) {
-        Class<? extends Object> clazz = null;
-        try {
-            clazz = Class.forName(fullClassName);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+    public String getIdAttribute(EntityManager em, Class<T> clazz) {
         Metamodel m = em.getMetamodel();
         IdentifiableType<T> of = (IdentifiableType<T>) m.managedType(clazz);
         return of.getId(of.getIdType().getJavaType()).getName();
@@ -260,8 +254,8 @@ public class CustomSpecifications<T> {
 
     private Predicate prepareJoinAssociatedPredicate(Root root, Attribute a, Object val) {
         Path rootJoinGetName = root.join(a.getName());
-        String referencedClassName = rootJoinGetName.getJavaType().getName();
-        String referencedPrimaryKey = getIdAttribute(em, referencedClassName);
+        Class referencedClass = rootJoinGetName.getJavaType();
+        String referencedPrimaryKey = getIdAttribute(em, referencedClass);
         return rootJoinGetName.get(referencedPrimaryKey).in(val);
     }
 
