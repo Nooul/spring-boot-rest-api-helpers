@@ -2,11 +2,11 @@
 
 Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see [documentation](https://marmelab.com/react-admin/DataProviders.html)) that queries like that:
 ```    
-    GET /api/v1/movies?filter={id: 1} //get movies by id = 1
-    GET /api/v1/movies?filter={id: [1,2]} // get movies by id = 1 or id = 2
-    GET /api/v1/actors?filter={movies: 1, firstName: John} = //actors played in movie with id = 1 and their first  name is John
-    GET /api/v1/actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
-    GET /api/v1/actors?filter={q: %Keanu Re%} // full text search on all text fields
+    GET /movies?filter={id: 1} //get movies by id = 1
+    GET /movies?filter={id: [1,2]} // get movies by id = 1 or id = 2
+    GET /actors?filter={movies: 1, firstName: John} = //actors played in movie with id = 1 and their first  name is John
+    GET /actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
+    GET /actors?filter={q: %Keanu Re%} // full text search on all text fields
 ```
 More Inspiration was drawn from languages like [FIQL/RSQL](https://github.com/jirutka/rsql-parser) so recently more features were added along with in-memory integration tests, support for non-number primary keys,  resulting in a total refactoring of the code and fix of a lot of bugs (there are still some edge cases).
 
