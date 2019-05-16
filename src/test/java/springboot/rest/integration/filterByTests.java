@@ -313,6 +313,9 @@ public class filterByTests {
         Assert.assertEquals(2, IterableUtil.sizeOf(withMovieActors));
     }
 
+
+
+
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void reference_test_conjunctive_equality_in_list__fetch_actors_that_have_played_in_all_movies_of_query() {
@@ -380,10 +383,10 @@ public class filterByTests {
 
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id: " + keanu.getId()+ "}}", null, null);
         Iterable<Movie> keanuMovies2 = movieController.filterBy("{actors: "+ keanu.getId()+ "}", null, null);
-//        Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{id: "+ keanu.getId()+ "}]}", null, null);
+        Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{id: "+ keanu.getId()+ "}]}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
-//        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
     }
 
     @Test
@@ -514,6 +517,147 @@ public class filterByTests {
 
         Iterable<Movie> movieByName = movieController.filterBy("{name:"+matrix.getName()+"}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+    }
+
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void two_level_many_to_many_fetch_movies_with_actor_id() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+
+
+        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id:"+keanu.getId()+"}}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void two_level_many_to_many_fetch_movies_with_actor_first_name() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:"+keanu.getFirstName()+", lastNameNot: Reves}}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void two_level_many_to_many_fetch_movies_with_actor_first_name_and_id_overrides() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id: "  + keanu.getId() +", firstName:"+keanu.getFirstName()+", lastNameNot: Reves}}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+        Iterable<Movie> constantineMovie = movieController.filterBy("{id: " + constantine.getId() +", actors: {id: "  + keanu.getId() +", firstName:"+keanu.getFirstName()+", lastNameNot: Reves}}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(constantineMovie));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void two_level_many_to_many_fetch_movies_with_actor_first_name_like() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:%ean%, lastName: %eeve%}}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void two_level_many_to_many_fetch_actors_with_movies_starting_with_matr_or_const() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Actor noMovieActor = new Actor();
+        noMovieActor.setFirstName("No Movie");
+        noMovieActor.setLastName("Whatsoever");
+        actorRepository.save(noMovieActor);
+
+        Actor noMovieActor2 = new Actor();
+        noMovieActor2.setFirstName("No Movie 2");
+        noMovieActor2.setLastName("Whatsoever 2");
+        actorRepository.save(noMovieActor2);
+
+
+        Iterable<Actor> actors = actorController.filterBy("{movies: [{name:%atr%},{name:%onest%}]}}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
     }
 
     @Test

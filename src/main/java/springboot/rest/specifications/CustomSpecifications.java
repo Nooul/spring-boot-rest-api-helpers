@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.*;
-import javax.persistence.metamodel.*;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.IdentifiableType;
+import javax.persistence.metamodel.Metamodel;
 import java.util.*;
 
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/specifications/CustomSpecifications.java
@@ -21,7 +23,7 @@ public class CustomSpecifications<T> {
 
         return (Specification<T>) (root, query, builder) -> {
 
-
+            query.distinct(true);
             List<Predicate> predicates = handleMap(builder, root, query, map, includeOnlyFields);
             return builder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
@@ -79,12 +81,12 @@ public class CustomSpecifications<T> {
 
 
         if (isKeyClean) {
-            return handleCleanKeyCase(builder, root, a, val);
+            return handleCleanKeyCase(builder, root, query, cleanKey, a,  val);
         } else if (isNegation) {
-            return builder.not(handleCleanKeyCase(builder, root, a, val));
+            return builder.not(handleCleanKeyCase(builder, root, query, cleanKey, a,  val));
         } else if (isConjunction) {
             if (isValueCollection) {
-                return createMultiValueEqualityPredicate(builder, root, a, (Collection) val, true);
+                return handleCollection(builder, root, query, a,  cleanKey, (Collection) val, true);
             }
         } else if (isLte) {
             return createLtePredicate(builder, root, a, val);
@@ -98,11 +100,21 @@ public class CustomSpecifications<T> {
         return builder.conjunction();
     }
 
-    public Predicate handleCleanKeyCase(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+    public Predicate handleCollection(CriteriaBuilder builder, Root root, CriteriaQuery query, Attribute a, String key, Collection values, boolean conjunction) {
+        List<Predicate> predicates = new ArrayList<>();
+        for (Object val : values) {
+            Predicate pred  = handleAllCases(builder, root, query, a, key, val);
+            predicates.add(pred);
+        }
+        Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
+        return (conjunction) ? builder.and(predicatesArray): builder.or(predicatesArray);
+    }
+
+    public Predicate handleCleanKeyCase(CriteriaBuilder builder, Root root, CriteriaQuery query, String key, Attribute a, Object val) {
         boolean isValueCollection = val instanceof Collection;
         boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         if (isValueCollection) {
-            return createMultiValueEqualityPredicate(builder, root, a, (Collection) val, false);
+            return handleCollection(builder, root, query, a,  key, (Collection) val, false);
         } else if (isValTextSearch) {
             return createLikePredicate(builder, root, a, (String) val);
         } else {
@@ -210,21 +222,6 @@ public class CustomSpecifications<T> {
         throw new IllegalArgumentException("val type not supported yet");
     }
 
-    private Predicate createMultiValueEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Collection values, boolean conjunction) {
-        List<Predicate> predicates = new ArrayList<>();
-        for (Object val : values) {
-            Predicate pred;
-            if (a.isAssociation()) {
-                pred = prepareJoinAssociatedPredicate(root, a, val);
-            } else {
-                pred = builder.equal(root.get(a.getName()), val);
-            }
-            predicates.add(pred);
-        }
-        Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
-        return (conjunction) ? builder.and(predicatesArray): builder.or(predicatesArray);
-    }
-
 
     private Predicate prepareJoinAssociatedPredicate(Root root, Attribute a, Object val) {
         Path rootJoinGetName = root.join(a.getName());
@@ -244,20 +241,16 @@ public class CustomSpecifications<T> {
 
 
     private Object convertIdValueToMap(Object val, Attribute a, Root root) {
-
         Class javaTypeOfAttribute = getJavaTypeOfClassContainingAttribute(root, a.getName());
         String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute);
         if (val instanceof Map && ((Map) val).keySet().size() == 1) {
             Map map = ((Map) val);
-            Object key = map.keySet().iterator().next();
-            if (key.equals(primaryKeyName)) {
-                val = map.get(primaryKeyName);
+            for (Object key: map.keySet()) {
+                if (key.equals(primaryKeyName)) {
+                    return map.get(primaryKeyName);
+                }
             }
         }
-//        } else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
-//            val = ((Map) ((ArrayList) val).get(0)).get(primaryKeyName);
-//        }
-
         return val;
     }
 

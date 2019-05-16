@@ -2,8 +2,8 @@
 
 Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see [documentation](https://marmelab.com/react-admin/DataProviders.html)) that queries like that:
 ```    
-    GET /api/v1/movies?filter={id: 1} //get by id = 1
-    GET /api/v1/movies?filter={id: [1,2]} // get by id = 1 or id = 2
+    GET /api/v1/movies?filter={id: 1} //get movies by id = 1
+    GET /api/v1/movies?filter={id: [1,2]} // get movies by id = 1 or id = 2
     GET /api/v1/actors?filter={movies: 1, firstName: John} = //actors played in movie with id = 1 and their first  name is John
     GET /api/v1/actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
     GET /api/v1/actors?filter={q: %Keanu Re%} // full text search on all text fields
@@ -12,13 +12,17 @@ More Inspiration was drawn from languages like [FIQL/RSQL](https://github.com/ji
 
 Now it is possible to also do the following (after url-encode of the query part of the url):
 ```
-    GET /movies?filter={idNot: 1} //get by id != 1
+    GET /movies?filter={idNot: 1} //get movies with id not equal to 1
     GET /actors?filter={movies: null} = //actors that have played in no movie
     GET /actors?filter={moviesNot: null} = //actors that have played to a movie
     GET /actors?filter={movies: [1,2]} = //actors played in either movie with id = 1, or movie with id = 2
     GET /actors?filter={moviesAnd: [1,2]} = //actors played in both movies with id = 1 and id = 2
     GET /actors?filter={moviesNot: [1,2]} = //actors played in neither movie with id = 1, nor movie with id = 2
     GET /actors?filter={name: Keanu Ree%} // full text search on specific fields just by the inclusion of one or two '%' in the value
+
+    GET /actors?filter={movies: {name: Matrix}} = //actors that have played in movie with name Matrix
+    GET /actors?filter={movies: {name: Matrix%}} = //actors that have played in movies with name starting with Matrix
+    GET /movies?filter={actors: {firstName: Keanu, lastNameNot: Reves}} = //movies with actors that firstName is 'Keanu' but lastName is not 'Reves'
 ```
 The key names are not the ones on the database but the ones exposed by the REST API and are the names of the entity attribute names. Here `movies` is plural because an Actor has `@ManyToMany` annotation on `List<Movie> movies` attribute.  
     
