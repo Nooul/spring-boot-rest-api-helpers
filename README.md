@@ -24,7 +24,20 @@ Now it is possible to also do the following (after url-encode of the query part 
     GET /actors?filter={movies: {name: Matrix%}} = //actors that have played in movies with name starting with Matrix
     GET /movies?filter={actors: {firstName: Keanu, lastNameNot: Reves}} = //movies with actors that firstName is 'Keanu' but lastName is not 'Reves'
 ```
-The key names are not the ones on the database but the ones exposed by the REST API and are the names of the entity attribute names. Here `movies` is plural because an Actor has `@ManyToMany` annotation on `List<Movie> movies` attribute.  
+The key names are not the ones on the database but the ones exposed by the REST API and are the names of the entity attribute names. Here `movies` is plural because an Actor has `@ManyToMany` annotation on `List<Movie> movies` attribute. 
+
+* Keep in mind that key/value pairs that are in { } are combined by default with AND.
+```
+/actors?filter={firstName:'A',lastName:'B'} => firstName = A and lastName = B
+```
+
+* Values or Objects that contain key/values in [] are combined by default with OR unless the key in front of the [] is ending with 'And'.
+```
+/actors?filter={movies: [1,2]} => actors having acted at movies with ids 1 OR 2 
+/movies?filter={actors: [{firstName:'A'}, {lastName:'B'}] } => movies having actors with firstName = A OR lastName = B
+/actors?filter={moviesAnd: [1,2]} => actors acted at movies with ids 1 AND 2 
+/movies?filter={actorsAnd: [{firstName:'A'}, {lastName:'B'}] } => movies having actors with firstName = A AND lastName = B
+```
     
 The above functionality is possible via this simple setup:
 ```java
