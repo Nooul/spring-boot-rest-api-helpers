@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -31,11 +32,19 @@ public class FilterService<T,I extends Serializable> {
 
 
     public FilterWrapper extractFilterWrapper(String filterStr, String rangeStr, String sortStr) {
-        JSONObject filter;
+        Object filterJsonOrArray;
         if (StringUtils.isBlank(filterStr)) {
             filterStr = "{}";
         }
-        filter = JSON.toJsonObject(filterStr);
+        filterJsonOrArray = new JSONTokener(filterStr).nextValue();
+        JSONObject filter = null;
+        JSONArray filterOr = null;
+        if (filterJsonOrArray instanceof JSONObject) {
+            filter = JSON.toJsonObject(filterStr);
+        }
+        else if (filterJsonOrArray instanceof JSONArray){
+            filterOr = JSON.toJsonArray(filterStr);
+        }
         JSONArray range;
         if (StringUtils.isBlank(rangeStr)) {
             rangeStr = "[]";
@@ -49,7 +58,7 @@ public class FilterService<T,I extends Serializable> {
         sort = JSON.toJsonArray(sortStr);
 
 
-        return new FilterWrapper(filter, range, sort);
+        return new FilterWrapper(filter, filterOr, range, sort);
     }
 
 
@@ -83,6 +92,7 @@ public class FilterService<T,I extends Serializable> {
         String sortBy = primaryKeyName;
         String order = "DESC";
         JSONObject filter = filterWrapper.getFilter();
+        JSONArray filterOr = filterWrapper.getFilterOr();
         JSONArray range = filterWrapper.getRange();
         JSONArray sort = filterWrapper.getSort();
 
@@ -110,10 +120,7 @@ public class FilterService<T,I extends Serializable> {
             sortDir = Sort.Direction.ASC;
         }
 
-        if (filter == null || filter.length() == 0) {
-            return repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
-        }
-        else {
+        if (filter != null && filter.length() > 0) {
             HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
 
             if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
@@ -125,6 +132,21 @@ public class FilterService<T,I extends Serializable> {
                             map, searchOnlyInFields)
             ), PageRequest.of(page,size, sortDir, sortBy));
 
+        }
+        else if (filterOr != null && filterOr.length() > 0) {
+            List list = filterOr.toList();
+
+            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                //map = convertToCamelCase(map); TODO for list
+            }
+
+            return repo.findAll(Specification.where(
+                    specifications.customSpecificationBuilder(list)
+            ), PageRequest.of(page,size, sortDir, sortBy));
+
+        }
+        else {
+            return repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
         }
     }
 

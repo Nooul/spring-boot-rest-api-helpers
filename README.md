@@ -23,6 +23,9 @@ Now it is possible to also do the following (after url-encode of the query part 
     GET /actors?filter={movies: {name: Matrix}} = //actors that have played in movie with name Matrix
     GET /actors?filter={movies: {name: Matrix%}} = //actors that have played in movies with name starting with Matrix
     GET /movies?filter={actors: {firstName: Keanu, lastNameNot: Reves}} = //movies with actors that firstName is 'Keanu' but lastName is not 'Reves'
+
+    GET /actors?filter=[{firstName: Keanu},{firstName: John}]} = //actors with firstName  'Keanu' or 'John'
+
 ```
 The key names are not the ones on the database but the ones exposed by the REST API and are the names of the entity attribute names. Here `movies` is plural because an Actor has `@ManyToMany` annotation on `List<Movie> movies` attribute. 
 

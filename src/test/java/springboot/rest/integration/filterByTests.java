@@ -482,6 +482,36 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void fetch_by_id__fetch_movie_by_id_and_name_with_or_on_first_level() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+
+        Iterable<Movie> movieById = movieController.filterBy("[{id:"+matrix.getId()+"},{id:"+constantine.getId()+"}]", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieById));
+        Iterable<Movie> movieByTwoNames = movieController.filterBy("[{name:"+matrix.getName()+"},{name:"+constantine.getName()+"}]", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByTwoNames));
+        Iterable<Movie> movieByTwoNamesOneWrong = movieController.filterBy("[{name:"+matrix.getName()+"},{name:somethingsomething}]", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(movieByTwoNamesOneWrong));
+        Iterable<Movie> movieByTwoNamesTwoWrong = movieController.filterBy("[{name:something},{name:somethingsomething}]", null, null);
+        Assert.assertEquals(0, IterableUtil.sizeOf(movieByTwoNamesTwoWrong));
+        Iterable<Movie> movieByIdOrName = movieController.filterBy("[{id:"+matrix.getId()+"},{name:"+constantine.getName()+"}]", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByIdOrName));
+        Iterable<Movie> movieByIdOrName2 = movieController.filterBy("[{id:"+constantine.getId()+"},{name:"+constantine.getName()+"}]", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(movieByIdOrName2));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void fetch_by_id__fetch_movie_by_not_id() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -623,6 +653,38 @@ public class filterByTests {
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:%ean%, lastName: %eeve%}}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
     }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void two_level_many_to_many_fetch_movies_with_actor_having_firstName_and_last_name_in_three_equivalent_ways() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:Keanu, lastName: Reeves}}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+
+        Iterable<Movie> keanuMovies2 = movieController.filterBy("{actorsAnd: [{firstName:Keanu},{lastName: Reeves}]}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
+        Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{firstName:SomethingSomething},{lastName: Reeves}]}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
+    }
+
+
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
