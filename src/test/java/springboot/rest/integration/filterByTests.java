@@ -500,6 +500,8 @@ public class filterByTests {
         Assert.assertEquals(2, IterableUtil.sizeOf(movieById));
         Iterable<Movie> movieByTwoNames = movieController.filterBy("[{name:"+matrix.getName()+"},{name:"+constantine.getName()+"}]", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(movieByTwoNames));
+        Iterable<Movie> movieByTwoNames2 = movieController.filterBy("{name:["+matrix.getName()+","+constantine.getName()+"]}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByTwoNames2));
         Iterable<Movie> movieByTwoNamesOneWrong = movieController.filterBy("[{name:"+matrix.getName()+"},{name:somethingsomething}]", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByTwoNamesOneWrong));
         Iterable<Movie> movieByTwoNamesTwoWrong = movieController.filterBy("[{name:something},{name:somethingsomething}]", null, null);
