@@ -6,10 +6,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.persistence.metamodel.*;
 import java.util.*;
 
@@ -24,35 +21,40 @@ public class CustomSpecifications<T> {
 
         return (Specification<T>) (root, query, builder) -> {
 
-            final List<Predicate> predicates = new ArrayList<>();
-            Predicate pred;
-            if (map.containsKey("q") && map.get("q") instanceof String) {
-                predicates.add(searchInAllAttributesPredicate(builder, root, (String) map.get("q"), includeOnlyFields));
-                map.remove("q");
-            }
 
-            Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
-
-            Class<T> rootFullClass = root.getModel().getJavaType();
-            String primaryKeyName = getIdAttribute(em, rootFullClass);
-            for (Map.Entry e : map.entrySet()) {
-                String key = (String) e.getKey();
-                Object val = extractId(e.getValue(), primaryKeyName);
-                String cleanKey = cleanUpKey(key);
-                Attribute a = root.getModel().getAttribute(cleanKey);
-
-                if (attributes.contains(a)) {
-                    pred = handleAllCases(builder, root, a, key, val);
-                    predicates.add(pred);
-                }
-            }
+            List<Predicate> predicates = handleMap(builder, root, query, map, includeOnlyFields);
             return builder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
     }
 
-    public Predicate handleAllCases(CriteriaBuilder builder, Root root, Attribute a, String key, Object val) {
+    public List<Predicate> handleMap(CriteriaBuilder builder, Root root, CriteriaQuery query, Map<String, Object> map, List<String> includeOnlyFields) {
+        List<Predicate> predicates = new ArrayList<>();
+        Predicate pred;
+        if (map.containsKey("q") && map.get("q") instanceof String) {
+
+
+            predicates.add(searchInAllAttributesPredicate(builder, root, (String) map.get("q"), includeOnlyFields));
+            map.remove("q");
+        }
+        Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
+        for (Map.Entry e : map.entrySet()) {
+            String key = (String) e.getKey();
+            Object val = e.getValue();
+            String cleanKey = cleanUpKey(key);
+
+            Attribute a = root.getModel().getAttribute(cleanKey);
+            if (attributes.contains(a)) {
+                pred = handleAllCases(builder, root, query, a, key, val);
+                predicates.add(pred);
+            }
+        }
+        return predicates;
+    }
+
+    public Predicate handleAllCases(CriteriaBuilder builder, Root root, CriteriaQuery query, Attribute a, String key, Object val) {
         //boolean isPrimitive = isPrimitive(a);
         boolean isValueCollection = val instanceof Collection;
+        boolean isValueMap = val instanceof Map;
         String cleanKey = cleanUpKey(key);
         boolean isKeyClean = cleanKey.equals(key);
         //boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
@@ -62,12 +64,24 @@ public class CustomSpecifications<T> {
         boolean isLt = key.endsWith("Lt");
         boolean isLte = key.endsWith("Lte");
         boolean isConjunction = key.endsWith("And");
-        //boolean isAssociation = a.isAssociation();
+        boolean isAssociation = a.isAssociation();
+
+        if (isValueMap) {
+            val = convertIdValueToMap(val, a, root);
+        }
+        if (val instanceof Map && isAssociation) {
+            Root newRoot = query.from(getJavaTypeOfClassContainingAttribute(root, a.getName()));
+            List<Predicate> predicates =  handleMap(builder, newRoot, query, ((Map)val), Arrays.asList());
+            Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
+            return  builder.and(predicatesArray);
+        }
+
+
 
         if (isKeyClean) {
-            return hanldleCleanKeyCase(builder, root, a, val);
+            return handleCleanKeyCase(builder, root, a, val);
         } else if (isNegation) {
-            return builder.not(hanldleCleanKeyCase(builder, root, a, val));
+            return builder.not(handleCleanKeyCase(builder, root, a, val));
         } else if (isConjunction) {
             if (isValueCollection) {
                 return createMultiValueEqualityPredicate(builder, root, a, (Collection) val, true);
@@ -84,7 +98,7 @@ public class CustomSpecifications<T> {
         return builder.conjunction();
     }
 
-    public Predicate hanldleCleanKeyCase(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+    public Predicate handleCleanKeyCase(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         boolean isValueCollection = val instanceof Collection;
         boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         if (isValueCollection) {
@@ -219,13 +233,30 @@ public class CustomSpecifications<T> {
         return rootJoinGetName.get(referencedPrimaryKey).in(val);
     }
 
-
-    private Object extractId(Object val, String primaryKeyName) {
-        if (val instanceof Map) {
-            val = ((Map) val).get(primaryKeyName);
-        } else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
-            val = ((Map) ((ArrayList) val).get(0)).get(primaryKeyName);
+    private Class getJavaTypeOfClassContainingAttribute(Root root, String attributeName) {
+        Attribute a = root.getModel().getAttribute(attributeName);
+        if (a.isAssociation()) {
+            //root.getModel().getAttribute("actors").getName()
+            return root.join(a.getName()).getJavaType();
         }
+        return null;
+    }
+
+
+    private Object convertIdValueToMap(Object val, Attribute a, Root root) {
+
+        Class javaTypeOfAttribute = getJavaTypeOfClassContainingAttribute(root, a.getName());
+        String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute);
+        if (val instanceof Map && ((Map) val).keySet().size() == 1) {
+            Map map = ((Map) val);
+            Object key = map.keySet().iterator().next();
+            if (key.equals(primaryKeyName)) {
+                val = map.get(primaryKeyName);
+            }
+        }
+//        } else if (val instanceof ArrayList && !((ArrayList) val).isEmpty() && ((ArrayList) val).get(0) instanceof Map) {
+//            val = ((Map) ((ArrayList) val).get(0)).get(primaryKeyName);
+//        }
 
         return val;
     }
@@ -239,7 +270,6 @@ public class CustomSpecifications<T> {
                 attributeJavaClass.equals("float") ||
                 attributeJavaClass.equals("double");
     }
-
     private boolean isEnum(Attribute attribute) {
         String parentJavaClass = "";
         if (attribute.getJavaType().getSuperclass() != null) {
