@@ -25,7 +25,7 @@ public class CustomSpecifications<T> {
         return (Specification<T>) (root, query, builder) -> {
 
             final List<Predicate> predicates = new ArrayList<>();
-            Predicate pred = builder.conjunction();
+            Predicate pred;
             if (map.containsKey("q") && map.get("q") instanceof String) {
                 predicates.add(searchInAllAttributesPredicate(builder, root, (String) map.get("q"), includeOnlyFields));
                 map.remove("q");
@@ -42,35 +42,7 @@ public class CustomSpecifications<T> {
                 Attribute a = root.getModel().getAttribute(cleanKey);
 
                 if (attributes.contains(a)) {
-                    boolean isPrimitive = isPrimitive(a);
-                    boolean isValueCollection = val instanceof Collection;
-                    boolean isKeyClean = cleanKey.equals(key);
-                    boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
-                    boolean isNegation = key.endsWith("Not");
-                    boolean isGt = key.endsWith("Gt");
-                    boolean isGte = key.endsWith("Gte");
-                    boolean isLt = key.endsWith("Lt");
-                    boolean isLte = key.endsWith("Lte");
-                    boolean isConjunction = key.endsWith("And");
-                    boolean isAssociation = a.isAssociation();
-
-                    if (isKeyClean) {
-                        pred = hanleCleanKeyCase(builder, root, a, val);
-                    } else if (isNegation) {
-                        pred = builder.not(hanleCleanKeyCase(builder, root, a, val));
-                    } else if (isConjunction) {
-                        if (isValueCollection) {
-                            pred = createMultiValueEqualityPredicate(builder, root, a, (Collection) val, true);
-                        }
-                    } else if (isLte) {
-                        pred = createLtePredicate(builder, root, a, val);
-                    } else if (isGte) {
-                        pred = createGtePredicate(builder, root, a, val);
-                    } else if (isLt) {
-                        pred = createLtPredicate(builder, root, a, val);
-                    } else if (isGt) {
-                        pred = createGtPredicate(builder, root, a, val);
-                    }
+                    pred = handleAllCases(builder, root, a, key, val);
                     predicates.add(pred);
                 }
             }
@@ -78,7 +50,41 @@ public class CustomSpecifications<T> {
         };
     }
 
-    public Predicate hanleCleanKeyCase(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+    public Predicate handleAllCases(CriteriaBuilder builder, Root root, Attribute a, String key, Object val) {
+        //boolean isPrimitive = isPrimitive(a);
+        boolean isValueCollection = val instanceof Collection;
+        String cleanKey = cleanUpKey(key);
+        boolean isKeyClean = cleanKey.equals(key);
+        //boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
+        boolean isNegation = key.endsWith("Not");
+        boolean isGt = key.endsWith("Gt");
+        boolean isGte = key.endsWith("Gte");
+        boolean isLt = key.endsWith("Lt");
+        boolean isLte = key.endsWith("Lte");
+        boolean isConjunction = key.endsWith("And");
+        //boolean isAssociation = a.isAssociation();
+
+        if (isKeyClean) {
+            return hanldleCleanKeyCase(builder, root, a, val);
+        } else if (isNegation) {
+            return builder.not(hanldleCleanKeyCase(builder, root, a, val));
+        } else if (isConjunction) {
+            if (isValueCollection) {
+                return createMultiValueEqualityPredicate(builder, root, a, (Collection) val, true);
+            }
+        } else if (isLte) {
+            return createLtePredicate(builder, root, a, val);
+        } else if (isGte) {
+            return createGtePredicate(builder, root, a, val);
+        } else if (isLt) {
+            return createLtPredicate(builder, root, a, val);
+        } else if (isGt) {
+            return createGtPredicate(builder, root, a, val);
+        }
+        return builder.conjunction();
+    }
+
+    public Predicate hanldleCleanKeyCase(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         boolean isValueCollection = val instanceof Collection;
         boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         if (isValueCollection) {
@@ -133,11 +139,6 @@ public class CustomSpecifications<T> {
 
     }
 
-//    private Predicate createNegationPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
-//        return builder.not(createEqualityPredicate(builder, root, a, val));
-//    }
-
-
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val == null) {
             if (a.isAssociation() && a.isCollection()) {
@@ -154,7 +155,6 @@ public class CustomSpecifications<T> {
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
-
 
     private Predicate createLikePredicate(CriteriaBuilder builder, Root<T> root, Attribute a, String val) {
         return builder.like(root.get(a.getName()), val);
