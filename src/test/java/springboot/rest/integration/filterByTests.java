@@ -658,6 +658,10 @@ public class filterByTests {
 
         Iterable<Actor> actors = actorController.filterBy("{movies: [{name:%atr%},{name:%onest%}]}}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(actors));
+        Iterable<Actor> actors2 = actorController.filterBy("{moviesAnd: [{name:%atr%},{name:%onst%}]}}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(actors2));
+        Iterable<Actor> actors3 = actorController.filterBy("{moviesAnd: [{name:%atr%},{name:%onest%}]}}", null, null);
+        Assert.assertEquals(0, IterableUtil.sizeOf(actors3));
     }
 
     @Test
