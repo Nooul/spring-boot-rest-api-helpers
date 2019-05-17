@@ -61,6 +61,36 @@ public class FilterService<T,I extends Serializable> {
         return new FilterWrapper(filter, filterOr, range, sort);
     }
 
+    public long countBy(FilterWrapper filterWrapper, BaseRepository<T,I> repo) {
+        JSONObject filter = filterWrapper.getFilter();
+        JSONArray filterOr = filterWrapper.getFilterOr();
+        String usesSnakeCase = env.getProperty("spring-boot-rest-api-helpers.use-snake-case");
+        if (filter != null && filter.length() > 0) {
+            HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
+
+            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                map = convertToCamelCase(map);
+            }
+
+            return repo.count(Specification.where(
+                    specifications.customSpecificationBuilder(map)));
+
+        }
+        else if (filterOr != null && filterOr.length() > 0) {
+            List list = filterOr.toList();
+
+            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                //map = convertToCamelCase(map); TODO for list
+            }
+
+            return repo.count(Specification.where(
+                    specifications.customSpecificationBuilder(list)));
+
+        }
+        else {
+            return repo.count();
+        }
+    }
 
     public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T,I> repo) {
         return filterByHelper(repo, specifications, filterWrapper, "id", new ArrayList<>());

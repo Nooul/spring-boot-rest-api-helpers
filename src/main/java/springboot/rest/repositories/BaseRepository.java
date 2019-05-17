@@ -12,4 +12,5 @@ import java.util.Collection;
 @NoRepositoryBean
 public interface BaseRepository<T,ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
     Page<T> findAll(Specification<T> spec, Pageable pageable);
+    long count(Specification<T> spec);
 }

@@ -19,6 +19,16 @@ public class CustomSpecifications<T> {
     @PersistenceContext
     private EntityManager em;
 
+    public Specification<T> customSpecificationBuilder(Map<String, Object> map) {
+
+        return (Specification<T>) (root, query, builder) -> {
+
+            query.distinct(true);
+            List<Predicate> predicates = handleMap(builder, root, query, map, new ArrayList<>());
+            return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+    }
+
     public Specification<T> customSpecificationBuilder(Map<String, Object> map, List<String> includeOnlyFields) {
 
         return (Specification<T>) (root, query, builder) -> {
@@ -28,6 +38,8 @@ public class CustomSpecifications<T> {
             return builder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
     }
+
+
 
     public Specification<T> customSpecificationBuilder(List<Map<String, Object>> list) {
 
