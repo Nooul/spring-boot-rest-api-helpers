@@ -207,10 +207,10 @@ public class CustomSpecifications<T> {
             return builder.equal(root.get(a.getName()), val);
         } else if (a.isAssociation()) {
             return prepareJoinAssociatedPredicate(root, a, val);
-        } else if(isSerializable(a)) {
+        } else if(isSerializableAndFromString(a)) {
             try {
-                return builder.equal (root.get(a.getName()), a.getJavaType().getConstructors()[0].newInstance(val));
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                return builder.equal (root.get(a.getName()), a.getJavaType().getMethod("fromString", String.class).invoke(null, val.toString()));
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new IllegalArgumentException("equality/inequality is currently supported on primitives, enums and serializables with string constructor", e);
             }
         }
@@ -289,8 +289,12 @@ public class CustomSpecifications<T> {
         return val;
     }
 
-    private boolean isSerializable(Attribute attribute) {
-        return Serializable.class.isAssignableFrom(attribute.getJavaType());
+    private boolean isSerializableAndFromString(Attribute attribute) {
+        try {
+            return Serializable.class.isAssignableFrom(attribute.getJavaType()) && attribute.getJavaType().getMethod("fromString", String.class) != null;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
     }
 
     private boolean isPrimitive(Attribute attribute) {
