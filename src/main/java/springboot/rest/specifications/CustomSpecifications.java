@@ -11,6 +11,7 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.Metamodel;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/specifications/CustomSpecifications.java
@@ -207,7 +208,11 @@ public class CustomSpecifications<T> {
         } else if (a.isAssociation()) {
             return prepareJoinAssociatedPredicate(root, a, val);
         } else if(isSerializable(a)) {
-            return builder.equal (root.get(a.getName()), val);
+            try {
+                return builder.equal (root.get(a.getName()), a.getJavaType().getConstructors()[0].newInstance(val));
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                throw new IllegalArgumentException("equality/inequality is currently supported on primitives, enums and serializables with string constructor", e);
+            }
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
