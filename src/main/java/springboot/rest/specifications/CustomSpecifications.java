@@ -207,7 +207,7 @@ public class CustomSpecifications<T> {
         } else if (a.isAssociation()) {
             return prepareJoinAssociatedPredicate(root, a, val);
         } else if(isSerializable(a)) {
-            return builder.equal (root.get(a.getName()), val.toString());
+            return builder.equal (root.get(a.getName()), val);
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
