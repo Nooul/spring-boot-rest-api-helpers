@@ -16,6 +16,16 @@ public class UUID {
     private String uuid;
 
     public UUID(String uuid) {
-        this.uuid = uuid;
+        // this is for validation
+        this.uuid = new UUID(uuid).toString();
+    }
+
+    public UUID toUUID() {
+        return new UUID(uuid);
+    }
+
+    @Override
+    public String toString() {
+        return uuid;
     }
 }

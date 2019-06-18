@@ -10,6 +10,7 @@ import javax.persistence.criteria.*;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.Metamodel;
+import java.io.Serializable;
 import java.util.*;
 
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/specifications/CustomSpecifications.java
@@ -205,6 +206,8 @@ public class CustomSpecifications<T> {
             return builder.equal(root.get(a.getName()), val);
         } else if (a.isAssociation()) {
             return prepareJoinAssociatedPredicate(root, a, val);
+        } else if(isSerializable(a)) {
+            return builder.equal (root.get(a.getName()), val.toString());
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
@@ -219,7 +222,7 @@ public class CustomSpecifications<T> {
         } else if (val instanceof Integer) {
             return builder.greaterThan(root.get(a.getName()), (Integer) val);
         }
-        throw new IllegalArgumentException("val type not supported yet");
+        throw new IllegalArgumentException("val type not supported yet for greater");
     }
 
     private Predicate createGtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
@@ -228,7 +231,7 @@ public class CustomSpecifications<T> {
         } else if (val instanceof Integer) {
             return builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
         }
-        throw new IllegalArgumentException("val type not supported yet");
+        throw new IllegalArgumentException("val type not supported yet for greater-equals");
     }
 
     private Predicate createLtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
@@ -237,7 +240,7 @@ public class CustomSpecifications<T> {
         } else if (val instanceof Integer) {
             return builder.lessThan(root.get(a.getName()), (Integer) val);
         }
-        throw new IllegalArgumentException("val type not supported yet");
+        throw new IllegalArgumentException("val type not supported yet for lower");
     }
 
     private Predicate createLtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
@@ -246,7 +249,7 @@ public class CustomSpecifications<T> {
         } else if (val instanceof Integer) {
             return builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
         }
-        throw new IllegalArgumentException("val type not supported yet");
+        throw new IllegalArgumentException("val type not supported yet for lower-equals");
     }
 
 
@@ -279,6 +282,10 @@ public class CustomSpecifications<T> {
             }
         }
         return val;
+    }
+
+    private boolean isSerializable(Attribute attribute) {
+        return Serializable.class.isAssignableFrom(attribute.getJavaType());
     }
 
     private boolean isPrimitive(Attribute attribute) {
