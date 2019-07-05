@@ -53,14 +53,18 @@ public class ActorController {
     private ActorRepository repository;
 
     @Autowired
-    FilterService<Actor, Long> filterService;
+    private FilterService<Actor, Long> filterService;
+    
+    @Autowired
+    private QueryParamExtracter queryParamExtracter;
+
 
     @GetMapping
     public Iterable<Actor> filterBy(
             @RequestParam(required = false, name = "filter") String filterStr,
             @RequestParam(required = false, name = "range") String rangeStr, 
             @RequestParam(required = false, name="sort") String sortStr) {
-        FilterWrapper wrapper = filterService.extractFilterWrapper(filterStr, rangeStr, sortStr);
+        FilterWrapper wrapper = queryParamExtracter.extract(filterStr, rangeStr, sortStr);
         return filterService.filterBy(wrapper, repository, Arrays.asList("firstName", "lastName"));
     }
 }
