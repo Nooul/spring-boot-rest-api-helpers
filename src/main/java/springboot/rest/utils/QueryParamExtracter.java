@@ -4,13 +4,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.springframework.stereotype.Service;
 import springboot.rest.entities.QueryParamWrapper;
 
-@Service
 public class QueryParamExtracter {
 
-    public QueryParamWrapper extract(String filterStr, String rangeStr, String sortStr) {
+    public static QueryParamWrapper extract(String filterStr, String rangeStr, String sortStr) {
         Object filterJsonOrArray;
         if (StringUtils.isBlank(filterStr)) {
             filterStr = "{}";

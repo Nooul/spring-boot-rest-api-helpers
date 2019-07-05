@@ -24,14 +24,11 @@ public class DirectorController {
     @Autowired
     private FilterService<Director, Long> filterService;
 
-    @Autowired
-    private QueryParamExtracter queryParamExtracter;
-
     @GetMapping
     public Iterable<Director> filterBy(
             @RequestParam(required = false, name = "filter") String filterStr,
             @RequestParam(required = false, name = "range") String rangeStr, @RequestParam(required = false, name="sort") String sortStr) {
-        QueryParamWrapper wrapper = queryParamExtracter.extract(filterStr, rangeStr, sortStr);
+        QueryParamWrapper wrapper = QueryParamExtracter.extract(filterStr, rangeStr, sortStr);
         return filterService.filterBy(wrapper, repository, Arrays.asList("firstName", "lastName"));
     }
 }
