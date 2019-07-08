@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import springboot.rest.entities.QueryParamWrapper;
 
-public class QueryParamExtracter {
+public class QueryParamExtractor {
 
     public static QueryParamWrapper extract(String filterStr, String rangeStr, String sortStr) {
         Object filterJsonOrArray;
