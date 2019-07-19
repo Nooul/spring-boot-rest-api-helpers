@@ -9,7 +9,7 @@ import springboot.rest.entities.QueryParamWrapper;
 import springboot.rest.helpers.entities.UUID;
 import springboot.rest.helpers.repositories.UuidRepository;
 import springboot.rest.services.FilterService;
-import springboot.rest.utils.QueryParamExtracter;
+import springboot.rest.utils.QueryParamExtractor;
 
 import java.util.Arrays;
 
@@ -27,7 +27,7 @@ public class UuidController {
     public Iterable<UUID> filterBy(
             @RequestParam(required = false, name = "filter") String filterStr,
             @RequestParam(required = false, name = "range") String rangeStr, @RequestParam(required = false, name="sort") String sortStr) {
-        QueryParamWrapper wrapper = QueryParamExtracter.extract(filterStr, rangeStr, sortStr);
+        QueryParamWrapper wrapper = QueryParamExtractor.extract(filterStr, rangeStr, sortStr);
         return filterService.filterBy(wrapper, repository, "uuid", Arrays.asList("uuid"));
     }
 }

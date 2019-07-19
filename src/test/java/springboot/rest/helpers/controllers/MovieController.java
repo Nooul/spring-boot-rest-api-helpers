@@ -6,11 +6,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springboot.rest.entities.QueryParamWrapper;
-import springboot.rest.helpers.entities.Category;
 import springboot.rest.helpers.entities.Movie;
 import springboot.rest.helpers.repositories.MovieRepository;
 import springboot.rest.services.FilterService;
-import springboot.rest.utils.QueryParamExtracter;
+import springboot.rest.utils.QueryParamExtractor;
 
 import java.util.Arrays;
 
@@ -29,7 +28,7 @@ public class MovieController {
     public Iterable<Movie> filterBy(
             @RequestParam(required = false, name = "filter") String filterStr,
             @RequestParam(required = false, name = "range") String rangeStr, @RequestParam(required = false, name="sort") String sortStr) {
-        QueryParamWrapper wrapper = QueryParamExtracter.extract(filterStr, rangeStr, sortStr);
+        QueryParamWrapper wrapper = QueryParamExtractor.extract(filterStr, rangeStr, sortStr);
         return filterService.filterBy(wrapper, repository, Arrays.asList("name"));
     }
 }

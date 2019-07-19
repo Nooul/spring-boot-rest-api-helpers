@@ -8,14 +8,16 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import springboot.rest.entities.QueryParamWrapper;
 import springboot.rest.repositories.BaseRepository;
 import springboot.rest.specifications.CustomSpecifications;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 @Service
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/services/FilterService.java
@@ -39,8 +41,8 @@ public class FilterService<T,I extends Serializable> {
                 map = convertToCamelCase(map);
             }
 
-            return repo.count(Specification.where(
-                    specifications.customSpecificationBuilder(map)));
+            return repo.count(
+                    specifications.customSpecificationBuilder(map));
 
         }
         else if (filterOr != null && filterOr.length() > 0) {
@@ -50,8 +52,8 @@ public class FilterService<T,I extends Serializable> {
                 //map = convertToCamelCase(map); TODO for list
             }
 
-            return repo.count(Specification.where(
-                    specifications.customSpecificationBuilder(list)));
+            return repo.count(
+                    specifications.customSpecificationBuilder(list));
 
         }
         else {
@@ -124,9 +126,9 @@ public class FilterService<T,I extends Serializable> {
                 map = convertToCamelCase(map);
             }
 
-            return repo.findAll(Specification.where(
+            return repo.findAll(
                     specifications.customSpecificationBuilder(
-                            map, searchOnlyInFields)
+                            map, searchOnlyInFields
             ), PageRequest.of(page,size, sortDir, sortBy));
 
         }
@@ -137,9 +139,9 @@ public class FilterService<T,I extends Serializable> {
                 //map = convertToCamelCase(map); TODO for list
             }
 
-            return repo.findAll(Specification.where(
+            return repo.findAll(
                     specifications.customSpecificationBuilder(list)
-            ), PageRequest.of(page,size, sortDir, sortBy));
+            , PageRequest.of(page,size, sortDir, sortBy));
 
         }
         else {

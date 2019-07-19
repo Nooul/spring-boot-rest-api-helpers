@@ -9,7 +9,7 @@ import springboot.rest.entities.QueryParamWrapper;
 import springboot.rest.helpers.entities.Director;
 import springboot.rest.helpers.repositories.DirectorRepository;
 import springboot.rest.services.FilterService;
-import springboot.rest.utils.QueryParamExtracter;
+import springboot.rest.utils.QueryParamExtractor;
 
 import java.util.Arrays;
 
@@ -28,7 +28,7 @@ public class DirectorController {
     public Iterable<Director> filterBy(
             @RequestParam(required = false, name = "filter") String filterStr,
             @RequestParam(required = false, name = "range") String rangeStr, @RequestParam(required = false, name="sort") String sortStr) {
-        QueryParamWrapper wrapper = QueryParamExtracter.extract(filterStr, rangeStr, sortStr);
+        QueryParamWrapper wrapper = QueryParamExtractor.extract(filterStr, rangeStr, sortStr);
         return filterService.filterBy(wrapper, repository, Arrays.asList("firstName", "lastName"));
     }
 }
