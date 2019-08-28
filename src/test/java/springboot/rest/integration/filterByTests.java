@@ -647,12 +647,12 @@ public class filterByTests {
         movieRepository.save(it);
 
         Actor keanu = new Actor();
-        keanu.setFirstName("Keanu");
-        keanu.setLastName("Reeves");
+        keanu.setFirstName("Κιάνου");
+        keanu.setLastName("Ρίβς");
         keanu.setMovies(Arrays.asList(matrix, constantine));
         actorRepository.save(keanu);
 
-        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:%ean%, lastName: %eeve%}}", null, null);
+        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:%Κιά%, lastName: %βς%}}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
     }
 
