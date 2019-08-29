@@ -647,13 +647,52 @@ public class filterByTests {
         movieRepository.save(it);
 
         Actor keanu = new Actor();
-        keanu.setFirstName("Κιάνου");
-        keanu.setLastName("Ρίβς");
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
         keanu.setMovies(Arrays.asList(matrix, constantine));
         actorRepository.save(keanu);
 
-        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:%Κιά%, lastName: %βς%}}", null, null);
+        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:%ean%, lastName: %eeve%}}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void two_level_many_to_one_fetch_movies_with_director_first_name_exact() {
+
+        Director lana = new Director();
+        lana.setFirstName("Lana");
+        lana.setLastName("Wachowski");
+        directorRepository.save(lana);
+
+        Director other = new Director();
+        other.setFirstName("other");
+        other.setLastName("Other");
+        directorRepository.save(other);
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setDirector(lana);
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setDirector(other);
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setDirector(other);
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Iterable<Movie> lanaMovies = movieController.filterBy("{director: {firstName:Lana}}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(lanaMovies));
     }
 
     @Test
