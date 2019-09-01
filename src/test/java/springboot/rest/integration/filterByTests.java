@@ -18,8 +18,7 @@ import springboot.rest.helpers.entities.Movie;
 import springboot.rest.helpers.entities.UUID;
 import springboot.rest.helpers.repositories.*;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import static springboot.rest.utils.UrlUtils.encodeURIComponent;
 import java.util.Arrays;
 
 @RunWith(SpringRunner.class)
@@ -1190,29 +1189,4 @@ public class filterByTests {
         Iterable<Movie> allMovies2 = movieController.filterBy(null, null, null);
         Assert.assertEquals(3, IterableUtil.sizeOf(allMovies2));
     }
-    //https://stackoverflow.com/a/611117
-    public static String encodeURIComponent(String s)
-    {
-        String result = null;
-
-        try
-        {
-            result = URLEncoder.encode(s, "UTF-8")
-                    .replaceAll("\\+", "%20")
-                    .replaceAll("\\%21", "!")
-                    .replaceAll("\\%27", "'")
-                    .replaceAll("\\%28", "(")
-                    .replaceAll("\\%29", ")")
-                    .replaceAll("\\%7E", "~");
-        }
-
-        // This exception should never occur.
-        catch (UnsupportedEncodingException e)
-        {
-            result = s;
-        }
-
-        return result;
-    }
-
 }
