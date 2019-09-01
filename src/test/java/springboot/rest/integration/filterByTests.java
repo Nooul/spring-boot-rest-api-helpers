@@ -18,6 +18,8 @@ import springboot.rest.helpers.entities.Movie;
 import springboot.rest.helpers.entities.UUID;
 import springboot.rest.helpers.repositories.*;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 
 @RunWith(SpringRunner.class)
@@ -106,6 +108,8 @@ public class filterByTests {
 //        it.setDirector(andy);
 //        movieRepository.save(it);
 //    }
+
+
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -652,7 +656,7 @@ public class filterByTests {
         keanu.setMovies(Arrays.asList(matrix, constantine));
         actorRepository.save(keanu);
 
-        Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:%ean%, lastName: %eeve%}}", null, null);
+        Iterable<Movie> keanuMovies = movieController.filterBy(encodeURIComponent("{actors: {firstName:%ean%, lastName: %eeve%}}"), null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
     }
 
@@ -695,6 +699,98 @@ public class filterByTests {
         Assert.assertEquals(1, IterableUtil.sizeOf(lanaMovies));
     }
 
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void three_level_fetch_actors_of_movies_with_director_first_name_exact() {
+
+        Director lana = new Director();
+        lana.setFirstName("Lana");
+        lana.setLastName("Wachowski");
+        directorRepository.save(lana);
+
+        Director other = new Director();
+        other.setFirstName("other");
+        other.setLastName("Other");
+        directorRepository.save(other);
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setDirector(lana);
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setDirector(other);
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setDirector(other);
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Actor otherActor = new Actor();
+        otherActor.setFirstName("other");
+        otherActor.setLastName("other");
+        actorRepository.save(otherActor);
+
+        Iterable<Actor> actors = actorController.filterBy("movies: {director: {firstName:Lana}}}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
+    }
+
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void three_level_fetch_actors_of_movies_with_director_first_name_like() {
+
+        Director lana = new Director();
+        lana.setFirstName("Lana");
+        lana.setLastName("Wachowski");
+        directorRepository.save(lana);
+
+        Director other = new Director();
+        other.setFirstName("other");
+        other.setLastName("Other");
+        directorRepository.save(other);
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setDirector(lana);
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setDirector(other);
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setDirector(other);
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Actor otherActor = new Actor();
+        otherActor.setFirstName("other");
+        otherActor.setLastName("other");
+        actorRepository.save(otherActor);
+
+        Iterable<Actor> actors = actorController.filterBy("movies: {director: {firstName:Lan%}}}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
+    }
+
+
+
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void two_level_many_to_many_fetch_movies_with_actor_having_firstName_and_last_name_in_three_equivalent_ways() {
@@ -723,6 +819,8 @@ public class filterByTests {
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
         Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{firstName:SomethingSomething},{lastName: Reeves}]}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
+        Iterable<Movie> keanuMovies4 = movieController.filterBy("{actorsAnd: [{firstName:SomethingSomething},{lastName: Reeves}]}", null, null);
+        Assert.assertEquals(0, IterableUtil.sizeOf(keanuMovies4));
     }
 
 
@@ -759,11 +857,11 @@ public class filterByTests {
         actorRepository.save(noMovieActor2);
 
 
-        Iterable<Actor> actors = actorController.filterBy("{movies: [{name:%atr%},{name:%onest%}]}}", null, null);
+        Iterable<Actor> actors = actorController.filterBy(encodeURIComponent("{movies: [{name:%atr%},{name:%onest%}]}}"), null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(actors));
-        Iterable<Actor> actors2 = actorController.filterBy("{moviesAnd: [{name:%atr%},{name:%onst%}]}}", null, null);
+        Iterable<Actor> actors2 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onst%}]}}"), null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(actors2));
-        Iterable<Actor> actors3 = actorController.filterBy("{moviesAnd: [{name:%atr%},{name:%onest%}]}}", null, null);
+        Iterable<Actor> actors3 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onest%}]}}"), null, null);
         Assert.assertEquals(0, IterableUtil.sizeOf(actors3));
     }
 
@@ -819,7 +917,7 @@ public class filterByTests {
         movieRepository.save(constantine);
 
 
-        Iterable<Movie> movieByName = movieController.filterBy("{director: {firstName:%an%}}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{director: {firstName:%an%}}"), null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
@@ -846,7 +944,7 @@ public class filterByTests {
         constantine.setName("Constantine");
         movieRepository.save(constantine);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{director: {firstName:%an%}}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{director: {firstName:%an%}}"), null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
@@ -893,7 +991,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{name: The Matr%}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: The Matr%}"), null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
@@ -912,7 +1010,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{name: %loaded}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: %loaded}"), null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
@@ -931,7 +1029,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{name: %atri%}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: %atri%}"), null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
@@ -950,7 +1048,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{nameNot: The Matr%}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: The Matr%}"), null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
@@ -991,7 +1089,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{nameNot: %loaded}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: %loaded}"), null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
@@ -1010,7 +1108,7 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy("{nameNot: %atri%}", null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: %atri%}"), null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
@@ -1092,4 +1190,29 @@ public class filterByTests {
         Iterable<Movie> allMovies2 = movieController.filterBy(null, null, null);
         Assert.assertEquals(3, IterableUtil.sizeOf(allMovies2));
     }
+    //https://stackoverflow.com/a/611117
+    public static String encodeURIComponent(String s)
+    {
+        String result = null;
+
+        try
+        {
+            result = URLEncoder.encode(s, "UTF-8")
+                    .replaceAll("\\+", "%20")
+                    .replaceAll("\\%21", "!")
+                    .replaceAll("\\%27", "'")
+                    .replaceAll("\\%28", "(")
+                    .replaceAll("\\%29", ")")
+                    .replaceAll("\\%7E", "~");
+        }
+
+        // This exception should never occur.
+        catch (UnsupportedEncodingException e)
+        {
+            result = s;
+        }
+
+        return result;
+    }
+
 }
