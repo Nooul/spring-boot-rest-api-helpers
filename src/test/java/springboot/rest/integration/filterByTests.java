@@ -126,7 +126,7 @@ public class filterByTests {
         it.setYearReleased(2017);
         movieRepository.save(it);
 
-        Iterable<Movie> moviesWithNullName = movieController.filterBy("{name: ''}", null, null);
+        Iterable<Movie> moviesWithNullName = movieController.filterBy("{name: null}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName));
     }
 
