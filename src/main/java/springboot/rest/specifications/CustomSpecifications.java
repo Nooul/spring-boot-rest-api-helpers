@@ -1,6 +1,7 @@
 package springboot.rest.specifications;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -197,7 +198,7 @@ public class CustomSpecifications<T> {
     }
 
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Join join, Attribute a, Object val) {
-        if (val == null) {
+        if (isNull(a, val)) {
             if (a.isAssociation() && a.isCollection()) {
                 return builder.isEmpty(root.get(a.getName()));
             }
@@ -320,6 +321,22 @@ public class CustomSpecifications<T> {
             parentJavaClass = attribute.getJavaType().getSuperclass().getSimpleName().toLowerCase();
         }
         return parentJavaClass.equals("enum");
+    }
+
+    private boolean isNull(Attribute attribute, Object val) {
+        if (isPrimitive(attribute)) {
+            String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
+            if (attributeJavaClass.equals("string")) {
+                String valObj = (String) val;
+                return StringUtils.isBlank(valObj) || valObj.equalsIgnoreCase("null");
+            }
+            else {
+                return val == null;
+            }
+        }
+        else {
+            return val == null;
+        }
     }
 
 }

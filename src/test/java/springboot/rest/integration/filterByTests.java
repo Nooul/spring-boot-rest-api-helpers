@@ -126,8 +126,14 @@ public class filterByTests {
         it.setYearReleased(2017);
         movieRepository.save(it);
 
-        Iterable<Movie> moviesWithNullName = movieController.filterBy("{name: null}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName));
+        Iterable<Movie> moviesWithNullName1 = movieController.filterBy("{name: null}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName1));
+        Iterable<Movie> moviesWithNullName2 = movieController.filterBy("{name: 'null'}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName2));
+        Iterable<Movie> moviesWithNullName3 = movieController.filterBy("{name: ''}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName3));
+        Iterable<Movie> moviesWithNullName4 = movieController.filterBy("{name: '   '}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName4));
     }
 
     @Test
