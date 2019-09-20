@@ -108,7 +108,27 @@ public class filterByTests {
 //        movieRepository.save(it);
 //    }
 
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void find_null_primitive_should_return() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setYearReleased(1999);
+        movieRepository.save(matrix);
 
+        Movie constantine = new Movie();
+        constantine.setName(null);
+        constantine.setYearReleased(2005);
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setYearReleased(2017);
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesWithNullName = movieController.filterBy("{name: ''}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName));
+    }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)

@@ -200,7 +200,11 @@ public class CustomSpecifications<T> {
         if (val == null) {
             if (a.isAssociation() && a.isCollection()) {
                 return builder.isEmpty(root.get(a.getName()));
-            } else {
+            }
+            else if(isPrimitive(a)) {
+                return builder.isNull(root.get(a.getName()));
+            }
+            else {
                 return root.get(a.getName()).isNull();
             }
         }
