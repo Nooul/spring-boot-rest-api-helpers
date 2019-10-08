@@ -1,24 +1,23 @@
 package springboot.rest.services;
 
 import com.google.common.base.CaseFormat;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import springboot.rest.entities.FilterWrapper;
+import springboot.rest.entities.QueryParamWrapper;
 import springboot.rest.repositories.BaseRepository;
 import springboot.rest.specifications.CustomSpecifications;
-import springboot.rest.utils.JSON;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 @Service
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/services/FilterService.java
@@ -31,39 +30,9 @@ public class FilterService<T,I extends Serializable> {
     private CustomSpecifications<T> specifications;
 
 
-    public FilterWrapper extractFilterWrapper(String filterStr, String rangeStr, String sortStr) {
-        Object filterJsonOrArray;
-        if (StringUtils.isBlank(filterStr)) {
-            filterStr = "{}";
-        }
-        filterJsonOrArray = new JSONTokener(filterStr).nextValue();
-        JSONObject filter = null;
-        JSONArray filterOr = null;
-        if (filterJsonOrArray instanceof JSONObject) {
-            filter = JSON.toJsonObject(filterStr);
-        }
-        else if (filterJsonOrArray instanceof JSONArray){
-            filterOr = JSON.toJsonArray(filterStr);
-        }
-        JSONArray range;
-        if (StringUtils.isBlank(rangeStr)) {
-            rangeStr = "[]";
-        }
-        range = JSON.toJsonArray(rangeStr);
-
-        JSONArray sort;
-        if (StringUtils.isBlank(sortStr)) {
-            sortStr = "[]";
-        }
-        sort = JSON.toJsonArray(sortStr);
-
-
-        return new FilterWrapper(filter, filterOr, range, sort);
-    }
-
-    public long countBy(FilterWrapper filterWrapper, BaseRepository<T,I> repo) {
-        JSONObject filter = filterWrapper.getFilter();
-        JSONArray filterOr = filterWrapper.getFilterOr();
+    public long countBy(QueryParamWrapper queryParamWrapper, BaseRepository<T,I> repo) {
+        JSONObject filter = queryParamWrapper.getFilter();
+        JSONArray filterOr = queryParamWrapper.getFilterOr();
         String usesSnakeCase = env.getProperty("spring-boot-rest-api-helpers.use-snake-case");
         if (filter != null && filter.length() > 0) {
             HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
@@ -72,8 +41,8 @@ public class FilterService<T,I extends Serializable> {
                 map = convertToCamelCase(map);
             }
 
-            return repo.count(Specification.where(
-                    specifications.customSpecificationBuilder(map)));
+            return repo.count(
+                    specifications.customSpecificationBuilder(map));
 
         }
         else if (filterOr != null && filterOr.length() > 0) {
@@ -83,8 +52,8 @@ public class FilterService<T,I extends Serializable> {
                 //map = convertToCamelCase(map); TODO for list
             }
 
-            return repo.count(Specification.where(
-                    specifications.customSpecificationBuilder(list)));
+            return repo.count(
+                    specifications.customSpecificationBuilder(list));
 
         }
         else {
@@ -92,39 +61,39 @@ public class FilterService<T,I extends Serializable> {
         }
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T,I> repo) {
-        return filterByHelper(repo, specifications, filterWrapper, "id", new ArrayList<>());
+    public Page<T> filterBy(QueryParamWrapper queryParamWrapper, BaseRepository<T,I> repo) {
+        return filterByHelper(repo, specifications, queryParamWrapper, "id", new ArrayList<>());
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, String primaryKeyName) {
+    public Page<T> filterBy(QueryParamWrapper queryParamWrapper, BaseRepository<T, I> repo, String primaryKeyName) {
 
-        return filterByHelper(repo, specifications, filterWrapper, primaryKeyName, new ArrayList<>());
+        return filterByHelper(repo, specifications, queryParamWrapper, primaryKeyName, new ArrayList<>());
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, String primaryKeyName, List<String> searchOnlyInFields) {
+    public Page<T> filterBy(QueryParamWrapper queryParamWrapper, BaseRepository<T, I> repo, String primaryKeyName, List<String> searchOnlyInFields) {
 
-        return filterByHelper(repo, specifications, filterWrapper, primaryKeyName, searchOnlyInFields);
+        return filterByHelper(repo, specifications, queryParamWrapper, primaryKeyName, searchOnlyInFields);
     }
 
-    public Page<T> filterBy(FilterWrapper filterWrapper, BaseRepository<T, I> repo, List<String> searchOnlyInFields) {
+    public Page<T> filterBy(QueryParamWrapper queryParamWrapper, BaseRepository<T, I> repo, List<String> searchOnlyInFields) {
 
-        return filterByHelper(repo, specifications, filterWrapper, "id", searchOnlyInFields);
+        return filterByHelper(repo, specifications, queryParamWrapper, "id", searchOnlyInFields);
     }
 
 
     private <T> Page<T> filterByHelper(BaseRepository<T, I> repo,
                                        CustomSpecifications<T> specifications,
-                                       FilterWrapper filterWrapper,
+                                       QueryParamWrapper queryParamWrapper,
                                        String primaryKeyName,
                                        List<String> searchOnlyInFields) {
         String usesSnakeCase = env.getProperty("spring-boot-rest-api-helpers.use-snake-case");
 
         String sortBy = primaryKeyName;
         String order = "DESC";
-        JSONObject filter = filterWrapper.getFilter();
-        JSONArray filterOr = filterWrapper.getFilterOr();
-        JSONArray range = filterWrapper.getRange();
-        JSONArray sort = filterWrapper.getSort();
+        JSONObject filter = queryParamWrapper.getFilter();
+        JSONArray filterOr = queryParamWrapper.getFilterOr();
+        JSONArray range = queryParamWrapper.getRange();
+        JSONArray sort = queryParamWrapper.getSort();
 
         int page = 0;
         int size = Integer.MAX_VALUE;
@@ -157,9 +126,9 @@ public class FilterService<T,I extends Serializable> {
                 map = convertToCamelCase(map);
             }
 
-            return repo.findAll(Specification.where(
+            return repo.findAll(
                     specifications.customSpecificationBuilder(
-                            map, searchOnlyInFields)
+                            map, searchOnlyInFields
             ), PageRequest.of(page,size, sortDir, sortBy));
 
         }
@@ -170,9 +139,9 @@ public class FilterService<T,I extends Serializable> {
                 //map = convertToCamelCase(map); TODO for list
             }
 
-            return repo.findAll(Specification.where(
+            return repo.findAll(
                     specifications.customSpecificationBuilder(list)
-            ), PageRequest.of(page,size, sortDir, sortBy));
+            , PageRequest.of(page,size, sortDir, sortBy));
 
         }
         else {

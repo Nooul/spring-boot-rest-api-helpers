@@ -9,7 +9,7 @@ import org.json.JSONObject;
 @Getter
 @RequiredArgsConstructor
 @NoArgsConstructor(force = true)
-public class FilterWrapper {
+public class QueryParamWrapper {
     private final JSONObject filter;
     private final JSONArray filterOr;
     private final JSONArray range;
