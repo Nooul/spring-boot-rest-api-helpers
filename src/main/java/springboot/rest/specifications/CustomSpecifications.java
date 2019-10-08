@@ -203,7 +203,8 @@ public class CustomSpecifications<T> {
      * creates an equality predicate.
      * Basically it checks for type and does the right predicate.
      * @param builder CriteriaBuilder
-     * @param root Root or Path (for Join)
+     * @param root Root
+     * @param join Join Context
      * @param a Attribute
      * @param val Object for comparison (from user)
      * @return Predicate
@@ -211,13 +212,13 @@ public class CustomSpecifications<T> {
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Join join, Attribute a, Object val) {
         if (isNull(a, val)) {
             if (a.isAssociation() && a.isCollection()) {
-                return builder.isEmpty(root.get(a.getName()));
+                return builder.isEmpty(join != null ? join.get(a.getName()) : root.get(a.getName()));
             }
             else if(isPrimitive(a)) {
-                return builder.isNull(root.get(a.getName()));
+                return builder.isNull(join != null ? join.get(a.getName()) : root.get(a.getName()));
             }
             else {
-                return root.get(a.getName()).isNull();
+                return join != null ? join.get(a.getName()).isNull() : root.get(a.getName()).isNull();
             }
         }
         else if (join == null) {

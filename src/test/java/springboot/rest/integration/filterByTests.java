@@ -771,7 +771,7 @@ public class filterByTests {
         otherActor.setLastName("other");
         actorRepository.save(otherActor);
 
-        Iterable<Actor> actors = actorController.filterBy("movies: {director: {firstName:Lana}}}", null, null);
+        Iterable<Actor> actors = actorController.filterBy("{movies: {director: {firstName:Lana}}}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(actors));
     }
 
@@ -816,7 +816,7 @@ public class filterByTests {
         otherActor.setLastName("other");
         actorRepository.save(otherActor);
 
-        Iterable<Actor> actors = actorController.filterBy("movies: {director: {firstName:Lan%}}}", null, null);
+        Iterable<Actor> actors = actorController.filterBy("{movies: {director: {firstName:Lan%}}}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(actors));
     }
 
