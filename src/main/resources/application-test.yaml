@@ -8,7 +8,17 @@ spring:
     password: sa
   flyway:
     enabled: false
-
+logging:
+  level:
+    org:
+      hibernate:
+        SQL:
+          TRACE
+        type:
+          descriptor:
+            sql:
+              BasicBinder:
+                TRACE
 
 server:
   api-prefix: /api/v1

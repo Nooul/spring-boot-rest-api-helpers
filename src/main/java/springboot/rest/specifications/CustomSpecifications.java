@@ -154,10 +154,10 @@ public class CustomSpecifications<T> {
 
     //https://stackoverflow.com/a/16911313/986160
     //https://stackoverflow.com/a/47793003/986160
-    public String getIdAttribute(EntityManager em, Class<T> clazz) {
+    public Attribute getIdAttribute(EntityManager em, Class<T> clazz) {
         Metamodel m = em.getMetamodel();
         IdentifiableType<T> of = (IdentifiableType<T>) m.managedType(clazz);
-        return of.getId(of.getIdType().getJavaType()).getName();
+        return of.getId(of.getIdType().getJavaType());
     }
 
     private String cleanUpKey(String key) {
@@ -194,7 +194,16 @@ public class CustomSpecifications<T> {
 
     }
 
-    private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+    /**
+     * creates an equality predicate.
+     * Basically it checks for type and does the right predicate.
+     * @param builder CriteriaBuilder
+     * @param root Root or Path (for Join)
+     * @param a Attribute
+     * @param val Object for comparison (from user)
+     * @return Predicate
+     */
+    private Predicate createEqualityPredicate(CriteriaBuilder builder, Path root, Attribute a, Object val) {
         if (val == null) {
             if (a.isAssociation() && a.isCollection()) {
                 return builder.isEmpty(root.get(a.getName()));
@@ -205,8 +214,8 @@ public class CustomSpecifications<T> {
             return builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
         } else if (isPrimitive(a)) {
             return builder.equal(root.get(a.getName()), val);
-        } else if (a.isAssociation()) {
-            return prepareJoinAssociatedPredicate(root, a, val);
+        } else if (a.isAssociation() && root instanceof Root) {
+            return prepareJoinAssociatedPredicate(builder, (Root) root, a, val);
         } else if(isSerializableAndFromString(a)) {
             try {
                 return builder.equal (root.get(a.getName()), a.getJavaType().getMethod("fromString", String.class).invoke(null, val.toString()));
@@ -258,11 +267,11 @@ public class CustomSpecifications<T> {
     }
 
 
-    private Predicate prepareJoinAssociatedPredicate(Root root, Attribute a, Object val) {
+    private Predicate prepareJoinAssociatedPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         Path rootJoinGetName = root.join(a.getName());
         Class referencedClass = rootJoinGetName.getJavaType();
-        String referencedPrimaryKey = getIdAttribute(em, referencedClass);
-        return rootJoinGetName.get(referencedPrimaryKey).in(val);
+        Attribute referencedPrimaryKey = getIdAttribute(em, referencedClass);
+        return createEqualityPredicate(builder, rootJoinGetName, referencedPrimaryKey, val);
     }
 
     private Class getJavaTypeOfClassContainingAttribute(Root root, String attributeName) {
@@ -277,7 +286,7 @@ public class CustomSpecifications<T> {
 
     private Object convertIdValueToMap(Object val, Attribute a, Root root) {
         Class javaTypeOfAttribute = getJavaTypeOfClassContainingAttribute(root, a.getName());
-        String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute);
+        String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute).getName();
         if (val instanceof Map && ((Map) val).keySet().size() == 1) {
             Map map = ((Map) val);
             for (Object key: map.keySet()) {
