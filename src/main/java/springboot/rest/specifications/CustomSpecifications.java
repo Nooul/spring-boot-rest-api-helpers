@@ -225,6 +225,9 @@ public class CustomSpecifications<T> {
             } else if (isPrimitive(a)) {
                 return builder.equal(join.get(a.getName()), val);
             }
+            else if (a.isAssociation()) {
+                return builder.equal(join.get(a.getName()), val);
+            }
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }
