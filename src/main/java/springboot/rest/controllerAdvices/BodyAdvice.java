@@ -14,6 +14,7 @@ import java.util.Arrays;
 
 //https://stackoverflow.com/a/40333275/986160
 //https://stackoverflow.com/a/59294075/986160
+//extend them and add @ControllerAdvice
 public class BodyAdvice implements ResponseBodyAdvice {
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {

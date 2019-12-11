@@ -9,7 +9,7 @@ import org.springframework.web.context.request.WebRequest;
 import springboot.rest.exceptions.NotFoundException;
 
 import java.util.Date;
-
+//extend them and add @ControllerAdvice
 public class GlobalExceptionAdvice {
 
     @Data
