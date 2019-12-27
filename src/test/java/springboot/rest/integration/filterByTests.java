@@ -9,7 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import springboot.rest.helpers.controllers.*;
+import springboot.rest.helpers.controllers.ActorController;
+import springboot.rest.helpers.controllers.MovieController;
+import springboot.rest.helpers.controllers.UuidController;
 import springboot.rest.helpers.entities.*;
 import springboot.rest.helpers.repositories.*;
 
@@ -240,6 +242,43 @@ public class filterByTests {
         Iterable<Movie> noDirectorMovies = movieController.filterBy("{director: null}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(noDirectorMovies));
     }
+
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void reference_many_to_one_null__fetch_movies_with_category_having_parent_category() {
+
+        Category fiction = new Category();
+        fiction.setName("fiction");
+        categoryRepository.save(fiction);
+
+        Category horror = new Category();
+        horror.setName("horror");
+        horror.setParentCategory(fiction);
+        categoryRepository.save(horror);
+
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setCategory(fiction);
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setCategory(horror);
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setCategory(horror);
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror1 = movieController.filterBy("{category: {parentCategory: {id:"+fiction.getId()+"}}}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror1));
+        Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror2 = movieController.filterBy("{category: {parentCategory: "+fiction.getId()+"}}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror2));
+    }
+
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)

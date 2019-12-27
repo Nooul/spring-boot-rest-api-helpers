@@ -249,6 +249,9 @@ public class CustomSpecifications<T> {
                     throw new IllegalArgumentException("equality/inequality is currently supported on primitives, enums and serializables with string constructor", e);
                 }
             }
+            else if (a.isAssociation()) {
+                return builder.equal(join.get(a.getName()), val);
+            }
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
     }

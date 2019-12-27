@@ -61,7 +61,7 @@ public class ActorController {
             @RequestParam(required = false, name = "range") String rangeStr, 
             @RequestParam(required = false, name="sort") String sortStr) {
 
-        QueryParamWrapper wrapper = QueryParamExtracter.extract(filterStr, rangeStr, sortStr);
+        QueryParamWrapper wrapper = QueryParamExtractor.extract(filterStr, rangeStr, sortStr);
         return filterService.filterBy(wrapper, repository, Arrays.asList("firstName", "lastName"));
     }
 }
@@ -70,10 +70,12 @@ public class ActorController {
 
 The main important parts include:
 
-- `@ControllerAdvices` that wrap Collections in objects {content: []) with paging and number of results information along with Status Codes based on Exceptions thrown.
+- `@ControllerAdvice`s that wrap Collections in objects {content: []) with paging and number of results information along with Status Codes based on Exceptions thrown and returns 404 in case of null returned from endpoints.
 - `BaseRepository` interface that needs to be extended by each of resource `Repositories`
 - `CustomSpecifications` does all the magic of Criteria API query generation so that filtering and sorting works along with `FilterService` that provides some helper methods to the Controller code and helps provide convert the String query params to `FilterWrapper` so that it can be injected behind the scenes.
 - `ObjectMapperProvider` that can be used by the Spring Boot Application in case serialization and deserialization need to work through fields instead of Getters and Setters
+- you need to create classes annotated with `@ControllerAdvice` and extend the appropriate classes under package `springboot.rest.controllerAdvices` if needed in your project
+
 
 ## Installation
 
