@@ -146,10 +146,20 @@ public class CustomSpecifications<T> {
         boolean isValueCollection = val instanceof Collection;
         boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         if (isValueCollection) {
-            return handleCollection(builder, root, join, query, a,  key, (Collection) val, false);
-        } else if (isValTextSearch) {
+            return handleCollection(builder, root, join, query, a, key, (Collection) val, false);
+        }
+        else if (isValTextSearch) {
             return createLikePredicate(builder, root, join, a, (String) val);
-        } else {
+        }
+        // TODO write test
+        //e.g @ElementCollection
+        //    @CollectionTable(name = "fieldName")
+        // List<Strings> ageRatings = new ArrayList<>();
+        else if(a.isCollection() &&  !a.isAssociation() && isValuePrimitive(val)) {
+            return createEqualityPredicate(builder, root,  root.join(a.getName()), a, val);
+        }
+
+        else {
             return createEqualityPredicate(builder, root, join, a, val);
         }
     }
@@ -227,6 +237,9 @@ public class CustomSpecifications<T> {
             }
             else if (a.isAssociation()) {
                 return builder.equal(join.get(a.getName()), val);
+            }
+            else if(a.isCollection()) {
+                return builder.equal(join, val);
             }
         }
         throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
@@ -318,6 +331,17 @@ public class CustomSpecifications<T> {
                 attributeJavaClass.equals("float") ||
                 attributeJavaClass.equals("double");
     }
+
+    private boolean isValuePrimitive(Object value) {
+        String attributeJavaClass = value.getClass().getSimpleName().toLowerCase();
+        return attributeJavaClass.startsWith("int") ||
+                attributeJavaClass.startsWith("long") ||
+                attributeJavaClass.equals("boolean") ||
+                attributeJavaClass.equals("string") ||
+                attributeJavaClass.equals("float") ||
+                attributeJavaClass.equals("double");
+    }
+
     private boolean isEnum(Attribute attribute) {
         String parentJavaClass = "";
         if (attribute.getJavaType().getSuperclass() != null) {
