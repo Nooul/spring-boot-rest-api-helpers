@@ -151,10 +151,6 @@ public class CustomSpecifications<T> {
         else if (isValTextSearch) {
             return createLikePredicate(builder, root, join, a, (String) val);
         }
-        // TODO write test
-        //e.g @ElementCollection
-        //    @CollectionTable(name = "fieldName")
-        // List<Strings> ageRatings = new ArrayList<>();
         else if(a.isCollection() &&  !a.isAssociation() && isValuePrimitive(val)) {
             return createEqualityPredicate(builder, root,  root.join(a.getName()), a, val);
         }
