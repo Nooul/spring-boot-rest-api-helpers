@@ -17,6 +17,7 @@ import springboot.rest.helpers.repositories.*;
 
 import static springboot.rest.utils.UrlUtils.encodeURIComponent;
 import java.util.Arrays;
+import java.util.Set;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -625,6 +626,29 @@ public class filterByTests {
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void  exact_match_of_primitive_in_primitive_collection__fetch_movie_by_age_rating() {
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setAgeRatings(Set.of("PG-13"));
+        movieRepository.save(matrix);
+
+        Movie matrix2 = new Movie();
+        matrix2.setName("The Matrix Reloaded");
+        matrix2.setAgeRatings(Set.of("R"));
+        movieRepository.save(matrix2);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setAgeRatings(Set.of("R"));
+        movieRepository.save(constantine);
+
+        Iterable<Movie> movieByAgeRating = movieController.filterBy("{ageRatings: R}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(movieByAgeRating));
+    }
+
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -1205,6 +1229,7 @@ public class filterByTests {
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: %atri%}"), null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
+
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)

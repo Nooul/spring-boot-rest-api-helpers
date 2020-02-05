@@ -126,6 +126,7 @@ spring-boot-rest-api-helpers.use-snake-case = false
 - for each of the Rest API resources create a class `XYZController` annotated with `@RestController`
 
 for more examples see/run the integration tests
+*Note:* three-level join tests are failing and are not implemented yet - Any help towards an implementation that allows any number of depth for queries would be greatly appreciated :D
 
 ## Previous Versions
 

@@ -6,7 +6,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Setter
@@ -32,6 +34,11 @@ public class Movie {
 
     @OneToOne(cascade = CascadeType.ALL)
     private UUID uuid;
+
+    @ElementCollection
+    @CollectionTable(name = "age_ratings")
+    @Column(name = "age_rating")
+    private Set<String> ageRatings = new HashSet<>();
 
 
 
