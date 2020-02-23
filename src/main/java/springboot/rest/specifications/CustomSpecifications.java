@@ -40,8 +40,6 @@ public class CustomSpecifications<T> {
         };
     }
 
-
-
     public Specification<T> customSpecificationBuilder(List<Map<String, Object>> list) {
 
         return (Specification<T>) (root, query, builder) -> {
@@ -86,12 +84,10 @@ public class CustomSpecifications<T> {
     }
 
     public Predicate handleAllCases(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Attribute a, String key, Object val) {
-        //boolean isPrimitive = isPrimitive(a);
         boolean isValueCollection = val instanceof Collection;
         boolean isValueMap = val instanceof Map;
         String cleanKey = cleanUpKey(key);
         boolean isKeyClean = cleanKey.equals(key);
-        //boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         boolean isNegation = key.endsWith("Not");
         boolean isGt = key.endsWith("Gt");
         boolean isGte = key.endsWith("Gte");
@@ -101,10 +97,9 @@ public class CustomSpecifications<T> {
         boolean isAssociation = a.isAssociation();
 
         if (isValueMap) {
-            val = convertIdValueToMap(val, a, root);
+            val = convertMapContainingPrimaryIdToValue(val, a, root);
         }
         if (val instanceof Map && isAssociation) {
-            //Root newRoot = query.from(getJavaTypeOfClassContainingAttribute(root, a.getName()));
             List<Predicate> predicates =  handleMap(builder, root, root.join(a.getName()), query, ((Map)val), Arrays.asList());
             Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
             return  builder.and(predicatesArray);
@@ -147,15 +142,11 @@ public class CustomSpecifications<T> {
         boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         if (isValueCollection) {
             return handleCollection(builder, root, join, query, a, key, (Collection) val, false);
-        }
-        else if (isValTextSearch) {
+        } else if (isValTextSearch) {
             return createLikePredicate(builder, root, join, a, (String) val);
-        }
-        else if(a.isCollection() &&  !a.isAssociation() && isValuePrimitive(val)) {
+        } else if(a.isCollection() && !a.isAssociation()) {
             return createEqualityPredicate(builder, root,  root.join(a.getName()), a, val);
-        }
-
-        else {
+        } else {
             return createEqualityPredicate(builder, root, join, a, val);
         }
     }
@@ -163,10 +154,10 @@ public class CustomSpecifications<T> {
 
     //https://stackoverflow.com/a/16911313/986160
     //https://stackoverflow.com/a/47793003/986160
-    public String getIdAttribute(EntityManager em, Class<T> clazz) {
+    public Attribute getIdAttribute(EntityManager em, Class<T> clazz) {
         Metamodel m = em.getMetamodel();
         IdentifiableType<T> of = (IdentifiableType<T>) m.managedType(clazz);
-        return of.getId(of.getIdType().getJavaType()).getName();
+        return of.getId(of.getIdType().getJavaType());
     }
 
     private String cleanUpKey(String key) {
@@ -220,9 +211,15 @@ public class CustomSpecifications<T> {
                 return builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
             } else if (isPrimitive(a)) {
                 return builder.equal(root.get(a.getName()), val);
-            }
-            else if (a.isAssociation()) {
-                return prepareJoinAssociatedPredicate(root, a, val);
+            } else if(isUUID(a)) {
+                return builder.equal(root.get(a.getName()), UUID.fromString(val.toString()));
+            } else if(a.isAssociation()) {
+                if (isPrimaryKeyOfAttributeUUID(a, root)) {
+                    return prepareJoinAssociatedPredicate(root, a, UUID.fromString(val.toString()));
+                }
+                else {
+                    return prepareJoinAssociatedPredicate(root, a, val);
+                }
             }
         }
         else if (join != null) {
@@ -230,8 +227,7 @@ public class CustomSpecifications<T> {
                 return builder.equal(join.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
             } else if (isPrimitive(a)) {
                 return builder.equal(join.get(a.getName()), val);
-            }
-            else if (a.isAssociation()) {
+            } else if (a.isAssociation()) {
                 return builder.equal(join.get(a.getName()), val);
             }
             else if(a.isCollection()) {
@@ -290,23 +286,27 @@ public class CustomSpecifications<T> {
     private Predicate prepareJoinAssociatedPredicate(Root root, Attribute a, Object val) {
         Path rootJoinGetName = root.join(a.getName());
         Class referencedClass = rootJoinGetName.getJavaType();
-        String referencedPrimaryKey = getIdAttribute(em, referencedClass);
+        String referencedPrimaryKey = getIdAttribute(em, referencedClass).getName();
         return rootJoinGetName.get(referencedPrimaryKey).in(val);
     }
 
     private Class getJavaTypeOfClassContainingAttribute(Root root, String attributeName) {
         Attribute a = root.getModel().getAttribute(attributeName);
         if (a.isAssociation()) {
-            //root.getModel().getAttribute("actors").getName()
             return root.join(a.getName()).getJavaType();
         }
         return null;
     }
 
-
-    private Object convertIdValueToMap(Object val, Attribute a, Root root) {
+    private boolean isPrimaryKeyOfAttributeUUID(Attribute a, Root root) {
         Class javaTypeOfAttribute = getJavaTypeOfClassContainingAttribute(root, a.getName());
-        String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute);
+        String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute).getJavaType().getSimpleName().toLowerCase();
+        return primaryKeyName.equalsIgnoreCase("uuid");
+    }
+
+    private Object convertMapContainingPrimaryIdToValue(Object val, Attribute a, Root root) {
+        Class javaTypeOfAttribute = getJavaTypeOfClassContainingAttribute(root, a.getName());
+        String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute).getName();
         if (val instanceof Map && ((Map) val).keySet().size() == 1) {
             Map map = ((Map) val);
             for (Object key: map.keySet()) {
@@ -318,18 +318,13 @@ public class CustomSpecifications<T> {
         return val;
     }
 
-    private boolean isPrimitive(Attribute attribute) {
+    private boolean isUUID(Attribute attribute) {
         String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
-        return attributeJavaClass.startsWith("int") ||
-                attributeJavaClass.startsWith("long") ||
-                attributeJavaClass.equals("boolean") ||
-                attributeJavaClass.equals("string") ||
-                attributeJavaClass.equals("float") ||
-                attributeJavaClass.equals("double");
+        return attributeJavaClass.equalsIgnoreCase("uuid");
     }
 
-    private boolean isValuePrimitive(Object value) {
-        String attributeJavaClass = value.getClass().getSimpleName().toLowerCase();
+    private boolean isPrimitive(Attribute attribute) {
+        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
         return attributeJavaClass.startsWith("int") ||
                 attributeJavaClass.startsWith("long") ||
                 attributeJavaClass.equals("boolean") ||
@@ -361,5 +356,4 @@ public class CustomSpecifications<T> {
             return val == null;
         }
     }
-
 }

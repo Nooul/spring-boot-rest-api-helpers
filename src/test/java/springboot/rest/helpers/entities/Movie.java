@@ -32,9 +32,6 @@ public class Movie {
     @ManyToMany(mappedBy="movies")
     private List<Actor> actors = new ArrayList<>();
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private UUID uuid;
-
     @ElementCollection
     @CollectionTable(name = "age_ratings")
     @Column(name = "age_rating")
