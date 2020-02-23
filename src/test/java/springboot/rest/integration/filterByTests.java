@@ -13,9 +13,10 @@ import springboot.rest.helpers.controllers.*;
 import springboot.rest.helpers.entities.*;
 import springboot.rest.helpers.repositories.*;
 
-import static springboot.rest.utils.UrlUtils.encodeURIComponent;
 import java.util.Arrays;
 import java.util.Set;
+
+import static springboot.rest.utils.UrlUtils.encodeURIComponent;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -35,9 +36,6 @@ public class filterByTests {
     private DirectorRepository directorRepository;
 
     @Autowired
-    private UuidRepository uuidRepository;
-
-    @Autowired
     private UUIDEntityRepository uuidEntityRepository;
 
     @Autowired
@@ -48,9 +46,6 @@ public class filterByTests {
 
     @Autowired
     private ActorController actorController;
-
-    @Autowired
-    private UuidController uuidController;
 
     @Autowired
     private UUIDEntityController uuidEntityController;
@@ -1015,7 +1010,7 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void  two_level__fetch_movie_like_director_name() {
+    public void two_level__fetch_movie_like_director_name() {
 
         Director lana = new Director();
         lana.setFirstName("Lana");
@@ -1144,51 +1139,68 @@ public class filterByTests {
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void filter_by_primary_key_that_is_not_called_id_and_is_native_uuid() {
-        UUID uuid = new UUID();
-        uuidRepository.save(uuid);
-
-        Iterable<UUID> uuidsByUuid = uuidController.filterBy("{uuid: "+ uuid.toString()+ "}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
-    }
-
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void filter_by_foreign_key_that_is_not_called_id_and_is_native_uuid() {
-        Movie matrix = new Movie();
-        matrix.setName("The Matrix");
-        UUID uuid = new UUID();
-        matrix.setUuid(uuid);
-        movieRepository.save(matrix);
-
-        Iterable<Movie> movieByUuid = movieController.filterBy("{uuid: "+uuid.toString()+"}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByUuid));
-    }
+//    @Test
+//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+//    public void filter_by_primary_key_that_is_not_called_id_and_is_native_uuid() {
+//        UUID uuid = new UUID();
+//        uuidRepository.save(uuid);
+//
+//        Iterable<UUID> uuidsByUuid = uuidController.filterBy("{uuid: "+ uuid.toString()+ "}", null, null);
+//        Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
+//    }
+//
+//    @Test
+//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+//    public void filter_by_foreign_key_that_is_not_called_id() {
+//        Movie matrix = new Movie();
+//        matrix.setName("The Matrix");
+//        UUID uuid = new UUID(java.util.UUID.randomUUID().toString());
+//        uuidRepository.save(uuid);
+//        matrix.setUuid(uuid);
+//        movieRepository.save(matrix);
+//
+//        Iterable<Movie> movieByUuid = movieController.filterBy("{uuid: "+uuid.toString()+"}", null, null);
+//        Assert.assertEquals(1, IterableUtil.sizeOf(movieByUuid));
+//    }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void filter_by_primary_key_that_is_native_uuid() {
-        UUIDEntity entity = new UUIDEntity();
-        uuidEntityRepository.save(entity);
+        UUIDEntity entity1 = new UUIDEntity();
+        uuidEntityRepository.save(entity1);
 
-        Iterable<UUIDEntity> uuidsByUuid = uuidEntityController.filterBy("{uuid: "+entity.getUuid()+"}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
+        UUIDEntity entity2 = new UUIDEntity();
+        uuidEntityRepository.save(entity2);
+
+        Iterable<UUIDEntity> entitiesByUuid = uuidEntityController.filterBy("{uuid: "+entity1.getUuid()+"}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(entitiesByUuid));
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void filter_by_foreign_key_that_is_native_uuid() {
-        UUIDEntity entity = new UUIDEntity();
-        uuidEntityRepository.save(entity);
+        UUIDEntity entity1 = new UUIDEntity();
+        uuidEntityRepository.save(entity1);
 
-        UUIDRelationship relationship = new UUIDRelationship();
-        relationship.setUuidEntity(entity);
-        uuidRelationshipRepository.save(relationship);
+        UUIDEntity entity2 = new UUIDEntity();
+        uuidEntityRepository.save(entity2);
 
-        Iterable<UUIDRelationship> uuidsByUuid = uuidRelationshipController.filterBy("{uuidEntity: "+entity.getUuid()+"}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
+        UUIDRelationship relationship1 = new UUIDRelationship();
+        relationship1.setUuidEntity(entity1);
+        uuidRelationshipRepository.save(relationship1);
+
+        UUIDRelationship relationship2 = new UUIDRelationship();
+        relationship2.setUuidEntity(entity1);
+        uuidRelationshipRepository.save(relationship2);
+
+        UUIDRelationship relationship3 = new UUIDRelationship();
+        relationship3.setUuidEntity(entity2);
+        uuidRelationshipRepository.save(relationship3);
+
+        Iterable<UUIDRelationship> relsByUuid = uuidRelationshipController.filterBy("{uuidEntity:" + entity1.getUuid()+" }", null, null);
+        Iterable<UUIDRelationship> relsByUuid2 = uuidRelationshipController.filterBy("{uuidEntity: {uuid: " + entity1.getUuid()+" }}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(relsByUuid));
+        Assert.assertEquals(2, IterableUtil.sizeOf(relsByUuid2));
     }
 
     @Test
