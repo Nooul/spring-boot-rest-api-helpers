@@ -1146,23 +1146,24 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void filter_by_primary_key_that_is_not_called_id() {
-        UUID uuid = new UUID("ad2qewqdscasd2e123");
+    public void filter_by_primary_key_that_is_not_called_id_and_is_native_uuid() {
+        UUID uuid = new UUID();
         uuidRepository.save(uuid);
 
-        Iterable<UUID> uuidsByUuid = uuidController.filterBy("{uuid: ad2qewqdscasd2e123}", null, null);
+        Iterable<UUID> uuidsByUuid = uuidController.filterBy("{uuid: "+ uuid.toString()+ "}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void filter_by_foreign_key_that_is_not_called_id() {
+    public void filter_by_foreign_key_that_is_not_called_id_and_is_native_uuid() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
-        matrix.setUuid(new UUID("ad2qewqdscasd2e123"));
+        UUID uuid = new UUID();
+        matrix.setUuid(uuid);
         movieRepository.save(matrix);
 
-        Iterable<Movie> movieByUuid = movieController.filterBy("{uuid: ad2qewqdscasd2e123}", null, null);
+        Iterable<Movie> movieByUuid = movieController.filterBy("{uuid: "+uuid.toString()+"}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByUuid));
     }
 
@@ -1172,7 +1173,7 @@ public class filterByTests {
         UUIDEntity entity = new UUIDEntity();
         uuidEntityRepository.save(entity);
 
-        Iterable<UUIDEntity> uuidsByUuid = uuidEntityController.filterBy("{uuid: "+entity.getUuid().toString()+"}", null, null);
+        Iterable<UUIDEntity> uuidsByUuid = uuidEntityController.filterBy("{uuid: "+entity.getUuid()+"}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
     }
 
@@ -1186,7 +1187,7 @@ public class filterByTests {
         relationship.setUuidEntity(entity);
         uuidRelationshipRepository.save(relationship);
 
-        Iterable<UUIDRelationship> uuidsByUuid = uuidRelationshipController.filterBy("{uuidEntity: "+entity.getUuid().toString()+"}", null, null);
+        Iterable<UUIDRelationship> uuidsByUuid = uuidRelationshipController.filterBy("{uuidEntity: "+entity.getUuid()+"}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
     }
 
