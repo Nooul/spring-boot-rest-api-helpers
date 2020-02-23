@@ -86,12 +86,10 @@ public class CustomSpecifications<T> {
     }
 
     public Predicate handleAllCases(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Attribute a, String key, Object val) {
-        //boolean isPrimitive = isPrimitive(a);
         boolean isValueCollection = val instanceof Collection;
         boolean isValueMap = val instanceof Map;
         String cleanKey = cleanUpKey(key);
         boolean isKeyClean = cleanKey.equals(key);
-        //boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         boolean isNegation = key.endsWith("Not");
         boolean isGt = key.endsWith("Gt");
         boolean isGte = key.endsWith("Gte");
@@ -218,7 +216,7 @@ public class CustomSpecifications<T> {
             } else if(isUUID(a)) {
                 return builder.equal(root.get(a.getName()), UUID.fromString(val.toString()));
             } else if(a.isAssociation()) {
-                if (isPrimaryKeyUUID(a, root)) {
+                if (isPrimaryKeyOfAttributeUUID(a, root)) {
                     return prepareJoinAssociatedPredicate(root, a, UUID.fromString(val.toString()));
                 }
                 else {
@@ -303,15 +301,10 @@ public class CustomSpecifications<T> {
         return null;
     }
 
-    private boolean isPrimaryKeyUUID(Attribute a, Root root) {
+    private boolean isPrimaryKeyOfAttributeUUID(Attribute a, Root root) {
         Class javaTypeOfAttribute = getJavaTypeOfClassContainingAttribute(root, a.getName());
         String primaryKeyName = getIdAttribute(em, javaTypeOfAttribute).getJavaType().getSimpleName().toLowerCase();
-        if (primaryKeyName.equalsIgnoreCase("uuid")) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return primaryKeyName.equalsIgnoreCase("uuid");
     }
 
     private Object convertMapContainingPrimaryIdToValue(Object val, Attribute a, Root root) {
@@ -335,16 +328,6 @@ public class CustomSpecifications<T> {
 
     private boolean isPrimitive(Attribute attribute) {
         String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
-        return attributeJavaClass.startsWith("int") ||
-                attributeJavaClass.startsWith("long") ||
-                attributeJavaClass.equals("boolean") ||
-                attributeJavaClass.equals("string") ||
-                attributeJavaClass.equals("float") ||
-                attributeJavaClass.equals("double");
-    }
-
-    private boolean isValuePrimitive(Object value) {
-        String attributeJavaClass = value.getClass().getSimpleName().toLowerCase();
         return attributeJavaClass.startsWith("int") ||
                 attributeJavaClass.startsWith("long") ||
                 attributeJavaClass.equals("boolean") ||

@@ -1139,30 +1139,6 @@ public class filterByTests {
         Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
-//    @Test
-//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-//    public void filter_by_primary_key_that_is_not_called_id_and_is_native_uuid() {
-//        UUID uuid = new UUID();
-//        uuidRepository.save(uuid);
-//
-//        Iterable<UUID> uuidsByUuid = uuidController.filterBy("{uuid: "+ uuid.toString()+ "}", null, null);
-//        Assert.assertEquals(1, IterableUtil.sizeOf(uuidsByUuid));
-//    }
-//
-//    @Test
-//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-//    public void filter_by_foreign_key_that_is_not_called_id() {
-//        Movie matrix = new Movie();
-//        matrix.setName("The Matrix");
-//        UUID uuid = new UUID(java.util.UUID.randomUUID().toString());
-//        uuidRepository.save(uuid);
-//        matrix.setUuid(uuid);
-//        movieRepository.save(matrix);
-//
-//        Iterable<Movie> movieByUuid = movieController.filterBy("{uuid: "+uuid.toString()+"}", null, null);
-//        Assert.assertEquals(1, IterableUtil.sizeOf(movieByUuid));
-//    }
-
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void filter_by_primary_key_that_is_native_uuid() {
