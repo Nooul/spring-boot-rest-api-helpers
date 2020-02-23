@@ -53,63 +53,6 @@ public class filterByTests {
     @Autowired
     private UUIDRelationshipController uuidRelationshipController;
 
-
-
-//    @Before
-//    public void before() {
-//        Category action = new Category();
-//        action.setName("action");
-//        categoryRepository.save(action);
-//
-//        Category horror = new Category();
-//        horror.setName("horror");
-//        categoryRepository.save(horror);
-//
-//
-//
-//        Director lana = new Director();
-//        lana.setFirstName("Lana");
-//        lana.setLastName("Wachowski");
-//        directorRepository.save(lana);
-//
-//
-//        Movie matrix = new Movie();
-//        matrix.setName("The Matrix");
-//        matrix.setCategory(action);
-//        matrix.setDirector(lana);
-//        movieRepository.save(matrix);
-//
-//        Director francis = new Director();
-//        francis.setFirstName("Francis");
-//        francis.setLastName("Lawrence");
-//        directorRepository.save(francis);
-//
-//        Movie constantine = new Movie();
-//        constantine.setName("Constantine");
-//        constantine.setCategory(horror);
-//        constantine.setDirector(francis);
-//        movieRepository.save(constantine);
-//
-//        Actor keanu = new Actor();
-//        keanu.setFirstName("Keanu");
-//        keanu.setLastName("Reeves");
-//        keanu.setMovies(Arrays.asList(matrix, constantine));
-//        actorRepository.save(keanu);
-//
-//
-//
-//        Director andy = new Director();
-//        andy.setFirstName("Andy");
-//        andy.setLastName("Muschietti");
-//        directorRepository.save(andy);
-//
-//        Movie it = new Movie();
-//        it.setName("IT");
-//        it.setCategory(horror);
-//        it.setDirector(andy);
-//        movieRepository.save(it);
-//    }
-
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void find_null_primitive_should_return() {
