@@ -26,6 +26,9 @@ Now it is possible to also do the following (after url-encode of the query part 
 
     GET /actors?filter=[{firstName: Keanu},{firstName: John}] = //actors with firstName  'Keanu' or 'John'
     GET /actors?filter={firstName: [Keanu, John]} = //equivalent to the above
+    
+    GET /documents?filter={uuid: f44010c9-4d3c-45b2-bb6b-6cac8572bb78} // get documents with java.util.UUID equal to f44010c9-4d3c-45b2-bb6b-6cac8572bb78
+    GET /libraries?filter={documents: {uuid: f44010c9-4d3c-45b2-bb6b-6cac8572bb78}} // get libraries than contain documents with uuid equal to f44010c9-4d3c-45b2-bb6b-6cac8572bb78
 
 ```
 The key names are not the ones on the database but the ones exposed by the REST API and are the names of the entity attribute names. Here `movies` is plural because an Actor has `@ManyToMany` annotation on `List<Movie> movies` attribute. 
