@@ -9,9 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import springboot.rest.helpers.controllers.ActorController;
-import springboot.rest.helpers.controllers.MovieController;
-import springboot.rest.helpers.controllers.UuidController;
+import springboot.rest.helpers.controllers.*;
 import springboot.rest.helpers.entities.*;
 import springboot.rest.helpers.repositories.*;
 
