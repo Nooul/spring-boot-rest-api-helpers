@@ -42,7 +42,13 @@ The key names are not the ones on the database but the ones exposed by the REST 
 /actors?filter={moviesAnd: [1,2]} => actors acted at movies with ids 1 AND 2 
 /movies?filter={actorsAnd: [{firstName:'A'}, {lastName:'B'}] } => movies having actors with firstName = A AND lastName = B
 ```
-    
+
+**Important**: Keep in mind that the object/array that is passed in filter needs to be url encoded for the request to work. E.g in Javascript someone would use `encodeURIComponent()` like that 
+```
+let filterObj = {movies: [1,2]};
+fetch('/actors?filter=' + encodeURIComponent(JSON.stringify(filterObj)));
+```
+
 The above functionality is possible via this simple setup:
 ```java
 @RestController
