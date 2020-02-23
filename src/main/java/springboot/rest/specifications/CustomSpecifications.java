@@ -40,8 +40,6 @@ public class CustomSpecifications<T> {
         };
     }
 
-
-
     public Specification<T> customSpecificationBuilder(List<Map<String, Object>> list) {
 
         return (Specification<T>) (root, query, builder) -> {
@@ -295,7 +293,6 @@ public class CustomSpecifications<T> {
     private Class getJavaTypeOfClassContainingAttribute(Root root, String attributeName) {
         Attribute a = root.getModel().getAttribute(attributeName);
         if (a.isAssociation()) {
-            //root.getModel().getAttribute("actors").getName()
             return root.join(a.getName()).getJavaType();
         }
         return null;
@@ -359,5 +356,4 @@ public class CustomSpecifications<T> {
             return val == null;
         }
     }
-
 }
