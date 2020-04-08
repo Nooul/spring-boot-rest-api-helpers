@@ -100,7 +100,7 @@ public class CustomSpecifications<T> {
             val = convertMapContainingPrimaryIdToValue(val, a, root);
         }
         if (val instanceof Map && isAssociation) {
-            List<Predicate> predicates =  handleMap(builder, root, addJoinIfNotExists(root,a), query, ((Map)val), Arrays.asList());
+            List<Predicate> predicates =  handleMap(builder, root, addJoinIfNotExists(root,a, isValueCollection, isConjunction), query, ((Map)val), Arrays.asList());
             Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
             return  builder.and(predicatesArray);
         }
@@ -147,7 +147,7 @@ public class CustomSpecifications<T> {
         } else if (isValTextSearch) {
             return createLikePredicate(builder, root, join, a, (String) val);
         } else if(a.isCollection() && !a.isAssociation()) {
-            return createEqualityPredicate(builder, root,  addJoinIfNotExists(root, a), a, val);
+            return createEqualityPredicate(builder, root,  addJoinIfNotExists(root, a, false, isValueCollection), a, val);
         } else {
             return createEqualityPredicate(builder, root, join, a, val);
         }
@@ -288,13 +288,17 @@ public class CustomSpecifications<T> {
     private Predicate prepareJoinAssociatedPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
 
 
-        Path rootJoinGetName = addJoinIfNotExists(root, a);
+        Path rootJoinGetName = addJoinIfNotExists(root, a, false, false);
         Class referencedClass = rootJoinGetName.getJavaType();
         String referencedPrimaryKey = getIdAttribute(em, referencedClass).getName();
         return builder.equal(rootJoinGetName.get(referencedPrimaryKey), val);
     }
 
-    private Join addJoinIfNotExists(Root root, Attribute a) {
+    private Join addJoinIfNotExists(Root root, Attribute a, boolean isConjunction, boolean isValueCollection) {
+        if(isConjunction && isValueCollection) {
+            return root.join(a.getName());
+        }
+
         Set<Join> joins = root.getJoins();
         Join toReturn = null;
         for (Join join: joins) {
@@ -313,7 +317,7 @@ public class CustomSpecifications<T> {
     private Class getJavaTypeOfClassContainingAttribute(Root root, String attributeName) {
         Attribute a = root.getModel().getAttribute(attributeName);
         if (a.isAssociation()) {
-            return addJoinIfNotExists(root, a).getJavaType();
+            return addJoinIfNotExists(root, a, false, false).getJavaType();
         }
         return null;
     }
