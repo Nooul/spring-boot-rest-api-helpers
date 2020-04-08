@@ -100,7 +100,7 @@ public class CustomSpecifications<T> {
             val = convertMapContainingPrimaryIdToValue(val, a, root);
         }
         if (val instanceof Map && isAssociation) {
-            List<Predicate> predicates =  handleMap(builder, root, root.join(a.getName()), query, ((Map)val), Arrays.asList());
+            List<Predicate> predicates =  handleMap(builder, root, addJoinIfNotExists(root,a), query, ((Map)val), Arrays.asList());
             Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
             return  builder.and(predicatesArray);
         }
@@ -129,8 +129,10 @@ public class CustomSpecifications<T> {
 
     public Predicate handleCollection(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Attribute a, String key, Collection values, boolean conjunction) {
         List<Predicate> predicates = new ArrayList<>();
+
+
         for (Object val : values) {
-            Predicate pred  = handleAllCases(builder, root, join, query, a, key, val);
+            Predicate pred = handleAllCases(builder, root, join, query, a, key, val);
             predicates.add(pred);
         }
         Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
@@ -145,7 +147,7 @@ public class CustomSpecifications<T> {
         } else if (isValTextSearch) {
             return createLikePredicate(builder, root, join, a, (String) val);
         } else if(a.isCollection() && !a.isAssociation()) {
-            return createEqualityPredicate(builder, root,  root.join(a.getName()), a, val);
+            return createEqualityPredicate(builder, root,  addJoinIfNotExists(root, a), a, val);
         } else {
             return createEqualityPredicate(builder, root, join, a, val);
         }
@@ -215,10 +217,10 @@ public class CustomSpecifications<T> {
                 return builder.equal(root.get(a.getName()), UUID.fromString(val.toString()));
             } else if(a.isAssociation()) {
                 if (isPrimaryKeyOfAttributeUUID(a, root)) {
-                    return prepareJoinAssociatedPredicate(root, a, UUID.fromString(val.toString()));
+                    return prepareJoinAssociatedPredicate(builder, root, a, UUID.fromString(val.toString()));
                 }
                 else {
-                    return prepareJoinAssociatedPredicate(root, a, val);
+                    return prepareJoinAssociatedPredicate(builder, root, a, val);
                 }
             }
         }
@@ -283,17 +285,35 @@ public class CustomSpecifications<T> {
     }
 
 
-    private Predicate prepareJoinAssociatedPredicate(Root root, Attribute a, Object val) {
-        Path rootJoinGetName = root.join(a.getName());
+    private Predicate prepareJoinAssociatedPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+
+
+        Path rootJoinGetName = addJoinIfNotExists(root, a);
         Class referencedClass = rootJoinGetName.getJavaType();
         String referencedPrimaryKey = getIdAttribute(em, referencedClass).getName();
-        return rootJoinGetName.get(referencedPrimaryKey).in(val);
+        return builder.equal(rootJoinGetName.get(referencedPrimaryKey), val);
     }
+
+    private Join addJoinIfNotExists(Root root, Attribute a) {
+        Set<Join> joins = root.getJoins();
+        Join toReturn = null;
+        for (Join join: joins) {
+            if (a.getName().equals(join.getAttribute().getName())){
+                toReturn =  join;
+                break;
+            }
+        }
+        if (toReturn == null) {
+            toReturn = root.join(a.getName());
+        }
+        return toReturn;
+    }
+
 
     private Class getJavaTypeOfClassContainingAttribute(Root root, String attributeName) {
         Attribute a = root.getModel().getAttribute(attributeName);
         if (a.isAssociation()) {
-            return root.join(a.getName()).getJavaType();
+            return addJoinIfNotExists(root, a).getJavaType();
         }
         return null;
     }
@@ -331,6 +351,16 @@ public class CustomSpecifications<T> {
                 attributeJavaClass.equals("string") ||
                 attributeJavaClass.equals("float") ||
                 attributeJavaClass.equals("double");
+    }
+
+    private boolean isPrimitiveValue(Object obj) {
+        String javaClass = obj.getClass().getSimpleName().toLowerCase();
+        return javaClass.startsWith("int") ||
+                javaClass.startsWith("long") ||
+                javaClass.equals("boolean") ||
+                javaClass.equals("string") ||
+                javaClass.equals("float") ||
+                javaClass.equals("double");
     }
 
     private boolean isEnum(Attribute attribute) {
