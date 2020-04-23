@@ -855,45 +855,45 @@ public class filterByTests {
 
 
 
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void two_level_many_to_many_fetch_actors_with_movies_starting_with_matr_or_const() {
-        Movie matrix = new Movie();
-        matrix.setName("The Matrix");
-        movieRepository.save(matrix);
-
-        Movie constantine = new Movie();
-        constantine.setName("Constantine");
-        movieRepository.save(constantine);
-
-        Movie it = new Movie();
-        it.setName("IT");
-        movieRepository.save(it);
-
-        Actor keanu = new Actor();
-        keanu.setFirstName("Keanu");
-        keanu.setLastName("Reeves");
-        keanu.setMovies(Arrays.asList(matrix, constantine));
-        actorRepository.save(keanu);
-
-        Actor noMovieActor = new Actor();
-        noMovieActor.setFirstName("No Movie");
-        noMovieActor.setLastName("Whatsoever");
-        actorRepository.save(noMovieActor);
-
-        Actor noMovieActor2 = new Actor();
-        noMovieActor2.setFirstName("No Movie 2");
-        noMovieActor2.setLastName("Whatsoever 2");
-        actorRepository.save(noMovieActor2);
-
-
-        Iterable<Actor> actors = actorController.filterBy(encodeURIComponent("{movies: [{name:%atr%},{name:%onest%}]}}"), null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
-        Iterable<Actor> actors2 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onst%}]}}"), null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(actors2));
-        Iterable<Actor> actors3 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onest%}]}}"), null, null);
-        Assert.assertEquals(0, IterableUtil.sizeOf(actors3));
-    }
+//    @Test
+//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+//    public void two_level_many_to_many_fetch_actors_with_movies_starting_with_matr_or_const() {
+//        Movie matrix = new Movie();
+//        matrix.setName("The Matrix");
+//        movieRepository.save(matrix);
+//
+//        Movie constantine = new Movie();
+//        constantine.setName("Constantine");
+//        movieRepository.save(constantine);
+//
+//        Movie it = new Movie();
+//        it.setName("IT");
+//        movieRepository.save(it);
+//
+//        Actor keanu = new Actor();
+//        keanu.setFirstName("Keanu");
+//        keanu.setLastName("Reeves");
+//        keanu.setMovies(Arrays.asList(matrix, constantine));
+//        actorRepository.save(keanu);
+//
+//        Actor noMovieActor = new Actor();
+//        noMovieActor.setFirstName("No Movie");
+//        noMovieActor.setLastName("Whatsoever");
+//        actorRepository.save(noMovieActor);
+//
+//        Actor noMovieActor2 = new Actor();
+//        noMovieActor2.setFirstName("No Movie 2");
+//        noMovieActor2.setLastName("Whatsoever 2");
+//        actorRepository.save(noMovieActor2);
+//
+//
+//        Iterable<Actor> actors = actorController.filterBy(encodeURIComponent("{movies: [{name:%atr%},{name:%onest%}]}}"), null, null);
+//        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
+//        Iterable<Actor> actors2 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onst%}]}}"), null, null);
+//        Assert.assertEquals(1, IterableUtil.sizeOf(actors2));
+//        Iterable<Actor> actors3 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onest%}]}}"), null, null);
+//        Assert.assertEquals(0, IterableUtil.sizeOf(actors3));
+//    }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
