@@ -30,29 +30,30 @@ public class CustomSpecifications<T> {
         };
     }
 
-    public Specification<T> customSpecificationBuilder(Map<String, Object> map, List<String> includeOnlyFields) {
+    public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, Map<String, Object> map) {
+        query.distinct(true);
+        List<Predicate> predicates = handleMap(builder, root, null, query, map, new ArrayList<>());
+        return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 
-        return (Specification<T>) (root, query, builder) -> {
-
-            query.distinct(true);
-            List<Predicate> predicates = handleMap(builder, root, null, query, map, includeOnlyFields);
-            return builder.and(predicates.toArray(new Predicate[predicates.size()]));
-        };
     }
 
-    public Specification<T> customSpecificationBuilder(List<Map<String, Object>> list) {
+    public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, Map<String, Object> map, List<String> includeOnlyFields) {
+        query.distinct(true);
+        List<Predicate> predicates = handleMap(builder, root, null, query, map, includeOnlyFields);
+        return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+    }
 
-        return (Specification<T>) (root, query, builder) -> {
 
-            query.distinct(true);
-            List<Predicate> orPredicates = new ArrayList<>();
-            for (Map<String, Object> map: list) {
-                List<Predicate> predicates = handleMap(builder, root, null, query, map, new ArrayList<>());
-                Predicate orPred =  builder.and(predicates.toArray(new Predicate[predicates.size()]));
-                orPredicates.add(orPred);
-            }
-            return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
-        };
+
+    public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, List<Map<String, Object>> list) {
+        query.distinct(true);
+        List<Predicate> orPredicates = new ArrayList<>();
+        for (Map<String, Object> map: list) {
+            List<Predicate> predicates = handleMap(builder, root, null, query, map, new ArrayList<>());
+            Predicate orPred =  builder.and(predicates.toArray(new Predicate[predicates.size()]));
+            orPredicates.add(orPred);
+        }
+        return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
     }
 
     public List<Predicate> handleMap(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Map<String, Object> map, List<String> includeOnlyFields) {

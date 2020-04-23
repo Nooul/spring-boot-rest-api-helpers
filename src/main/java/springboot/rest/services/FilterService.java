@@ -8,6 +8,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import springboot.rest.entities.QueryParamWrapper;
 import springboot.rest.repositories.BaseRepository;
@@ -46,14 +47,14 @@ public class FilterService<T,I extends Serializable> {
 
         }
         else if (filterOr != null && filterOr.length() > 0) {
-            List list = filterOr.toList();
 
-            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                //map = convertToCamelCase(map); TODO for list
-            }
-
-            return repo.count(
-                    specifications.customSpecificationBuilder(list));
+            return repo.count((Specification<T>) (root, query, builder) -> {
+                List list = filterOr.toList();
+                if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                    //map = convertToCamelCase(map); TODO for list
+                }
+                return specifications.customSpecificationBuilder(builder, query, root,list);
+            });
 
         }
         else {
@@ -119,34 +120,39 @@ public class FilterService<T,I extends Serializable> {
             sortDir = Sort.Direction.ASC;
         }
 
+        Page result;
         if (filter != null && filter.length() > 0) {
-            HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
+            result = repo.findAll(
+                    (Specification<T>) (root, query, builder) -> {
 
-            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                map = convertToCamelCase(map);
-            }
+                        HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
 
-            return repo.findAll(
-                    specifications.customSpecificationBuilder(
-                            map, searchOnlyInFields
-            ), PageRequest.of(page,size, sortDir, sortBy));
+                        if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                            map = convertToCamelCase(map);
+                        }
+
+                        return specifications.customSpecificationBuilder(builder, query, root,
+                                map, searchOnlyInFields
+                        );
+                    }, PageRequest.of(page,size, sortDir, sortBy));
 
         }
         else if (filterOr != null && filterOr.length() > 0) {
-            List list = filterOr.toList();
-
-            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                //map = convertToCamelCase(map); TODO for list
-            }
-
-            return repo.findAll(
-                    specifications.customSpecificationBuilder(list)
-            , PageRequest.of(page,size, sortDir, sortBy));
+            result = repo.findAll(
+                (Specification<T>) (root, query, builder) -> {
+                    List list = filterOr.toList();
+                    if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                        //map = convertToCamelCase(map); TODO for list
+                    }
+                    return specifications.customSpecificationBuilder(builder, query, root,list);
+                }
+                , PageRequest.of(page,size, sortDir, sortBy));
 
         }
         else {
-            return repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
+            result = repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
         }
+        return result;
     }
 
     private HashMap<String, Object> convertToCamelCase(HashMap<String, Object> snakeCaseMap) {
