@@ -22,7 +22,7 @@ import java.util.Set;
 
 @Service
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/services/FilterService.java
-public class FilterService<T,I extends Serializable> {
+public class FilterService<T, I extends Serializable> {
 
     @Autowired
     private Environment env;
@@ -31,12 +31,12 @@ public class FilterService<T,I extends Serializable> {
     private CustomSpecifications<T> specifications;
 
 
-    public long countBy(QueryParamWrapper queryParamWrapper, BaseRepository<T,I> repo) {
+    public long countBy(QueryParamWrapper queryParamWrapper, BaseRepository<T, I> repo) {
         JSONObject filter = queryParamWrapper.getFilter();
         JSONArray filterOr = queryParamWrapper.getFilterOr();
         String usesSnakeCase = env.getProperty("spring-boot-rest-api-helpers.use-snake-case");
         if (filter != null && filter.length() > 0) {
-            HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
+            HashMap<String, Object> map = (HashMap<String, Object>) filter.toMap();
 
             if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                 map = convertToCamelCase(map);
@@ -45,24 +45,22 @@ public class FilterService<T,I extends Serializable> {
             return repo.count(
                     specifications.customSpecificationBuilder(map));
 
-        }
-        else if (filterOr != null && filterOr.length() > 0) {
+        } else if (filterOr != null && filterOr.length() > 0) {
 
             return repo.count((Specification<T>) (root, query, builder) -> {
                 List list = filterOr.toList();
                 if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                     //map = convertToCamelCase(map); TODO for list
                 }
-                return specifications.customSpecificationBuilder(builder, query, root,list);
+                return specifications.customSpecificationBuilder(builder, query, root, list);
             });
 
-        }
-        else {
+        } else {
             return repo.count();
         }
     }
 
-    public Page<T> filterBy(QueryParamWrapper queryParamWrapper, BaseRepository<T,I> repo) {
+    public Page<T> filterBy(QueryParamWrapper queryParamWrapper, BaseRepository<T, I> repo) {
         return filterByHelper(repo, specifications, queryParamWrapper, "id", new ArrayList<>());
     }
 
@@ -81,6 +79,29 @@ public class FilterService<T,I extends Serializable> {
         return filterByHelper(repo, specifications, queryParamWrapper, "id", searchOnlyInFields);
     }
 
+    private List<Sort.Order> sortHelper(JSONArray sort, String primaryKeyName) {
+
+        List<Sort.Order> sortOrders = new ArrayList<>();
+        String usesSnakeCase = env.getProperty("spring-boot-rest-api-helpers.use-snake-case");
+        if (sort.length() % 2 != 0) {
+            throw new IllegalArgumentException("sort should have even length given as array e.g ['name', 'ASC', 'birthDate', 'DESC']");
+        }
+        for (int i = 0; i < sort.length(); i = i + 2) {
+            String sortBy;
+            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                sortBy = convertToCamelCase((String) sort.get(i));
+            } else {
+                sortBy = (String) sort.get(i);
+            }
+
+            sortOrders.add(new Sort.Order(Sort.Direction.valueOf((String) sort.get(i + 1)), sortBy));
+        }
+        if (sortOrders.isEmpty()) {
+            sortOrders.add(new Sort.Order(Sort.Direction.ASC, primaryKeyName));
+        }
+
+        return sortOrders;
+    }
 
     private <T> Page<T> filterByHelper(BaseRepository<T, I> repo,
                                        CustomSpecifications<T> specifications,
@@ -89,8 +110,7 @@ public class FilterService<T,I extends Serializable> {
                                        List<String> searchOnlyInFields) {
         String usesSnakeCase = env.getProperty("spring-boot-rest-api-helpers.use-snake-case");
 
-        String sortBy = primaryKeyName;
-        String order = "DESC";
+        Sort sortObj;
         JSONObject filter = queryParamWrapper.getFilter();
         JSONArray filterOr = queryParamWrapper.getFilterOr();
         JSONArray range = queryParamWrapper.getRange();
@@ -103,29 +123,13 @@ public class FilterService<T,I extends Serializable> {
             size = (Integer) range.get(1);
         }
 
-
-
-        if (sort.length() == 2) {
-            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                sortBy = convertToCamelCase((String) sort.get(0));
-            }
-            else {
-                sortBy = (String) sort.get(0);
-            }
-            order = (String) sort.get(1);
-        }
-
-        Sort.Direction sortDir = Sort.Direction.DESC;
-        if (order.equalsIgnoreCase("ASC")) {
-            sortDir = Sort.Direction.ASC;
-        }
-
+        sortObj = Sort.by(sortHelper(sort, primaryKeyName));
         Page result;
         if (filter != null && filter.length() > 0) {
             result = repo.findAll(
                     (Specification<T>) (root, query, builder) -> {
 
-                        HashMap<String,Object> map = (HashMap<String,Object>) filter.toMap();
+                        HashMap<String, Object> map = (HashMap<String, Object>) filter.toMap();
 
                         if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
                             map = convertToCamelCase(map);
@@ -134,23 +138,21 @@ public class FilterService<T,I extends Serializable> {
                         return specifications.customSpecificationBuilder(builder, query, root,
                                 map, searchOnlyInFields
                         );
-                    }, PageRequest.of(page,size, sortDir, sortBy));
+                    }, PageRequest.of(page, size, sortObj));
 
-        }
-        else if (filterOr != null && filterOr.length() > 0) {
+        } else if (filterOr != null && filterOr.length() > 0) {
             result = repo.findAll(
-                (Specification<T>) (root, query, builder) -> {
-                    List list = filterOr.toList();
-                    if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                        //map = convertToCamelCase(map); TODO for list
+                    (Specification<T>) (root, query, builder) -> {
+                        List list = filterOr.toList();
+                        if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                            //map = convertToCamelCase(map); TODO for list
+                        }
+                        return specifications.customSpecificationBuilder(builder, query, root, list);
                     }
-                    return specifications.customSpecificationBuilder(builder, query, root,list);
-                }
-                , PageRequest.of(page,size, sortDir, sortBy));
+                    , PageRequest.of(page, size, sortObj));
 
-        }
-        else {
-            result = repo.findAll(PageRequest.of(page, size, sortDir, sortBy));
+        } else {
+            result = repo.findAll(PageRequest.of(page, size, sortObj));
         }
         return result;
     }
@@ -158,7 +160,7 @@ public class FilterService<T,I extends Serializable> {
     private HashMap<String, Object> convertToCamelCase(HashMap<String, Object> snakeCaseMap) {
         Set<String> keys = snakeCaseMap.keySet();
         HashMap<String, Object> camelCaseMap = new HashMap<>(snakeCaseMap);
-        for (String key: keys) {
+        for (String key : keys) {
             Object val = snakeCaseMap.get(key);
             camelCaseMap.put(convertToCamelCase(key), val);
         }
