@@ -7,6 +7,7 @@ Inspired by built-in fake REST data provider [react-admin](https://github.com/ma
     GET /actors?filter={movies: 1, firstName: John} = //actors played in movie with id = 1 and their first  name is John
     GET /actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
     GET /actors?filter={q: %Keanu Re%} // full text search on all text fields
+    GET /actors?sort=[firstName,DESC,birthDate,ASC] //sort by multiple fields in case of ties
 ```
 More Inspiration was drawn from languages like [FIQL/RSQL](https://github.com/jirutka/rsql-parser) so recently more features were added along with in-memory integration tests, support for non-number primary keys,  resulting in a total refactoring of the code and fix of a lot of bugs (there are still some edge cases).
 
