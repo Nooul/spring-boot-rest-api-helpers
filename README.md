@@ -114,7 +114,7 @@ and add this as a dependency in your pom.xml dependencies:
 
 - Add springboot.rest package in the scanBasePackages at the top of your Spring Boot Application class
 ```java
-@SpringBootApplication(scanBasePackages = {"com.myproject", "springboot.rest"})
+@SpringBootApplication(scanBasePackages = {"com.myproject", springbootrest})
 ```
 
 - inject and expose as `@Bean` the provided `ObjectMapperProvider`
