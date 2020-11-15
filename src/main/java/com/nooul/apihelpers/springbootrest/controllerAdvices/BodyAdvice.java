@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-import com.nooul.apihelpers.springbootrest.exceptions.NotFoundException;
 
 import java.util.Arrays;
 
@@ -25,9 +24,9 @@ public class BodyAdvice implements ResponseBodyAdvice {
     @SuppressWarnings("unchecked")
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
 
-        if (body == null) {
-            throw new NotFoundException("Resource was not found!");
-        }
+//        if (body == null) {
+//            throw new NotFoundException("Resource was not found!");
+//        }
         if (isArray(body)) {
             return new Wrapper(Arrays.asList(body));
         }
