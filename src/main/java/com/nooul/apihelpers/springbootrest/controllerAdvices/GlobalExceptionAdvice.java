@@ -18,7 +18,6 @@ import org.springframework.web.context.request.WebRequest;
 import java.util.Date;
 //extend them and add @ControllerAdvice
 
-@ControllerAdvice
 public class GlobalExceptionAdvice {
 
     @Data
@@ -38,7 +37,6 @@ public class GlobalExceptionAdvice {
     @Data
     @AllArgsConstructor
     public class JsonLogMessage {
-        private String kioskId;
         private String user;
         private String uri;
         private String exceptionMessage;
@@ -120,9 +118,7 @@ public class GlobalExceptionAdvice {
             uri = servletWebRequest.getRequest().getRequestURI();
             user = servletWebRequest.getRemoteUser();
         }
-        String kioskId = request.getHeader("Kiosk-Id");
-        JsonLogMessage jsonObj = new JsonLogMessage(
-                kioskId, user, uri, "[" + ex.getClass().getName() + ": " + ex.getMessage() + "]");
+        JsonLogMessage jsonObj = new JsonLogMessage(user, uri, "[" + ex.getClass().getName() + ": " + ex.getMessage() + "]");
         return JSON.toJsonString(jsonObj);
     }
 }
