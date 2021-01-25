@@ -6,6 +6,7 @@
     <groupId>com.nooul.apihelpers</groupId>
     <artifactId>spring-boot-rest-api-helpers</artifactId>
     <version>0.7.0.RELEASE</version>
+
     <build>
         <plugins>
             <plugin>
@@ -57,11 +58,6 @@
             <version>3.9</version>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>28.1-jre</version>
-        </dependency>
-        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20190722</version>
@@ -71,6 +67,12 @@
             <artifactId>lombok</artifactId>
             <version>1.18.10</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

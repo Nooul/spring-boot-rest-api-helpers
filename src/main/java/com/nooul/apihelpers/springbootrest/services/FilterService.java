@@ -1,9 +1,10 @@
 package com.nooul.apihelpers.springbootrest.services;
 
-import com.google.common.base.CaseFormat;
+
 import com.nooul.apihelpers.springbootrest.entities.QueryParamWrapper;
 import com.nooul.apihelpers.springbootrest.repositories.BaseRepository;
 import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
+import org.apache.commons.text.CaseUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,7 +168,7 @@ public class FilterService<T, I extends Serializable> {
         return camelCaseMap;
     }
 
-    private String convertToCamelCase(String snakeCaseStr) {
-        return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, snakeCaseStr);
+    public String convertToCamelCase(String snakeCaseStr) {
+        return CaseUtils.toCamelCase(snakeCaseStr,false, new char[]{'_'});
     }
 }
