@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +22,7 @@ public class Movie {
 
     private String name;
 
-    private int yearReleased;
+    private Timestamp releaseDate;
 
     @ManyToOne
     private Director director;

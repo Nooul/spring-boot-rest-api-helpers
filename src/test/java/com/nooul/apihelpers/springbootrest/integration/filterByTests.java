@@ -1,12 +1,12 @@
 package com.nooul.apihelpers.springbootrest.integration;
 
-import com.nooul.apihelpers.springbootrest.helpers.entities.*;
-import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
-import com.nooul.apihelpers.springbootrest.utils.UrlUtils;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.ActorController;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.MovieController;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.UUIDEntityController;
-import com.nooul.apihelpers.springbootrest.helpers.controllers.UUIDRelationshipController;;
+import com.nooul.apihelpers.springbootrest.helpers.controllers.UUIDRelationshipController;
+import com.nooul.apihelpers.springbootrest.helpers.entities.*;
+import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
+import com.nooul.apihelpers.springbootrest.utils.UrlUtils;
 import org.assertj.core.util.IterableUtil;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,6 +19,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.Set;
+
+import static com.nooul.apihelpers.springbootrest.helpers.utils.DateUtils.timeStamp;
+
+;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -60,17 +64,17 @@ public class filterByTests {
     public void find_null_primitive_should_return() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
-        matrix.setYearReleased(1999);
+        matrix.setReleaseDate(timeStamp("1999-01-05"));
         movieRepository.save(matrix);
 
         Movie constantine = new Movie();
         constantine.setName(null);
-        constantine.setYearReleased(2005);
+        constantine.setReleaseDate(timeStamp("2005-01-05"));
         movieRepository.save(constantine);
 
         Movie it = new Movie();
         it.setName("IT");
-        it.setYearReleased(2017);
+        it.setReleaseDate(timeStamp("2017-01-05"));
         movieRepository.save(it);
 
         Iterable<Movie> moviesWithNullName1 = movieController.filterBy("{name: null}", null, null);
@@ -85,40 +89,79 @@ public class filterByTests {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void integer_range_queries() {
+    public void date_range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
-        matrix.setYearReleased(1999);
+        matrix.setReleaseDate(timeStamp("1999-01-05"));
         movieRepository.save(matrix);
 
         Movie constantine = new Movie();
         constantine.setName("Constantine");
-        constantine.setYearReleased(2005);
+        constantine.setReleaseDate(timeStamp("2005-01-05"));
         movieRepository.save(constantine);
 
         Movie it = new Movie();
         it.setName("IT");
-        it.setYearReleased(2017);
+        it.setReleaseDate(timeStamp("2017-01-05"));
         movieRepository.save(it);
 
-        Iterable<Movie> moviesAfterOrOn2005 = movieController.filterBy("{yearReleasedGte: 2005}", null, null);
+        Iterable<Movie> moviesAfterOrOn2005 = movieController.filterBy("{releaseDateGte: '2005-01-01'}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn2005));
 
-        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{yearReleasedGt: 2005}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter2005));
+        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{releaseDateGt: '2005-01-01'}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005));
 
-        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{yearReleasedLte: 2005}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesBeforeOrOn2005));
+        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{releaseDateLte: '2005-01-1'}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBeforeOrOn2005));
 
-        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{yearReleasedLt: 2005}", null, null);
+        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{releaseDateLt: '2005-01-01'}", null, null);
         Assert.assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
 
-        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{yearReleasedGt: 1999, yearReleasedLt:2017}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter1999Before2017));
+        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{releaseDateGt: '1999-01-01', releaseDateLt: '2017-12-01'}", null, null);
+        Assert.assertEquals(3, IterableUtil.sizeOf(moviesAfter1999Before2017));
 
-        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{yearReleasedGte: 2005, yearReleasedLte:2017}", null, null);
+        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{releaseDateGte: 2005-01-01, releaseDateLte:2017-12-01}", null, null);
         Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
     }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void date_with_time_range_queries() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setReleaseDate(timeStamp("1999-01-05"));
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setReleaseDate(timeStamp("2005-01-05"));
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setReleaseDate(timeStamp("2017-01-05"));
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesAfterOrOn2005 = movieController.filterBy("{releaseDateGte: '2005-01-01T00:00:00'}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn2005));
+
+        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{releaseDateGt: '2005-01-01T00:00:00'}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005));
+
+        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{releaseDateLte: '2005-01-1T00:00:00'}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBeforeOrOn2005));
+
+        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{releaseDateLt: '2005-01-01T00:00:00'}", null, null);
+        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
+
+        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{releaseDateGt: '1999-01-01T00:00:00', releaseDateLt:'2017-12-01T00:00:00'}", null, null);
+        Assert.assertEquals(3, IterableUtil.sizeOf(moviesAfter1999Before2017));
+
+        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{releaseDateGte: '2005-01-01T00:00:00', releaseDateLte:'2017-12-01T00:00:00'}", null, null);
+        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
+    }
+
+
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -126,18 +169,18 @@ public class filterByTests {
 
         Movie constantine = new Movie();
         constantine.setName("Constantine");
-        constantine.setYearReleased(2005);
+        constantine.setReleaseDate(timeStamp("2005-01-05"));
         movieRepository.save(constantine);
 
         Movie it = new Movie();
         it.setName("IT");
-        it.setYearReleased(2017);
+        it.setReleaseDate(timeStamp("2017-01-05"));
         movieRepository.save(it);
 
 
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
-        matrix.setYearReleased(1999);
+        matrix.setReleaseDate(timeStamp("1999-01-05"));
         movieRepository.save(matrix);
 
 

@@ -5,7 +5,7 @@ Inspired by built-in fake REST data provider [react-admin](https://github.com/ma
     GET /movies?filter={id: 1} //get movies by id = 1
     GET /movies?filter={id: [1,2]} // get movies by id = 1 or id = 2
     GET /actors?filter={movies: 1, firstName: John} = //actors played in movie with id = 1 and their first  name is John
-    GET /actors?filter={birthDateGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
+    GET /actors?filter={birthYearGt: 1960}&sort=[id,DESC]&range=[0,100] // actors born later than 1960
     GET /actors?filter={q: %Keanu Re%} // full text search on all text fields
     GET /actors?sort=[firstName,DESC,birthDate,ASC] //sort by multiple fields in case of ties
 ```
@@ -31,6 +31,9 @@ Now it is possible to also do the following (after url-encode of the query part 
     GET /documents?filter={uuid: f44010c9-4d3c-45b2-bb6b-6cac8572bb78} // get document with java.util.UUID equal to f44010c9-4d3c-45b2-bb6b-6cac8572bb78
     GET /libraries?filter={documents: {uuid: f44010c9-4d3c-45b2-bb6b-6cac8572bb78}} // get libraries that contain document with uuid equal to f44010c9-4d3c-45b2-bb6b-6cac8572bb78
     GET /libraries?filter={documents: f44010c9-4d3c-45b2-bb6b-6cac8572bb78} // same as above
+
+    GET /actors?filter={birthDateGt: '1960-01-01'}&sort=[id,DESC]&range=[0,100] // actors born later than 1960-01-01
+    GET /actors?filter={birthDateGt: '1960-01-01T00:00:00'}&sort=[id,DESC]&range=[0,100] // actors born later than 1960-01-01 00:00:00 (database timezone - UTC recommended)
 
 ```
 The key names are not the ones on the database but the ones exposed by the REST API and are the names of the entity attribute names. Here `movies` is plural because an Actor has `@ManyToMany` annotation on `List<Movie> movies` attribute. 
