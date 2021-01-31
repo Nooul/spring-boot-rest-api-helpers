@@ -60,7 +60,7 @@ public class CustomSpecifications<T> {
         return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
     }
 
-    public List<Predicate> handleMap(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Map<String, Object> map, List<String> includeOnlyFields) {
+    private List<Predicate> handleMap(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Map<String, Object> map, List<String> includeOnlyFields) {
         if (join != null){
             root = query.from(getJavaTypeOfClassContainingAttribute(root, join.getAttribute().getName()));
         }
@@ -88,7 +88,7 @@ public class CustomSpecifications<T> {
         return predicates;
     }
 
-    public Predicate handleAllCases(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Attribute a, String key, Object val) {
+    private Predicate handleAllCases(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Attribute a, String key, Object val) {
         boolean isValueCollection = val instanceof Collection;
         boolean isValueMap = val instanceof Map;
         String cleanKey = cleanUpKey(key);
@@ -132,7 +132,7 @@ public class CustomSpecifications<T> {
         return builder.conjunction();
     }
 
-    public Predicate handleCollection(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Attribute a, String key, Collection values, boolean conjunction) {
+    private Predicate handleCollection(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, Attribute a, String key, Collection values, boolean conjunction) {
         List<Predicate> predicates = new ArrayList<>();
 
 
@@ -144,7 +144,7 @@ public class CustomSpecifications<T> {
         return (conjunction) ? builder.and(predicatesArray): builder.or(predicatesArray);
     }
 
-    public Predicate handleCleanKeyCase(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, String key, Attribute a, Object val) {
+    private Predicate handleCleanKeyCase(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, String key, Attribute a, Object val) {
         boolean isValueCollection = val instanceof Collection;
         boolean isValTextSearch = (val instanceof String) && ((String) val).contains("%");
         if (isValueCollection) {
@@ -161,7 +161,7 @@ public class CustomSpecifications<T> {
 
     //https://stackoverflow.com/a/16911313/986160
     //https://stackoverflow.com/a/47793003/986160
-    public Attribute getIdAttribute(EntityManager em, Class<T> clazz) {
+    private Attribute getIdAttribute(EntityManager em, Class<T> clazz) {
         Metamodel m = em.getMetamodel();
         IdentifiableType<T> of = (IdentifiableType<T>) m.managedType(clazz);
         return of.getId(of.getIdType().getJavaType());
@@ -178,7 +178,7 @@ public class CustomSpecifications<T> {
         return key;
     }
 
-    public Predicate searchInAllAttributesPredicate(CriteriaBuilder builder, Root root, String text, List<String> includeOnlyFields) {
+    private Predicate searchInAllAttributesPredicate(CriteriaBuilder builder, Root root, String text, List<String> includeOnlyFields) {
 
         if (!text.contains("%")) {
             text = "%" + text + "%";
