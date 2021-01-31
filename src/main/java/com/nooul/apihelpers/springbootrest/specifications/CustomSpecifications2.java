@@ -24,15 +24,6 @@ public class CustomSpecifications2<T> {
         };
     }
 
-    public Map<String, Attribute> convertStringMapToAttrMap(Root root, Map<String, Object> filterMap) {
-        Map<String, Attribute> attributeMap = new HashMap<>();
-        for (Map.Entry<String,Object> entry: filterMap.entrySet()) {
-            Attribute attribute = root.getModel().getAttribute(entry.getKey());
-            attributeMap.put(entry.getKey(), attribute);
-        }
-        return attributeMap;
-    }
-
 
     public Predicate customSpecificationBuilder(CriteriaBuilder cb, CriteriaQuery query, Root root, Map<String, Object> filterMap, List<String> includeOnlyFields) {
         query.distinct(true);
@@ -43,66 +34,95 @@ public class CustomSpecifications2<T> {
     }
 
     private List<Predicate> handleMap(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
-        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
-        Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
-        Map<String, Attribute> listAttrMap = filterListAttr(attributeMap);
-
-        Map<String, Attribute> associationAttributesMap = filterAssociationAttributes(attributeMap);
-
 
         List<Predicate> andPredicates = new ArrayList<>();
+        andPredicates.addAll(handlePrimitiveEquality(cb, root, filterMap));
+        andPredicates.addAll(handleAssociationEquality(cb, root, filterMap));
+        return andPredicates;
+    }
 
+    private List<Predicate> handleAssociationEquality(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+        Map<String, Attribute> associationAttributesMap = filterAssociationAttributes(attributeMap);
+        List<Predicate> predicates = new ArrayList<>();
+        for (Map.Entry<String,Attribute> entry: associationAttributesMap.entrySet()) {
+            String attributeName = entry.getKey();
+            Object value = filterMap.get(entry.getKey());
+                if (value == null) {
+                    Predicate predicate = cb.and(cb.isNull(root.join(attributeName, JoinType.LEFT)));
+                    predicates.add(predicate);
+                } if (isPrimitiveValue(value)) {
+                    Join join = root.join(attributeName);
+                    Predicate predicate = cb.and(cb.equal(join.get(getIdAttribute(join)), value));
+                    predicates.add(predicate);
+                } else if (isCollectionOfPrimitives(value)) {
+                    Collection vals = (Collection) value;
+                    List<Predicate> orPredicates = new ArrayList<>();
+                    for (Object val: vals) {
+                        Join join = root.join(attributeName);
+                        Predicate predicate = cb.equal(join.get(getIdAttribute(join)),val);
+                        orPredicates.add(predicate);
+                    }
+                    predicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
+
+                } else if(isMap(value)) {
+                    Join join = root.join(attributeName);
+                    String primaryKeyName = getIdAttribute(join);
+                    Predicate predicate = cb.and(cb.equal(join.get(primaryKeyName), (((Map)value).get(primaryKeyName))));
+                    predicates.add(predicate);
+                } else if(isCollectionOfMaps(value)) {
+                    Collection<Map> vals = (Collection<Map>) value;
+                    List<Predicate> orPredicates = new ArrayList<>();
+                    for (Map val: vals) {
+                        Join join = root.join(attributeName);
+                        String primaryKeyName = getIdAttribute(join);
+                        Predicate predicate = cb.equal(root.join(attributeName).get(getIdAttribute(join)),(val.get(primaryKeyName)));
+                        orPredicates.add(predicate);
+                    }
+                    predicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
+                }
+//            }
+        }
+        return predicates;
+    }
+
+    private List<Predicate>  handlePrimitiveEquality(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+        List<Predicate> predicates = new ArrayList<>() ;
         Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
+        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+        Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
         for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
             String attributeName = entry.getKey();
             if (singularAttrMap.containsKey(attributeName)) {
                 Object value = entry.getValue();
                 if (value == null) {
                     Predicate predicate = cb.and(cb.isNull(root.get(attributeName)));
-                    andPredicates.add(predicate);
+                    predicates.add(predicate);
                 }
                 else {
                     Predicate predicate = cb.and(cb.equal(root.get(attributeName), value));
-                    andPredicates.add(predicate);
+                    predicates.add(predicate);
                 }
             }
         }
+        return predicates;
+    }
 
-        for (Map.Entry<String,Attribute> entry: associationAttributesMap.entrySet()) {
-            String attributeName = entry.getKey();
-            Object value = filterMap.get(entry.getKey());
-                if (value == null) {
-                    Predicate predicate = cb.and(cb.isNull(root.join(attributeName, JoinType.LEFT)));
-                    andPredicates.add(predicate);
-                } if (isPrimitiveValue(value)) {
-                    Predicate predicate = cb.and(cb.equal(root.join(attributeName).get("id"), value));
-                    andPredicates.add(predicate);
-                } else if (isCollectionOfPrimitives(value)) {
-                    Collection vals = (Collection) value;
-                    List<Predicate> orPredicates = new ArrayList<>();
-                    for (Object val: vals) {
 
-                        Predicate predicate = cb.equal(root.join(attributeName).get("id"),val);
-                        orPredicates.add(predicate);
-                    }
-                    andPredicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
-
-                } else if(isMap(value)) {
-                    Predicate predicate = cb.and(cb.equal(root.join(attributeName).get("id"), (((Map)value).get("id"))));
-                    andPredicates.add(predicate);
-                } else if(isCollectionOfMaps(value)) {
-                    Collection<Map> vals = (Collection<Map>) value;
-                    List<Predicate> orPredicates = new ArrayList<>();
-                    for (Map val: vals) {
-                        Predicate predicate = cb.equal(root.join(attributeName).get("id"),(val.get("id")));
-                        orPredicates.add(predicate);
-                    }
-                    andPredicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
-                }
-//            }
-
+    public Map<String, Attribute> convertStringMapToAttrMap(Root root, Map<String, Object> filterMap) {
+        Map<String, Attribute> attributeMap = new HashMap<>();
+        for (Map.Entry<String,Object> entry: filterMap.entrySet()) {
+            Attribute attribute = root.getModel().getAttribute(entry.getKey());
+            attributeMap.put(entry.getKey(), attribute);
         }
-        return andPredicates;
+        return attributeMap;
+    }
+
+
+
+    private String getIdAttribute(Join join) {
+        String primaryKey =  getIdAttribute(em, join.getJavaType()).getName();
+        return primaryKey;
     }
 
     //https://stackoverflow.com/a/16911313/986160
