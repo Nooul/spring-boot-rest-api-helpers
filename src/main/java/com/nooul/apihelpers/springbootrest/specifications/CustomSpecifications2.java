@@ -42,10 +42,10 @@ public class CustomSpecifications2<T> {
         List<Predicate> andPredicates = new ArrayList<>();
         andPredicates.addAll(handlePrimitiveEquality(cb, root, filterMap));
         andPredicates.addAll(handleAssociationEquality(cb, root, filterMap));
-        andPredicates.addAll(handlePrimitiveGt(cb, root, filterMap));
-        andPredicates.addAll(handlePrimitiveGte(cb, root, filterMap));
-        andPredicates.addAll(handlePrimitiveLt(cb, root, filterMap));
-        andPredicates.addAll(handlePrimitiveLte(cb, root, filterMap));
+        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Gte"));
+        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Lte"));
+        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Lt"));
+        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Gt"));
         return andPredicates;
     }
 
@@ -99,7 +99,6 @@ public class CustomSpecifications2<T> {
         Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
         Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
         Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
-//        Map<String, Attribute> collectionAttrMap = filterCollectionAttrs(attributeMap);
         Map<String, Object> attributesWithCollectionValuesMap = filterAttributesWithCollectionValues(filterMap);
         for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
             String attributeName = entry.getKey();
@@ -130,63 +129,23 @@ public class CustomSpecifications2<T> {
         return predicates;
     }
 
-    private List<Predicate>  handlePrimitiveGte(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+    private List<Predicate> handlePrimitiveComparison(CriteriaBuilder cb, Root root, Map<String, Object> filterMap, String comparisonPostFix) {
         List<Predicate> predicates = new ArrayList<>() ;
         Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
         for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
             String attributeName = entry.getKey();
-            if (attributeName.endsWith("Gte")) {
+            if (attributeName.endsWith(comparisonPostFix)) {
                 Object value = entry.getValue();
                 if (value != null) {
-                    predicates.add(createGtePredicate(cb, root, attributeName, value));
+
+                    switch (comparisonPostFix) {
+                        case "Gte": { predicates.add(createGtePredicate(cb, root, attributeName, value)); break; }
+                        case "Lte": { predicates.add(createLtePredicate(cb, root, attributeName, value)); break; }
+                        case "Lt": { predicates.add(createLtPredicate(cb, root, attributeName, value)); break; }
+                        case "Gt": { predicates.add(createGtPredicate(cb, root, attributeName, value)); break; }
+                    }
                 }
 
-            }
-        }
-        return predicates;
-    }
-
-    private List<Predicate>  handlePrimitiveLte(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
-        List<Predicate> predicates = new ArrayList<>() ;
-        Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
-        for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
-            String attributeName = entry.getKey();
-            if (attributeName.endsWith("Lte")) {
-                Object value = entry.getValue();
-                if (value != null) {
-                    predicates.add(createLtePredicate(cb, root, attributeName, value));
-                }
-
-            }
-        }
-        return predicates;
-    }
-
-    private List<Predicate>  handlePrimitiveGt(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
-        List<Predicate> predicates = new ArrayList<>() ;
-        Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
-        for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
-            String attributeName = entry.getKey();
-            if (attributeName.endsWith("Gt")) {
-                Object value = entry.getValue();
-                if (value != null) {
-                    predicates.add(createGtPredicate(cb, root, attributeName, value));
-                }
-            }
-        }
-        return predicates;
-    }
-
-    private List<Predicate>  handlePrimitiveLt(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
-        List<Predicate> predicates = new ArrayList<>() ;
-        Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
-        for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
-            String attributeName = entry.getKey();
-            if (attributeName.endsWith("Lt")) {
-                Object value = entry.getValue();
-                if (value != null) {
-                    predicates.add(createLtPredicate(cb, root, attributeName, value));
-                }
             }
         }
         return predicates;
