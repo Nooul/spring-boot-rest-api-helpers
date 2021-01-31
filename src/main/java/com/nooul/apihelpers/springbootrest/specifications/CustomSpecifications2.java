@@ -1,9 +1,9 @@
 package com.nooul.apihelpers.springbootrest.specifications;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.criteria.internal.path.PluralAttributePath;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Attr;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -24,7 +24,7 @@ public class CustomSpecifications2<T> {
     public Specification<T> customSpecificationBuilder(Map<String, Object> map) {
 
         return (Specification<T>) (root, query, builder) -> {
-            addRoot(root, query);
+            getRoot(root, query);
             query.distinct(true);
             return builder.and();
         };
@@ -48,7 +48,7 @@ public class CustomSpecifications2<T> {
 
     private List<Predicate> handleMap(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap, List<String> searchOnlyInFields) {
         if (path instanceof Root) {
-            addRoot(path, query);
+            getRoot(path, query);
         }
         List<Predicate> andPredicates = new ArrayList<>();
         if (filterMap.containsKey("q") && filterMap.get("q") instanceof String) {
@@ -67,10 +67,14 @@ public class CustomSpecifications2<T> {
         andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Gt"));
         return andPredicates;
     }
-    private Root addRoot(Path path,  CriteriaQuery query) {
+    private Root getRoot(Path path, CriteriaQuery query) {
         if (path instanceof Root) {
             return (Root)path;
             //return rootsMap.put(path.getJavaType(), (Root)path);
+        }
+        else if(path instanceof PluralAttributePath) {
+            Class key = ((PluralAttributePath) path).getAttribute().getElementType().getJavaType();
+            return query.from(key);
         }
         else if(path instanceof Join) {
             Class key = path.getModel().getBindableJavaType();
@@ -97,8 +101,8 @@ public class CustomSpecifications2<T> {
     }
 
     private List<Predicate> handleAssociationEquality(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap) {
-        Root root = addRoot(path, query);
-        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+        Root root = getRoot(path, query);
+        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(path, query, filterMap);
         Map<String, Attribute> associationAttributesMap = filterAssociationAttributes(attributeMap);
         List<Predicate> predicates = new ArrayList<>();
 
@@ -109,7 +113,7 @@ public class CustomSpecifications2<T> {
                 Predicate predicate = cb.and(cb.isNull(root.join(attributeName, JoinType.LEFT)));
                 predicates.add(predicate);
             } else {
-                Join join = addJoinIfNotExists(root, attributeName);
+                Join join = addJoinIfNotExists(path, query, attributeName);
                 String primaryKeyName = getPrimaryKey(join);
                 if (isPrimitiveValue(value)) {
 
@@ -159,7 +163,7 @@ public class CustomSpecifications2<T> {
             text = "%" + text + "%";
         }
         final String finalText = text;
-        Root root = addRoot(path, query);
+        Root root = getRoot(path, query);
         Set<Attribute> attributes = root.getModel().getAttributes();
         List<Predicate> orPredicates = new ArrayList<>();
         for (Attribute a : attributes) {
@@ -176,7 +180,8 @@ public class CustomSpecifications2<T> {
 
     }
 
-    private Join addJoinIfNotExists(Root root, String attributeName) {
+    private Join addJoinIfNotExists(Path path, CriteriaQuery query, String attributeName) {
+        Root root = getRoot(path, query);
         Set<Join> joins = root.getJoins();
         Join toReturn = null;
         for (Join join: joins) {
@@ -194,8 +199,8 @@ public class CustomSpecifications2<T> {
     private List<Predicate>  handlePrimitiveEquality(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap) {
         List<Predicate> predicates = new ArrayList<>() ;
         Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
-        Root root = addRoot(path, query);
-        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+        Root root = getRoot(path, query);
+        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(path, query, filterMap);
         Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
         Map<String, Attribute> collectionAttrMap = filterCollectionAttrs(attributeMap);
         Map<String, Object> attributesWithCollectionValuesMap = filterAttributesWithCollectionValues(filterMap);
@@ -278,7 +283,7 @@ public class CustomSpecifications2<T> {
 
 
     private boolean isNullValue(Path path, CriteriaQuery query, String attributeName, Object val) {
-        Root root = addRoot(path, query);
+        Root root = getRoot(path, query);
         Attribute attribute = convertStringToAttribute(root, attributeName);
         if (isPrimitiveAttribute(attribute)) {
             String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
@@ -388,7 +393,8 @@ public class CustomSpecifications2<T> {
     }
 
 
-    public Map<String, Attribute> convertStringMapToAttrMap(Root root, Map<String, Object> filterMap) {
+    public Map<String, Attribute> convertStringMapToAttrMap(Path path, CriteriaQuery query, Map<String, Object> filterMap) {
+        Root root = getRoot(path, query);
         Map<String, Attribute> attributeMap = new HashMap<>();
         for (Map.Entry<String,Object> entry: filterMap.entrySet()) {
             if (isDirtyKey(entry.getKey())) {
