@@ -53,45 +53,67 @@ public class CustomSpecifications2<T> {
         Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
         Map<String, Attribute> associationAttributesMap = filterAssociationAttributes(attributeMap);
         List<Predicate> predicates = new ArrayList<>();
+
         for (Map.Entry<String,Attribute> entry: associationAttributesMap.entrySet()) {
             String attributeName = entry.getKey();
             Object value = filterMap.get(entry.getKey());
-                if (value == null) {
-                    Predicate predicate = cb.and(cb.isNull(root.join(attributeName, JoinType.LEFT)));
-                    predicates.add(predicate);
-                } if (isPrimitiveValue(value)) {
-                    Join join = root.join(attributeName);
-                    Predicate predicate = cb.and(cb.equal(join.get(getIdAttribute(join)), value));
+            if (value == null) {
+                Predicate predicate = cb.and(cb.isNull(root.join(attributeName, JoinType.LEFT)));
+                predicates.add(predicate);
+            } else {
+                Join join = root.join(attributeName);
+                String primaryKeyName = getPrimaryKey(join);
+                if (isPrimitiveValue(value)) {
+
+                    Predicate predicate = cb.and(cb.equal(join.get(getPrimaryKey(join)), value));
                     predicates.add(predicate);
                 } else if (isCollectionOfPrimitives(value)) {
                     Collection vals = (Collection) value;
                     List<Predicate> orPredicates = new ArrayList<>();
-                    for (Object val: vals) {
-                        Join join = root.join(attributeName);
-                        Predicate predicate = cb.equal(join.get(getIdAttribute(join)),val);
+                    for (Object val : vals) {
+                        Predicate predicate = cb.equal(join.get(getPrimaryKey(join)), val);
                         orPredicates.add(predicate);
                     }
                     predicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
 
-                } else if(isMap(value)) {
-                    Join join = root.join(attributeName);
-                    String primaryKeyName = getIdAttribute(join);
-                    Predicate predicate = cb.and(cb.equal(join.get(primaryKeyName), (((Map)value).get(primaryKeyName))));
-                    predicates.add(predicate);
-                } else if(isCollectionOfMaps(value)) {
+                } else if (isMap(value)) {
+                    if (((Map)value).containsKey(primaryKeyName)) {
+                        Predicate predicate = cb.and(cb.equal(join.get(primaryKeyName), (((Map) value).get(primaryKeyName))));
+                        predicates.add(predicate);
+                    }
+                    else {
+                        //do something for non ids in actors: { name:  }
+                    }
+                } else if (isCollectionOfMaps(value)) {
                     Collection<Map> vals = (Collection<Map>) value;
                     List<Predicate> orPredicates = new ArrayList<>();
-                    for (Map val: vals) {
-                        Join join = root.join(attributeName);
-                        String primaryKeyName = getIdAttribute(join);
-                        Predicate predicate = cb.equal(root.join(attributeName).get(getIdAttribute(join)),(val.get(primaryKeyName)));
-                        orPredicates.add(predicate);
+                    for (Map val : vals) {
+                        if (((Map)value).containsKey(primaryKeyName)) {
+                            Predicate predicate = cb.equal(root.join(attributeName).get(getPrimaryKey(join)), (val.get(primaryKeyName)));
+                            orPredicates.add(predicate);
+                        }
                     }
                     predicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
                 }
-//            }
+            }
         }
         return predicates;
+    }
+
+
+    private Join addJoinIfNotExists(Root root, String attributeName) {
+        Set<Join> joins = root.getJoins();
+        Join toReturn = null;
+        for (Join join: joins) {
+            if (attributeName.equals(join.getAttribute().getName())){
+                toReturn =  join;
+                break;
+            }
+        }
+        if (toReturn == null) {
+            toReturn = root.join(attributeName);
+        }
+        return toReturn;
     }
 
     private List<Predicate>  handlePrimitiveEquality(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
@@ -165,7 +187,6 @@ public class CustomSpecifications2<T> {
         }
         return key;
     }
-
 
     private Predicate createLtPredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
         String cleanKey = cleanUpKey(attributeName);
@@ -263,14 +284,14 @@ public class CustomSpecifications2<T> {
 
 
 
-    private String getIdAttribute(Join join) {
-        String primaryKey =  getIdAttribute(em, join.getJavaType()).getName();
+    private String getPrimaryKey(Join join) {
+        String primaryKey =  getPrimaryKey(em, join.getJavaType()).getName();
         return primaryKey;
     }
 
     //https://stackoverflow.com/a/16911313/986160
     //https://stackoverflow.com/a/47793003/986160
-    private Attribute getIdAttribute(EntityManager em, Class<T> clazz) {
+    private Attribute getPrimaryKey(EntityManager em, Class<T> clazz) {
         Metamodel m = em.getMetamodel();
         IdentifiableType<T> of = (IdentifiableType<T>) m.managedType(clazz);
         return of.getId(of.getIdType().getJavaType());
