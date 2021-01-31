@@ -23,6 +23,7 @@ import java.util.Set;
 
 import static com.nooul.apihelpers.springbootrest.helpers.utils.DateUtils.timeStamp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
 @DataJpaTest
@@ -475,9 +476,12 @@ public class filterByTests {
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id: " + keanu.getId()+ "}}", null, null);
         Iterable<Movie> keanuMovies2 = movieController.filterBy("{actors: "+ keanu.getId()+ "}", null, null);
         Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{id: "+ keanu.getId()+ "}]}", null, null);
+        Iterable<Movie> keanuMovies4 = movieController.filterBy("{actors: ["+ keanu.getId()+ "]}", null, null);
         assertEquals(2, IterableUtil.sizeOf(keanuMovies));
         assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
         assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies4));
+
     }
 
     @Test
@@ -564,6 +568,25 @@ public class filterByTests {
 
 
         Iterable<Movie> movieById = movieController.filterBy("{id:"+matrix.getId()+"}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(movieById));
+    }
+
+    @Test
+    void fetch_by_null_primitive_should_work() {
+        Movie matrix = new Movie();
+        matrix.setName(null);
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+
+        Iterable<Movie> movieById = movieController.filterBy("{name: null}", null, null);
         assertEquals(1, IterableUtil.sizeOf(movieById));
     }
 
