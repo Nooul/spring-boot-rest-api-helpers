@@ -5,6 +5,7 @@ import com.nooul.apihelpers.springbootrest.utils.JSON;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hibernate.TypeMismatchException;
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.bind.BindException;
@@ -22,7 +23,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.MethodNotAllowedException;
 
-import javax.validation.ConstraintViolationException;
 import java.util.Date;
 //extend them and add @ControllerAdvice
 
