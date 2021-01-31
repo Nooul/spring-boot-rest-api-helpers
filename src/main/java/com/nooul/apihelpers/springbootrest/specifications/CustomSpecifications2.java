@@ -1,7 +1,9 @@
 package com.nooul.apihelpers.springbootrest.specifications;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Attr;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -88,7 +90,7 @@ public class CustomSpecifications2<T> {
                     Collection<Map> vals = (Collection<Map>) value;
                     List<Predicate> orPredicates = new ArrayList<>();
                     for (Map val : vals) {
-                        if (((Map)value).containsKey(primaryKeyName)) {
+                        if (val.containsKey(primaryKeyName)) {
                             Predicate predicate = cb.equal(root.join(attributeName).get(getPrimaryKey(join)), (val.get(primaryKeyName)));
                             orPredicates.add(predicate);
                         }
@@ -126,7 +128,7 @@ public class CustomSpecifications2<T> {
             String attributeName = entry.getKey();
             if (singularAttrMap.containsKey(attributeName)) {
                 Object value = entry.getValue();
-                if (value == null) {
+                if (isNullValue(root, attributeName, value)) {
                     Predicate predicate = cb.and(cb.isNull(root.get(attributeName)));
                     predicates.add(predicate);
                 } else {
@@ -171,6 +173,23 @@ public class CustomSpecifications2<T> {
             }
         }
         return predicates;
+    }
+
+    private boolean isNullValue(Root root, String attributeName, Object val) {
+        Attribute attribute = convertStringToAttribute(root, attributeName);
+        if (isPrimitiveAttribute(attribute)) {
+            String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
+            if (attributeJavaClass.equals("string")) {
+                String valObj = (String) val;
+                return StringUtils.isBlank(valObj) || valObj.equalsIgnoreCase("null");
+            }
+            else {
+                return val == null;
+            }
+        }
+        else {
+            return val == null;
+        }
     }
 
     private boolean isDirtyKey(String key) {
@@ -409,6 +428,16 @@ public class CustomSpecifications2<T> {
 //        }
 //        return false;
 //    }
+
+    private boolean isPrimitiveAttribute(Attribute attribute) {
+        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
+        return attributeJavaClass.startsWith("int") ||
+                attributeJavaClass.startsWith("long") ||
+                attributeJavaClass.equals("boolean") ||
+                attributeJavaClass.equals("string") ||
+                attributeJavaClass.equals("float") ||
+                attributeJavaClass.equals("double");
+    }
 
 
     private static boolean isPrimitiveValue(Object obj) {
