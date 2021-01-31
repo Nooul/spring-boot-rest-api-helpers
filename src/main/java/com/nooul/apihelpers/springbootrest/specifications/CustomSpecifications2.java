@@ -46,7 +46,7 @@ public class CustomSpecifications2<T> {
             addRoot(path, query);
         }
         List<Predicate> andPredicates = new ArrayList<>();
-        andPredicates.addAll(handlePrimitiveEquality(cb, path, filterMap));
+        andPredicates.addAll(handlePrimitiveEquality(cb, query, path, filterMap));
         andPredicates.addAll(handleAssociationEquality(cb, query, path, filterMap));
         andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Gte"));
         andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Lte"));
@@ -56,17 +56,30 @@ public class CustomSpecifications2<T> {
     }
     private Root addRoot(Path path,  CriteriaQuery query) {
         if (path instanceof Root) {
-            return rootsMap.put(path.getJavaType(), (Root)path);
+            return (Root)path;
+            //return rootsMap.put(path.getJavaType(), (Root)path);
         }
-        else if(path instanceof SingularAttributeJoin) {
+        else if(path instanceof Join) {
             Class key = path.getModel().getBindableJavaType();
-            Root root =  rootsMap.put(key, query.from(key));
-            return root;
+//            if (rootsMap.containsKey(key)) {
+//                return rootsMap.get(key);
+//            }
+//            else {
+//                rootsMap.put(key, query.from(key));
+//                return rootsMap.get(key);
+//            }
+            return query.from(key);
         }
         else {
             Class key = path.getJavaType();
-            Root root = rootsMap.put(key, query.from(key));
-            return root;
+//            if (rootsMap.containsKey(key)) {
+//                return  rootsMap.get(key);
+//            }
+//            else {
+//                Root root = rootsMap.put(key, query.from(key));
+//                return root;
+//            }
+            return query.from(key);
         }
     }
 
@@ -105,11 +118,11 @@ public class CustomSpecifications2<T> {
                         Predicate predicate = cb.and(cb.equal(join.get(primaryKeyName), (((Map) value).get(primaryKeyName))));
                         predicates.add(predicate);
                     }
-//                    else {
-//                        Root newRoot = addRoot(join, query);
-//                        predicates.addAll(handleMap(cb, query, newRoot, (Map)value));
-//                        //do something for non ids in actors: { name:  }
-//                    }
+                    else {
+//                        Path expanded = path.get(attributeName);
+                        predicates.addAll(handleMap(cb, query, path.get(attributeName), (Map)value));
+                        //do something for non ids in actors: { name:  }
+                    }
                 } else if (isCollectionOfMaps(value)) {
                     Collection<Map> vals = (Collection<Map>) value;
                     List<Predicate> orPredicates = new ArrayList<>();
@@ -142,10 +155,10 @@ public class CustomSpecifications2<T> {
         return toReturn;
     }
 
-    private List<Predicate>  handlePrimitiveEquality(CriteriaBuilder cb, Path path, Map<String, Object> filterMap) {
+    private List<Predicate>  handlePrimitiveEquality(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap) {
         List<Predicate> predicates = new ArrayList<>() ;
         Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
-        Root root = rootsMap.get(path.getJavaType());
+        Root root = addRoot(path, query);
         Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
         Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
 
@@ -154,7 +167,7 @@ public class CustomSpecifications2<T> {
             String attributeName = entry.getKey();
             if (singularAttrMap.containsKey(attributeName)) {
                 Object value = entry.getValue();
-                if (isNullValue(root, attributeName, value)) {
+                if (isNullValue(root, query, attributeName, value)) {
                     Predicate predicate = cb.and(cb.isNull(path.get(attributeName)));
                     predicates.add(predicate);
                 } else {
@@ -169,7 +182,7 @@ public class CustomSpecifications2<T> {
                 Collection vals = (Collection) value;
                 List<Predicate> orPredicates = new ArrayList<>();
                 for (Object val: vals) {
-                    Predicate predicate = cb.equal(root.get(entry.getKey()), val);
+                    Predicate predicate = cb.equal(path.get(entry.getKey()), val);
                     orPredicates.add(predicate);
                 }
                 predicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
@@ -200,7 +213,8 @@ public class CustomSpecifications2<T> {
         return predicates;
     }
 
-    private boolean isNullValue(Root root, String attributeName, Object val) {
+    private boolean isNullValue(Path path, CriteriaQuery query, String attributeName, Object val) {
+        Root root = addRoot(path, query);
         Attribute attribute = convertStringToAttribute(root, attributeName);
         if (isPrimitiveAttribute(attribute)) {
             String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
