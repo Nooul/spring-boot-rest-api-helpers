@@ -1,9 +1,9 @@
 package com.nooul.apihelpers.springbootrest.specifications;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.criteria.internal.path.SingularAttributeJoin;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Attr;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -21,10 +21,12 @@ public class CustomSpecifications2<T> {
     @PersistenceContext
     private EntityManager em;
 
+    private Map<Class, Root> rootsMap = new HashMap<>();
+
     public Specification<T> customSpecificationBuilder(Map<String, Object> map) {
 
         return (Specification<T>) (root, query, builder) -> {
-
+            addRoot(root, query);
             query.distinct(true);
             return builder.and();
         };
@@ -34,24 +36,42 @@ public class CustomSpecifications2<T> {
     public Predicate customSpecificationBuilder(CriteriaBuilder cb, CriteriaQuery query, Root root, Map<String, Object> filterMap, List<String> includeOnlyFields) {
         query.distinct(true);
 
-        List<Predicate> andPredicates = handleMap(cb, root, filterMap);
+        List<Predicate> andPredicates = handleMap(cb, query, root, filterMap);
 
         return cb.and(andPredicates.toArray(new Predicate[andPredicates.size()]));
     }
 
-    private List<Predicate> handleMap(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
-
+    private List<Predicate> handleMap(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap) {
+        if (path instanceof Root) {
+            addRoot(path, query);
+        }
         List<Predicate> andPredicates = new ArrayList<>();
-        andPredicates.addAll(handlePrimitiveEquality(cb, root, filterMap));
-        andPredicates.addAll(handleAssociationEquality(cb, root, filterMap));
-        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Gte"));
-        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Lte"));
-        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Lt"));
-        andPredicates.addAll(handlePrimitiveComparison(cb, root, filterMap, "Gt"));
+        andPredicates.addAll(handlePrimitiveEquality(cb, path, filterMap));
+        andPredicates.addAll(handleAssociationEquality(cb, query, path, filterMap));
+        andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Gte"));
+        andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Lte"));
+        andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Lt"));
+        andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Gt"));
         return andPredicates;
     }
+    private Root addRoot(Path path,  CriteriaQuery query) {
+        if (path instanceof Root) {
+            return rootsMap.put(path.getJavaType(), (Root)path);
+        }
+        else if(path instanceof SingularAttributeJoin) {
+            Class key = path.getModel().getBindableJavaType();
+            Root root =  rootsMap.put(key, query.from(key));
+            return root;
+        }
+        else {
+            Class key = path.getJavaType();
+            Root root = rootsMap.put(key, query.from(key));
+            return root;
+        }
+    }
 
-    private List<Predicate> handleAssociationEquality(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+    private List<Predicate> handleAssociationEquality(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap) {
+        Root root = addRoot(path, query);
         Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
         Map<String, Attribute> associationAttributesMap = filterAssociationAttributes(attributeMap);
         List<Predicate> predicates = new ArrayList<>();
@@ -79,13 +99,17 @@ public class CustomSpecifications2<T> {
                     predicates.add(cb.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
 
                 } else if (isMap(value)) {
+
+
                     if (((Map)value).containsKey(primaryKeyName)) {
                         Predicate predicate = cb.and(cb.equal(join.get(primaryKeyName), (((Map) value).get(primaryKeyName))));
                         predicates.add(predicate);
                     }
-                    else {
-                        //do something for non ids in actors: { name:  }
-                    }
+//                    else {
+//                        Root newRoot = addRoot(join, query);
+//                        predicates.addAll(handleMap(cb, query, newRoot, (Map)value));
+//                        //do something for non ids in actors: { name:  }
+//                    }
                 } else if (isCollectionOfMaps(value)) {
                     Collection<Map> vals = (Collection<Map>) value;
                     List<Predicate> orPredicates = new ArrayList<>();
@@ -118,21 +142,23 @@ public class CustomSpecifications2<T> {
         return toReturn;
     }
 
-    private List<Predicate>  handlePrimitiveEquality(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+    private List<Predicate>  handlePrimitiveEquality(CriteriaBuilder cb, Path path, Map<String, Object> filterMap) {
         List<Predicate> predicates = new ArrayList<>() ;
         Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
+        Root root = rootsMap.get(path.getJavaType());
         Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
         Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
+
         Map<String, Object> attributesWithCollectionValuesMap = filterAttributesWithCollectionValues(filterMap);
         for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
             String attributeName = entry.getKey();
             if (singularAttrMap.containsKey(attributeName)) {
                 Object value = entry.getValue();
                 if (isNullValue(root, attributeName, value)) {
-                    Predicate predicate = cb.and(cb.isNull(root.get(attributeName)));
+                    Predicate predicate = cb.and(cb.isNull(path.get(attributeName)));
                     predicates.add(predicate);
                 } else {
-                    Predicate predicate = cb.and(cb.equal(root.get(attributeName), value));
+                    Predicate predicate = cb.and(cb.equal(path.get(attributeName), value));
                     predicates.add(predicate);
                 }
             }
@@ -153,7 +179,7 @@ public class CustomSpecifications2<T> {
         return predicates;
     }
 
-    private List<Predicate> handlePrimitiveComparison(CriteriaBuilder cb, Root root, Map<String, Object> filterMap, String comparisonPostFix) {
+    private List<Predicate> handlePrimitiveComparison(CriteriaBuilder cb, Path path, Map<String, Object> filterMap, String comparisonPostFix) {
         List<Predicate> predicates = new ArrayList<>() ;
         Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
         for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
@@ -161,12 +187,11 @@ public class CustomSpecifications2<T> {
             if (attributeName.endsWith(comparisonPostFix)) {
                 Object value = entry.getValue();
                 if (value != null) {
-
                     switch (comparisonPostFix) {
-                        case "Gte": { predicates.add(createGtePredicate(cb, root, attributeName, value)); break; }
-                        case "Lte": { predicates.add(createLtePredicate(cb, root, attributeName, value)); break; }
-                        case "Lt": { predicates.add(createLtPredicate(cb, root, attributeName, value)); break; }
-                        case "Gt": { predicates.add(createGtPredicate(cb, root, attributeName, value)); break; }
+                        case "Gte": { predicates.add(createGtePredicate(cb, path, attributeName, value)); break; }
+                        case "Lte": { predicates.add(createLtePredicate(cb, path, attributeName, value)); break; }
+                        case "Lt": { predicates.add(createLtPredicate(cb, path, attributeName, value)); break; }
+                        case "Gt": { predicates.add(createGtPredicate(cb, path, attributeName, value)); break; }
                     }
                 }
 
@@ -207,61 +232,61 @@ public class CustomSpecifications2<T> {
         return key;
     }
 
-    private Predicate createLtPredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
+    private Predicate createLtPredicate(CriteriaBuilder builder, Path path, String attributeName, Object val) {
         String cleanKey = cleanUpKey(attributeName);
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
             if (timestamp != null) {
-                return builder.lessThan(builder.lower(root.get(cleanKey)), timestamp);
+                return builder.lessThan(builder.lower(path.get(cleanKey)), timestamp);
             }
-            return builder.lessThan(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
+            return builder.lessThan(builder.lower(path.get(cleanKey)), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
-            return builder.lessThan(root.get(cleanKey), (Integer) val);
+            return builder.lessThan(path.get(cleanKey), (Integer) val);
         }
         throw new IllegalArgumentException("val type not supported yet");
     }
 
-    private Predicate createLtePredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
+    private Predicate createLtePredicate(CriteriaBuilder builder, Path path, String attributeName, Object val) {
         String cleanKey = cleanUpKey(attributeName);
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
             if (timestamp != null) {
-                return builder.lessThanOrEqualTo(builder.lower(root.get(cleanKey)), timestamp);
+                return builder.lessThanOrEqualTo(builder.lower(path.get(cleanKey)), timestamp);
             }
-            return builder.lessThanOrEqualTo(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
+            return builder.lessThanOrEqualTo(builder.lower(path.get(cleanKey)), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
-            return builder.lessThanOrEqualTo(root.get(cleanKey), (Integer) val);
-        }
-        throw new IllegalArgumentException("val type not supported yet");
-    }
-
-
-    private Predicate createGtPredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
-        String cleanKey = cleanUpKey(attributeName);
-        if (val instanceof String) {
-            Timestamp timestamp = timeStamp((String)val);
-            if (timestamp != null) {
-                return builder.greaterThan(builder.lower(root.get(cleanKey)), timestamp);
-            }
-
-            return builder.greaterThan(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
-        } else if (val instanceof Integer) {
-            return builder.greaterThan(root.get(cleanKey), (Integer) val);
+            return builder.lessThanOrEqualTo(path.get(cleanKey), (Integer) val);
         }
         throw new IllegalArgumentException("val type not supported yet");
     }
 
 
-    private Predicate createGtePredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
+    private Predicate createGtPredicate(CriteriaBuilder builder, Path path, String attributeName, Object val) {
         String cleanKey = cleanUpKey(attributeName);
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
             if (timestamp != null) {
-                return builder.greaterThanOrEqualTo(builder.lower(root.get(cleanKey)), timestamp);
+                return builder.greaterThan(builder.lower(path.get(cleanKey)), timestamp);
             }
-            return builder.greaterThanOrEqualTo(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
+
+            return builder.greaterThan(builder.lower(path.get(cleanKey)), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
-            return builder.greaterThanOrEqualTo(root.get(cleanKey), (Integer) val);
+            return builder.greaterThan(path.get(cleanKey), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+
+    private Predicate createGtePredicate(CriteriaBuilder builder, Path path, String attributeName, Object val) {
+        String cleanKey = cleanUpKey(attributeName);
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null) {
+                return builder.greaterThanOrEqualTo(builder.lower(path.get(cleanKey)), timestamp);
+            }
+            return builder.greaterThanOrEqualTo(builder.lower(path.get(cleanKey)), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.greaterThanOrEqualTo(path.get(cleanKey), (Integer) val);
         }
         throw new IllegalArgumentException("val type not supported yet");
     }
