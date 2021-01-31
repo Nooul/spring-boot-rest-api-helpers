@@ -63,7 +63,7 @@ public class CustomSpecifications2<T> {
                 Predicate predicate = cb.and(cb.isNull(root.join(attributeName, JoinType.LEFT)));
                 predicates.add(predicate);
             } else {
-                Join join = root.join(attributeName);
+                Join join = addJoinIfNotExists(root, attributeName);
                 String primaryKeyName = getPrimaryKey(join);
                 if (isPrimitiveValue(value)) {
 
