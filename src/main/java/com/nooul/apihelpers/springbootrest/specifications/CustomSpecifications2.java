@@ -7,6 +7,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.*;
 import javax.persistence.metamodel.*;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -38,6 +42,10 @@ public class CustomSpecifications2<T> {
         List<Predicate> andPredicates = new ArrayList<>();
         andPredicates.addAll(handlePrimitiveEquality(cb, root, filterMap));
         andPredicates.addAll(handleAssociationEquality(cb, root, filterMap));
+        andPredicates.addAll(handlePrimitiveGt(cb, root, filterMap));
+        andPredicates.addAll(handlePrimitiveGte(cb, root, filterMap));
+        andPredicates.addAll(handlePrimitiveLt(cb, root, filterMap));
+        andPredicates.addAll(handlePrimitiveLte(cb, root, filterMap));
         return andPredicates;
     }
 
@@ -108,14 +116,184 @@ public class CustomSpecifications2<T> {
         return predicates;
     }
 
+    private List<Predicate>  handlePrimitiveGte(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+        List<Predicate> predicates = new ArrayList<>() ;
+        Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
+//        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+//        Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
+        for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
+            String attributeName = entry.getKey();
+            if (attributeName.endsWith("Gte")) {
+                    Object value = entry.getValue();
+                    if (value != null) {
+                        predicates.add(createGtePredicate(cb, root, attributeName, value));
+                    }
+
+            }
+        }
+        return predicates;
+    }
+
+    private List<Predicate>  handlePrimitiveLte(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+        List<Predicate> predicates = new ArrayList<>() ;
+        Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
+        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+        Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
+        for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
+            String attributeName = entry.getKey();
+            if (attributeName.endsWith("Lte")) {
+                Object value = entry.getValue();
+                if (value != null) {
+                    predicates.add(createLtePredicate(cb, root, attributeName, value));
+                }
+
+            }
+        }
+        return predicates;
+    }
+
+    private List<Predicate>  handlePrimitiveGt(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+        List<Predicate> predicates = new ArrayList<>() ;
+        Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
+        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+        Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
+        for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
+            String attributeName = entry.getKey();
+            if (attributeName.endsWith("Gt")) {
+                Object value = entry.getValue();
+                if (value != null) {
+                    predicates.add(createGtPredicate(cb, root, attributeName, value));
+                }
+            }
+        }
+        return predicates;
+    }
+
+    private List<Predicate>  handlePrimitiveLt(CriteriaBuilder cb, Root root, Map<String, Object> filterMap) {
+        List<Predicate> predicates = new ArrayList<>() ;
+        Map<String, Object> primitiveMap = filterPrimitiveValues(filterMap);
+        Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
+        Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
+        for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
+            String attributeName = entry.getKey();
+            if (attributeName.endsWith("Lt")) {
+                Object value = entry.getValue();
+                if (value != null) {
+                    predicates.add(createLtPredicate(cb, root, attributeName, value));
+                }
+            }
+        }
+        return predicates;
+    }
+
+    private boolean isDirtyKey(String key) {
+        return !key.equals(cleanUpKey(key));
+    }
+
+    private String cleanUpKey(String key) {
+
+        List<String> postfixes = Arrays.asList("Gte", "Gt", "Lte", "Lt", "Not", "And");
+        for (String postfix : postfixes) {
+            if (key.endsWith(postfix)) {
+                return key.substring(0, key.length() - postfix.length());
+            }
+        }
+        return key;
+    }
+
+
+    private Predicate createLtPredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
+        String cleanKey = cleanUpKey(attributeName);
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null) {
+                return builder.lessThan(builder.lower(root.get(cleanKey)), timestamp);
+            }
+            return builder.lessThan(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.lessThan(root.get(cleanKey), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+    private Predicate createLtePredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
+        String cleanKey = cleanUpKey(attributeName);
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null) {
+                return builder.lessThanOrEqualTo(builder.lower(root.get(cleanKey)), timestamp);
+            }
+            return builder.lessThanOrEqualTo(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.lessThanOrEqualTo(root.get(cleanKey), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+
+    private Predicate createGtPredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
+        String cleanKey = cleanUpKey(attributeName);
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null) {
+                return builder.greaterThan(builder.lower(root.get(cleanKey)), timestamp);
+            }
+
+            return builder.greaterThan(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.greaterThan(root.get(cleanKey), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+
+    private Predicate createGtePredicate(CriteriaBuilder builder, Root root, String attributeName, Object val) {
+        String cleanKey = cleanUpKey(attributeName);
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null) {
+                return builder.greaterThanOrEqualTo(builder.lower(root.get(cleanKey)), timestamp);
+            }
+            return builder.greaterThanOrEqualTo(builder.lower(root.get(cleanKey)), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.greaterThanOrEqualTo(root.get(cleanKey), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+    private static Timestamp timeStamp(String dateStr) {
+        DateFormat dateFormat;
+        if (dateStr.contains("T")) {
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        }
+        else {
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        }
+        Date date;
+        try {
+            date = dateFormat.parse(dateStr);
+        } catch (ParseException e) {
+            return null;
+        }
+        long time = date.getTime();
+        return new Timestamp(time);
+    }
+
 
     public Map<String, Attribute> convertStringMapToAttrMap(Root root, Map<String, Object> filterMap) {
         Map<String, Attribute> attributeMap = new HashMap<>();
         for (Map.Entry<String,Object> entry: filterMap.entrySet()) {
+            if (isDirtyKey(entry.getKey())) {
+                continue;
+            }
             Attribute attribute = root.getModel().getAttribute(entry.getKey());
             attributeMap.put(entry.getKey(), attribute);
         }
         return attributeMap;
+    }
+
+    public static Attribute convertStringToAttribute(Root root, String name) {
+        return root.getModel().getAttribute(name);
     }
 
 
