@@ -1214,7 +1214,7 @@ public class filterByTests {
     }
 
     @Test
-    void search_text_on_primitive__fetch_movie_by_not_oontaining_name_infix() {
+    void search_text_on_primitive__fetch_movie_by_not_containing_name_infix() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
         movieRepository.save(matrix);

@@ -3,6 +3,7 @@ package com.nooul.apihelpers.springbootrest.specifications;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Attr;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -196,21 +197,36 @@ public class CustomSpecifications2<T> {
         Root root = addRoot(path, query);
         Map<String, Attribute> attributeMap = convertStringMapToAttrMap(root, filterMap);
         Map<String, Attribute> singularAttrMap = filterSingularAttrs(attributeMap);
-
+        Map<String, Attribute> collectionAttrMap = filterCollectionAttrs(attributeMap);
         Map<String, Object> attributesWithCollectionValuesMap = filterAttributesWithCollectionValues(filterMap);
         for (Map.Entry<String,Object> entry: primitiveMap.entrySet()) {
             String attributeName = entry.getKey();
+            Attribute attribute = attributeMap.get(attributeName);
+            Object value = entry.getValue();
             if (singularAttrMap.containsKey(attributeName)) {
-                Object value = entry.getValue();
+
                 boolean isValTextSearch = (value instanceof String) && ((String) value).contains("%");
                 if (isNullValue(root, query, attributeName, value)) {
                     Predicate predicate = cb.and(cb.isNull(path.get(attributeName)));
                     predicates.add(predicate);
-                } else if(isValTextSearch) {
-                    Predicate predicate = cb.and(cb.like(path.get(attributeName), (String)value));
+                } else if (isValTextSearch) {
+                    Predicate predicate = cb.and(cb.like(path.get(attributeName), (String) value));
+                    predicates.add(predicate);
+                } else if (isEnum(attribute) && value instanceof String) {
+                    Predicate predicate = cb.equal(path.get(attributeName), Enum.valueOf(Class.class.cast(attribute.getJavaType()), (String) value));
                     predicates.add(predicate);
                 } else {
                     Predicate predicate = cb.and(cb.equal(path.get(attributeName), value));
+                    predicates.add(predicate);
+                }
+            } else if(collectionAttrMap.containsKey(attributeName)) {
+                // primitive collectionTable only ??
+                if (isNullValue(root, query, attributeName, value)) {
+                    Predicate predicate = cb.and(cb.isNull(root.join(attributeName, JoinType.LEFT)));
+                    predicates.add(predicate);
+                }
+                else {
+                    Predicate predicate = cb.and(root.join(attributeName).in(Arrays.asList(value)));
                     predicates.add(predicate);
                 }
             }
@@ -251,6 +267,15 @@ public class CustomSpecifications2<T> {
         }
         return predicates;
     }
+
+    private boolean isEnum(Attribute attribute) {
+        String parentJavaClass = "";
+        if (attribute.getJavaType().getSuperclass() != null) {
+            parentJavaClass = attribute.getJavaType().getSuperclass().getSimpleName().toLowerCase();
+        }
+        return parentJavaClass.equals("enum");
+    }
+
 
     private boolean isNullValue(Path path, CriteriaQuery query, String attributeName, Object val) {
         Root root = addRoot(path, query);
