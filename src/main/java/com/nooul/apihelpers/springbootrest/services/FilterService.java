@@ -3,7 +3,7 @@ package com.nooul.apihelpers.springbootrest.services;
 
 import com.nooul.apihelpers.springbootrest.entities.QueryParamWrapper;
 import com.nooul.apihelpers.springbootrest.repositories.BaseRepository;
-import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
+import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications2;
 import org.apache.commons.text.CaseUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,7 +29,7 @@ public class FilterService<T, I extends Serializable> {
     private Environment env;
 
     @Autowired
-    private CustomSpecifications<T> specifications;
+    private CustomSpecifications2<T> specifications;
 
 
     public long countBy(QueryParamWrapper queryParamWrapper, BaseRepository<T, I> repo) {
@@ -105,7 +105,7 @@ public class FilterService<T, I extends Serializable> {
     }
 
     private <T> Page<T> filterByHelper(BaseRepository<T, I> repo,
-                                       CustomSpecifications<T> specifications,
+                                       CustomSpecifications2<T> specifications,
                                        QueryParamWrapper queryParamWrapper,
                                        String primaryKeyName,
                                        List<String> searchOnlyInFields) {

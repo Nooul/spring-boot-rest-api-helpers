@@ -7,7 +7,7 @@ import com.nooul.apihelpers.springbootrest.helpers.controllers.UUIDRelationshipC
 import com.nooul.apihelpers.springbootrest.helpers.entities.*;
 import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
 import com.nooul.apihelpers.springbootrest.services.FilterService;
-import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
+import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications2;
 import com.nooul.apihelpers.springbootrest.utils.UrlUtils;
 import org.assertj.core.util.IterableUtil;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DataJpaTest
 @ActiveProfiles(profiles = "test")
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@Import({FilterService.class, CustomSpecifications.class, MovieController.class,
+@Import({FilterService.class, CustomSpecifications2.class, MovieController.class,
         ActorController.class,
         UUIDEntityController.class,
         UUIDRelationshipController.class,
