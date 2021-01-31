@@ -1,7 +1,6 @@
 package com.nooul.apihelpers.springbootrest.specifications;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.query.criteria.internal.path.SingularAttributeJoin;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +20,6 @@ public class CustomSpecifications2<T> {
     @PersistenceContext
     private EntityManager em;
 
-    private Map<Class, Root> rootsMap = new HashMap<>();
-
     public Specification<T> customSpecificationBuilder(Map<String, Object> map) {
 
         return (Specification<T>) (root, query, builder) -> {
@@ -33,19 +30,34 @@ public class CustomSpecifications2<T> {
     }
 
 
-    public Predicate customSpecificationBuilder(CriteriaBuilder cb, CriteriaQuery query, Root root, Map<String, Object> filterMap, List<String> includeOnlyFields) {
+    @Deprecated
+    public Predicate customSpecificationBuilder(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap) {
+        return customSpecificationBuilder(cb, query, path, filterMap, new ArrayList<>());
+    }
+
+
+
+    public Predicate customSpecificationBuilder(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap, List<String> searchOnlyInFields) {
         query.distinct(true);
 
-        List<Predicate> andPredicates = handleMap(cb, query, root, filterMap);
+        List<Predicate> andPredicates = handleMap(cb, query, path, filterMap, searchOnlyInFields);
 
         return cb.and(andPredicates.toArray(new Predicate[andPredicates.size()]));
     }
 
-    private List<Predicate> handleMap(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap) {
+    private List<Predicate> handleMap(CriteriaBuilder cb, CriteriaQuery query, Path path, Map<String, Object> filterMap, List<String> searchOnlyInFields) {
         if (path instanceof Root) {
             addRoot(path, query);
         }
         List<Predicate> andPredicates = new ArrayList<>();
+        if (filterMap.containsKey("q") && filterMap.get("q") instanceof String) {
+
+            andPredicates.add(searchInAllAttributesPredicate(cb, query, path, (String) filterMap.get("q"), searchOnlyInFields));
+            filterMap.remove("q");
+        }
+
+
+
         andPredicates.addAll(handlePrimitiveEquality(cb, query, path, filterMap));
         andPredicates.addAll(handleAssociationEquality(cb, query, path, filterMap));
         andPredicates.addAll(handlePrimitiveComparison(cb, path, filterMap, "Gte"));
@@ -120,7 +132,7 @@ public class CustomSpecifications2<T> {
                     }
                     else {
 //                        Path expanded = path.get(attributeName);
-                        predicates.addAll(handleMap(cb, query, path.get(attributeName), (Map)value));
+                        predicates.addAll(handleMap(cb, query, path.get(attributeName), (Map)value, new ArrayList<>()));
                         //do something for non ids in actors: { name:  }
                     }
                 } else if (isCollectionOfMaps(value)) {
@@ -139,6 +151,29 @@ public class CustomSpecifications2<T> {
         return predicates;
     }
 
+
+    private Predicate searchInAllAttributesPredicate(CriteriaBuilder builder, CriteriaQuery query, Path path, String text, List<String> includeOnlyFields) {
+
+        if (!text.contains("%")) {
+            text = "%" + text + "%";
+        }
+        final String finalText = text;
+        Root root = addRoot(path, query);
+        Set<Attribute> attributes = root.getModel().getAttributes();
+        List<Predicate> orPredicates = new ArrayList<>();
+        for (Attribute a : attributes) {
+            boolean javaTypeIsString = a.getJavaType().getSimpleName().equalsIgnoreCase("string");
+            boolean shouldSearch = includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName());
+            if (javaTypeIsString && shouldSearch) {
+                Predicate orPred = builder.like(root.get(a.getName()), finalText);
+                orPredicates.add(orPred);
+            }
+
+        }
+
+        return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
+
+    }
 
     private Join addJoinIfNotExists(Root root, String attributeName) {
         Set<Join> joins = root.getJoins();
@@ -167,8 +202,12 @@ public class CustomSpecifications2<T> {
             String attributeName = entry.getKey();
             if (singularAttrMap.containsKey(attributeName)) {
                 Object value = entry.getValue();
+                boolean isValTextSearch = (value instanceof String) && ((String) value).contains("%");
                 if (isNullValue(root, query, attributeName, value)) {
                     Predicate predicate = cb.and(cb.isNull(path.get(attributeName)));
+                    predicates.add(predicate);
+                } else if(isValTextSearch) {
+                    Predicate predicate = cb.and(cb.like(path.get(attributeName), (String)value));
                     predicates.add(predicate);
                 } else {
                     Predicate predicate = cb.and(cb.equal(path.get(attributeName), value));
@@ -492,12 +531,6 @@ public class CustomSpecifications2<T> {
                 javaClass.equals("double");
     }
 
-
-    @Deprecated
-    public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, Map<String, Object> filterMap) {
-        query.distinct(true);
-        return builder.and();
-    }
 
 
 
