@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2021 Davide Gironi
+ *
+ * Please refer to LICENSE file for licensing information
+ */
+ 
+import React from "react";
+import { Admin, Resource } from "react-admin";
+
+import raDataProvider from "./raspingboot-dataprovider.js_";
+
+// import modules
+import RASampleModel from "./rasamplemodel.js_";
+
+// set data Provider
+const dataProvider = raDataProvider({
+  apiUrl: config.apibaseurl + "/",
+  decorators: {
+    ...RASampleModel.dataProviderDecorator,
+  },
+  getToken: () => authProvider.getToken(),
+});
+
+export default function Main() {
+  return (
+    <Admin
+      dataProvider={dataProvider}
+      // other settings
+    >
+      <Resource
+        name="rasamplemodel"
+        list={RASampleModel.List}
+        edit={RASampleModel.Edit}
+        create={RASampleModel.Create}
+      />
+    </Admin>
+  );
+}

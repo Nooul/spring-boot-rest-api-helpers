@@ -1,0 +1,156 @@
+/*
+ * Copyright (c) 2021 Davide Gironi
+ *
+ * Please refer to LICENSE file for licensing information
+ */
+ 
+package com.example;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
+
+import com.nooul.apihelpers.springbootrest.entities.QueryParamWrapper;
+import com.nooul.apihelpers.springbootrest.repositories.BaseRepository;
+import com.nooul.apihelpers.springbootrest.services.FilterService;
+import com.nooul.apihelpers.springbootrest.utils.QueryParamExtractor;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
+
+/**
+ * Generic abstract controller that works with simple entities
+ */
+
+@ComponentScan(basePackages = { "com.nooul.apihelpers.springbootrest" })
+public abstract class GenericRAEntityController<E, I extends java.io.Serializable> {
+
+	@Autowired
+	private FilterService<E, I> filterService;
+
+	/**
+	 * Internal repository
+	 */
+	private BaseRepository<E, I> repository;
+
+	/**
+	 * Primary key
+	 */
+	private String primaryKey;
+
+	/**
+	 * Set the repository
+	 * 
+	 * @param repository
+	 */
+	public void initialize(BaseRepository<E, I> repository, String primaryKey) {
+		this.repository = repository;
+		this.primaryKey = primaryKey;
+	}
+
+	/**
+	 * List all records
+	 * 
+	 * @return
+	 */
+	@GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<E> list() {
+		return repository.findAll().stream().collect(Collectors.toList());
+	}
+
+	/**
+	 * List filtered records
+	 * 
+	 * @return
+	 */
+	@GetMapping(value = "/filter", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Iterable<E> filterBy(@RequestParam(required = false, name = "filter") String filterStr,
+			@RequestParam(required = false, name = "range") String rangeStr,
+			@RequestParam(required = false, name = "sort") String sortStr) {
+		QueryParamWrapper wrapper = QueryParamExtractor.extract(filterStr, rangeStr, sortStr);
+		return filterService.filterBy(wrapper, repository, primaryKey);
+	}
+
+	/**
+	 * Get a record by id
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public E find(@PathVariable I id) {
+		// find the entity from db
+		E entity = repository.findById(id).orElse(null);
+		if (entity == null)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found");
+		// return the object
+		return entity;
+	}
+
+	/**
+	 * Create a new record
+	 * 
+	 * @param item
+	 * @return
+	 */
+	@PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public E create(@Valid @RequestBody E item) {
+		if (item == null)
+			throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid record");
+		// save the entity to db
+		return repository.save(item);
+	}
+
+	/**
+	 * Update a record
+	 * 
+	 * @param item
+	 * @param id
+	 * @return
+	 */
+	@PutMapping(value = "/update/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public E update(@Valid @RequestBody E item, @PathVariable I id) {
+		if (item == null)
+			throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid record");
+		// find the entity from db
+		E entityload = repository.findById(id).orElse(null);
+		if (entityload == null)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found");
+		// set mapper to skip null
+		ModelMapper modelMapperCopy = new ModelMapper();
+		modelMapperCopy.getConfiguration().setSkipNullEnabled(true);
+		// merge the item end the entity
+		modelMapperCopy.map(item, entityload);
+		// save the entity to db
+		return repository.save(entityload);
+	}
+
+	/**
+	 * Delete a record
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public E detete(@PathVariable I id) {
+		// find the entity from db
+		E entity = repository.findById(id).orElse(null);
+		if (entity == null)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found");
+		// delete the entity from db
+		repository.deleteById(id);
+		return entity;
+	}
+}

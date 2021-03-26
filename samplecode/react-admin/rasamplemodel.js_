@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) 2021 Davide Gironi
+ *
+ * Please refer to LICENSE file for licensing information
+ */
+ 
+import * as React from "react";
+import {
+  List,
+  Datagrid,
+  TextField,
+  Edit,
+  SimpleForm,
+  Create,
+  TextInput,
+  Filter,
+  AutocompleteInput,
+  ReferenceField,
+  ReferenceInput,
+} from "react-admin";
+
+const self = {
+  dataProviderDecorator: {
+    samples: {
+      setfields: (row) => ({
+        ...row,
+        id: row.samplesId,
+        subsamplesId: row.subsamples.subsamplesId,
+      }),
+      unsetfields: (row) => {
+        if(row.subsamplesId != null) {
+          row.subsamples = { subsamplesId: row.subsamplesId };
+        }
+        delete row.id;
+        return row;
+      },
+      id: "samplesId",
+      sort: { field: "name", order: "ASC" },
+    },
+  },
+
+  listFilter: (props) => (
+    <Filter {...props}>
+      <ReferenceInput
+        label="SubSample"
+        source="subsamples"
+        reference="subsamples"
+        sort={{ field: "subsamplesId", order: "ASC" }}
+        filterToQuery={(value) => ({ name: value })}
+        alwaysOn
+      >
+        <AutocompleteInput optionText="name" />
+      </ReferenceInput>
+      <TextInput label="Name" source="name" alwaysOn />
+    </Filter>
+  ),
+
+  List: (props) => (
+    <List
+      filters={<self.listFilter />}
+      sort={
+        self.dataProviderDecorator[Object.keys(self.dataProviderDecorator)[0]]
+          .sort
+      }
+      {...props}
+    >
+      <Datagrid>
+        <TextField label="Id" source="id" />
+        <ReferenceField
+          label="SubSample"
+          source="subsamplesId"
+          reference="subsamples"
+        >
+          <TextField source="name" />
+        </ReferenceField>
+        <TextField label="Name" source="name" />
+      </Datagrid>
+    </List>
+  ),
+
+  Edit: (props) => (
+    <Edit {...props}>
+      <SimpleForm>
+        <TextInput label="Id" disabled source="id" fullWidth={true} />
+        <ReferenceInput
+          label="SubSample"
+          source="subsamplesId"
+          reference="subsamples"
+          sort={{ field: "subsamplesId", order: "ASC" }}
+          filterToQuery={(value) => ({ name: value })}
+          disabled
+        >
+          <SelectInput optionText="name" />
+        </ReferenceInput>
+        <TextInput label="Name" source="name" fullWidth={true} />
+      </SimpleForm>
+    </Edit>
+  ),
+
+  Create: (props) => (
+    <Create {...props}>
+      <SimpleForm redirect="list">
+        <ReferenceInput
+          label="SubSample"
+          source="subsamplesId"
+          reference="subsamples"
+          sort={{ field: "subsamplesId", order: "ASC" }}
+          filterToQuery={(value) => ({ name: value })}
+          disabled
+        >
+          <SelectInput optionText="name" />
+        </ReferenceInput>
+        <TextInput label="Name" source="name" fullWidth={true} />
+      </SimpleForm>
+    </Create>
+  ),
+};
+
+export default self;

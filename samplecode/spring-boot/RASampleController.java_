@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2021 Davide Gironi
+ *
+ * Please refer to LICENSE file for licensing information
+ */
+ 
+package com.example;
+
+import javax.annotation.PostConstruct;
+
+import com.example.RASampleRepository;
+import com.example.RASampleEntity;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping(path = "/sample")
+public class RASampleController extends GenericRAEntityController<RASampleEntity, Integer> {
+
+    @Autowired
+    private RASampleRepository repository;
+
+    @PostConstruct
+    public void started() {
+        initialize(repository, "samplesId");
+    }
+
+}

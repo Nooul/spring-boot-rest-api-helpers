@@ -1,0 +1,400 @@
+/*
+ * Copyright (c) 2021 Davide Gironi
+ *
+ * Please refer to LICENSE file for licensing information
+ */
+ 
+import { stringify } from "query-string";
+import { fetchUtils } from "ra-core";
+
+function f({
+  apiUrl,
+  httpClient = fetchUtils.fetchJson,
+  decorators = {},
+  getToken = null,
+}) {
+  return {
+    /**
+     * Get list
+     * @param {*} resource
+     * @param {*} params
+     */
+    getList: (resource, params) => {
+      const { page, perPage } = params.pagination;
+      const { field, order } = params.sort;
+
+      //set filters
+      let filters = params.filter;
+      Object.keys(filters).forEach((k) => {
+        (filters[k] == null || (filters[k] != null && filters[k] === "")) &&
+          delete filters[k];
+      });
+
+      //prepare the query
+      const rangeStart = page - 1;
+      const rangeEnd = perPage;
+      const query = {
+        sort: JSON.stringify([field, order]),
+        range: JSON.stringify([rangeStart, rangeEnd]),
+        filter: JSON.stringify(filters),
+      };
+
+      //set request params
+      const url = `${apiUrl}/${resource}/filter?${stringify(query)}`;
+      const options = {
+        headers:
+          getToken() != null
+            ? new Headers({
+                Authorization: `Bearer ${getToken()}`,
+              })
+            : new Headers({}),
+      };
+
+      //perform request
+      return httpClient(url, options).then(({ headers, json }) => {
+        return {
+          data: json.content.map((row) =>
+            decorators[resource].setfields
+              ? decorators[resource].setfields(row)
+              : row
+          ),
+          total: json.totalElements,
+        };
+      });
+    },
+
+    /**
+     * Get one item
+     * @param {*} resource
+     * @param {*} params
+     */
+    getOne: (resource, params) => {
+      //set request params
+      const url = `${apiUrl}/${resource}/${params.id}`;
+      const options = {
+        headers:
+          getToken() != null
+            ? new Headers({
+                Authorization: `Bearer ${getToken()}`,
+              })
+            : new Headers({}),
+      };
+
+      //perform request
+      return httpClient(url, options).then(({ json }) => ({
+        data: decorators[resource].setfields
+          ? decorators[resource].setfields(json)
+          : json,
+      }));
+    },
+
+    /**
+     * Get many items
+     * @param {*} resource
+     * @param {*} params
+     */
+    getMany: (resource, params) => {
+      let fieldname = decorators[resource].id ? decorators[resource].id : "id";
+      //prepare the query
+      const query = {
+        filter: {},
+      };
+      query.filter[fieldname] = params.ids;
+      query.filter = JSON.stringify(query.filter);
+      if (decorators[resource].sort)
+        query.sort = JSON.stringify([
+          decorators[resource].sort.field,
+          decorators[resource].sort.order,
+        ]);
+
+      //set request params
+      const url = `${apiUrl}/${resource}/filter?${stringify(query)}`;
+      const options = {
+        headers:
+          getToken() != null
+            ? new Headers({
+                Authorization: `Bearer ${getToken()}`,
+              })
+            : new Headers({}),
+      };
+
+      //perform request
+      return httpClient(url, options).then(({ json }) => ({
+        data: json.content.map((row) =>
+          decorators[resource].setfields
+            ? decorators[resource].setfields(row)
+            : row
+        ),
+      }));
+    },
+
+    /**
+     * Get many items by reference
+     * @param {*} resource
+     * @param {*} params
+     */
+    getManyReference: (resource, params) => {
+      const { page, perPage } = params.pagination;
+      const { field, order } = params.sort;
+
+      let filters = params.filter;
+      Object.keys(filters).forEach((k) => {
+        (filters[k] == null || (filters[k] != null && filters[k] === "")) &&
+          delete filters[k];
+      });
+
+      //prepare the query
+      const rangeStart = page - 1;
+      const rangeEnd = perPage;
+      const query = {
+        sort: JSON.stringify([field, order]),
+        range: page === 1 ? [] : JSON.stringify([rangeStart, rangeEnd]),
+        filter: JSON.stringify({
+          ...filters,
+          [params.target]: params.id,
+        }),
+      };
+
+      //set request params
+      const url = `${apiUrl}/${resource}?${stringify(query)}`;
+      const options = {
+        headers:
+          getToken() != null
+            ? new Headers({
+                Authorization: `Bearer ${getToken()}`,
+              })
+            : new Headers({}),
+      };
+      //perform request
+      return httpClient(url, options).then(({ headers, json }) => {
+        return {
+          data: json.content.map((row) =>
+            decorators[resource].setfields
+              ? decorators[resource].setfields(row)
+              : row
+          ),
+          total: json.totalElements,
+        };
+      });
+    },
+
+    /**
+     * Update an item
+     * @param {*} resource
+     * @param {*} params
+     */
+    update: (resource, params) => {
+      //set request params
+      const url = `${apiUrl}/${resource}/update/${params.id}`;
+      const options = {
+        headers:
+          getToken() != null
+            ? new Headers({
+                Authorization: `Bearer ${getToken()}`,
+              })
+            : new Headers({}),
+      };
+
+      //perform request
+      return httpClient(url, {
+        headers: options.headers,
+        method: "PUT",
+        body: JSON.stringify(
+          decorators[resource].unsetfields
+            ? decorators[resource].unsetfields(params.data)
+            : params.data
+        ),
+      })
+        .then(({ json }) => {
+          return {
+            data: decorators[resource].setfields
+              ? decorators[resource].setfields(json)
+              : json,
+          };
+        })
+        .catch((err) => {
+          if (err.body && err.body.errors) {
+            return Promise.reject({
+              message: err.body.errors.join(". "),
+            });
+          }
+          return Promise.reject(err);
+        });
+    },
+
+    /**
+     * Update many items
+     * @param {*} resource
+     * @param {*} params
+     */
+    updateMany: (resource, params) =>
+      Promise.all(
+        params.ids.map((id) => {
+          //set request params
+          const url = `${apiUrl}/${resource}/update/${id}`;
+          const options = {
+            headers:
+              getToken() != null
+                ? new Headers({
+                    Authorization: `Bearer ${getToken()}`,
+                  })
+                : new Headers({}),
+          };
+
+          //perform request
+          return httpClient(url, {
+            headers: options.headers,
+            method: "PUT",
+            body: JSON.stringify(
+              decorators[resource].unsetfields
+                ? decorators[resource].unsetfields(params.data)
+                : params.data
+            ),
+          });
+        })
+      )
+        .then((responses) => ({
+          data: responses.map(({ json }) => {
+            let j = decorators[resource].setfields
+              ? decorators[resource].setfields(json)
+              : json;
+            return j.id;
+          }),
+        }))
+        .catch((err) => {
+          if (err.body && err.body.errors) {
+            return err.body.errors.join(". ");
+          }
+          return err;
+        }),
+
+    /**
+     * create an item
+     * @param {*} resource
+     * @param {*} params
+     */
+    create: (resource, params) => {
+      //set request params
+      const url = `${apiUrl}/${resource}/create`;
+      const options = {
+        headers:
+          getToken() != null
+            ? new Headers({
+                Authorization: `Bearer ${getToken()}`,
+              })
+            : new Headers({}),
+      };
+
+      //perform request
+      return httpClient(url, {
+        headers: options.headers,
+        method: "POST",
+        body: JSON.stringify(
+          decorators[resource].unsetfields
+            ? decorators[resource].unsetfields(params.data)
+            : params.data
+        ),
+      })
+        .then(({ json }) => {
+          let j = decorators[resource].setfields
+            ? decorators[resource].setfields(json)
+            : json;
+          return {
+            data: { ...params.data, id: j.id },
+          };
+        })
+        .catch((err) => {
+          if (err.body && err.body.errors) {
+            return Promise.reject({
+              message: err.body.errors.join(". "),
+            });
+          }
+          return Promise.reject(err);
+        });
+    },
+
+    /**
+     * delete an item
+     * @param {*} resource
+     * @param {*} params
+     */
+    delete: (resource, params) => {
+      //set request params
+      const url = `${apiUrl}/${resource}/${params.id}`;
+      const options = {
+        headers:
+          getToken() != null
+            ? new Headers({
+                Authorization: `Bearer ${getToken()}`,
+              })
+            : new Headers({}),
+      };
+      options.headers.set("Content-Type", "text/plain");
+
+      //perform request
+      return httpClient(url, {
+        headers: options.headers,
+        method: "DELETE",
+      })
+        .then(({ json }) => ({
+          data: decorators[resource].setfields
+            ? decorators[resource].setfields(json)
+            : json,
+        }))
+        .catch((err) => {
+          if (err.body && err.body.errors) {
+            return Promise.reject({
+              message: err.body.errors.join(". "),
+            });
+          }
+          return Promise.reject(err);
+        });
+    },
+
+    /**
+     * Delete many items
+     * @param {*} resource
+     * @param {*} params
+     */
+    deleteMany: (resource, params) =>
+      Promise.all(
+        params.ids.map((id) => {
+          //set request params
+          const url = `${apiUrl}/${resource}/${id}`;
+          const options = {
+            headers:
+              getToken() != null
+                ? new Headers({
+                    Authorization: `Bearer ${getToken()}`,
+                  })
+                : new Headers({}),
+          };
+          options.headers.set("Content-Type", "text/plain");
+
+          //perform request
+          return httpClient(url, {
+            headers: options.headers,
+            method: "DELETE",
+          });
+        })
+      )
+        .then((responses) => {
+          return {
+            data: responses.map(({ json }) => {
+              let j = decorators[resource].setfields
+                ? decorators[resource].setfields(json)
+                : json;
+              return j.id;
+            }),
+          };
+        })
+        .catch((err) => {
+          if (err.body && err.body.errors) {
+            return err.body.errors.join(". ");
+          }
+          return err;
+        }),
+  };
+}
+
+export default f;

@@ -1,0 +1,22 @@
+spring:
+  profiles:
+    active: test
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:ab;DB_CLOSE_DELAY=-1
+    username: sa
+    password: sa
+  flyway:
+    enabled: false
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: TRACE
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+
+server:
+  api-prefix: /api/v1

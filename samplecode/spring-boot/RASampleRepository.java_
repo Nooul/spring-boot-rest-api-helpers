@@ -1,0 +1,14 @@
+/*
+ * Copyright (c) 2021 Davide Gironi
+ *
+ * Please refer to LICENSE file for licensing information
+ */
+ 
+package com.example;
+
+import com.nooul.apihelpers.springbootrest.repositories.BaseRepository;
+
+import com.example.RASampleEntity;
+
+public interface RASampleRepository extends BaseRepository<RASampleEntity, Integer> {
+}

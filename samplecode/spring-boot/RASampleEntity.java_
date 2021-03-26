@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2021 Davide Gironi
+ *
+ * Please refer to LICENSE file for licensing information
+ */
+ 
+package com.example;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "samples")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class SampleRAEntity {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "samples_id")
+	private Integer sampleId;
+	@Column(name = "name")
+	private String name;
+	@ManyToOne()
+    @JoinColumn(name = "subsamples_id", referencedColumnName = "subsamples_id")
+    private SubsampleEntity subsamples;
+
+}

@@ -1,64 +1,56 @@
+/*
+ * https://github.com/Nooul/spring-boot-rest-api-helpers
+ * 
+ * Released under the MIT License.
+ * Please refer to LICENSE file for licensing information.
+ */
+
 package com.nooul.apihelpers.springbootrest.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-//https://stackoverflow.com/a/611117/986160
+/**
+ * Url utilities
+ */
 public class UrlUtils {
 
-    public static String decodeURIComponent(String s)
-    {
+    /**
+     * Decode a URI
+     * 
+     * @param s
+     * @return
+     */
+    public static String decodeURI(String s) {
         if (s == null)
-        {
             return null;
+
+        String ret = null;
+        try {
+            ret = URLDecoder.decode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            ret = s;
         }
 
-        String result = null;
-
-        try
-        {
-            result = URLDecoder.decode(s, "UTF-8");
-        }
-
-        // This exception should never occur.
-        catch (UnsupportedEncodingException e)
-        {
-            result = s;
-        }
-
-        return result;
+        return ret;
     }
 
     /**
-     * Encodes the passed String as UTF-8 using an algorithm that's compatible
-     * with JavaScript's <code>encodeURIComponent</code> function. Returns
-     * <code>null</code> if the String is <code>null</code>.
-     *
-     * @param s The String to be encoded
-     * @return the encoded String
+     * Encode a URI
+     * 
+     * @param s
+     * @return
      */
-    public static String encodeURIComponent(String s)
-    {
-        String result = null;
-
-        try
-        {
-            result = URLEncoder.encode(s, "UTF-8")
-                    .replaceAll("\\+", "%20")
-                    .replaceAll("\\%21", "!")
-                    .replaceAll("\\%27", "'")
-                    .replaceAll("\\%28", "(")
-                    .replaceAll("\\%29", ")")
+    public static String encodeURI(String s) {
+        String ret = null;
+        try {
+            ret = URLEncoder.encode(s, "UTF-8").replaceAll("\\+", "%20").replaceAll("\\%21", "!")
+                    .replaceAll("\\%27", "'").replaceAll("\\%28", "(").replaceAll("\\%29", ")")
                     .replaceAll("\\%7E", "~");
+        } catch (UnsupportedEncodingException e) {
+            ret = s;
         }
-
-        // This exception should never occur.
-        catch (UnsupportedEncodingException e)
-        {
-            result = s;
-        }
-
-        return result;
+        return ret;
     }
 }

@@ -182,3 +182,4 @@ pip-log.txt
 .sonar/*
 /dumps/**
 /data/**
+dependency-reduced-pom.xml
