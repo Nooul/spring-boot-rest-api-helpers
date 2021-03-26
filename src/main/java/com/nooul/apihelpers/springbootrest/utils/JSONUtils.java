@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class JSON {
+public class JSONUtils {
 
-    protected static final Log logger = LogFactory.getLog(JSON.class);
+    protected static final Log logger = LogFactory.getLog(JSONUtils.class);
 
     public static JSONObject toJsonObject(String str) {
         JSONObject jsonObj = new JSONObject(str);

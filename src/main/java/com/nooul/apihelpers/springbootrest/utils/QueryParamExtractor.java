@@ -34,22 +34,22 @@ public class QueryParamExtractor {
         JSONObject filter = null;
         JSONArray filterOr = null;
         if (filterJsonOrArray instanceof JSONObject) {
-            filter = JSON.toJsonObject(filterStr);
+            filter = JSONUtils.toJsonObject(filterStr);
         }
         else if (filterJsonOrArray instanceof JSONArray){
-            filterOr = JSON.toJsonArray(filterStr);
+            filterOr = JSONUtils.toJsonArray(filterStr);
         }
         JSONArray range;
         if (StringUtils.isBlank(rangeStr)) {
             rangeStr = "[]";
         }
-        range = JSON.toJsonArray(rangeStr);
+        range = JSONUtils.toJsonArray(rangeStr);
 
         JSONArray sort;
         if (StringUtils.isBlank(sortStr)) {
             sortStr = "[]";
         }
-        sort = JSON.toJsonArray(sortStr);
+        sort = JSONUtils.toJsonArray(sortStr);
 
 
         return new QueryParamWrapper(filter, filterOr, range, sort);
