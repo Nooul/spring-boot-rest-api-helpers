@@ -11,8 +11,7 @@ public class DateUtils {
         DateFormat dateFormat;
         if (dateStr.contains("T")) {
             dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        }
-        else {
+        } else {
             dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         }
         Date date;

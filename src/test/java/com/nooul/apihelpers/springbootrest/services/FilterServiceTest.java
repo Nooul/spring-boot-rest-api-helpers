@@ -1,17 +1,19 @@
 package com.nooul.apihelpers.springbootrest.services;
 
-import com.nooul.apihelpers.springbootrest.AbstractSpringBootTest;
+import com.nooul.apihelpers.springbootrest.AbstractJpaDataTest;
+import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Import;
 
-
-class FilterServiceTests extends AbstractSpringBootTest {
+@Import({FilterService.class, CustomSpecifications.class})
+class FilterServiceTest extends AbstractJpaDataTest {
 
     private FilterService filterService;
 
     @BeforeEach
-    void init(){
+    void init() {
         filterService = new FilterService();
     }
 

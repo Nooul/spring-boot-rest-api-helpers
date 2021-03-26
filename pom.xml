@@ -6,8 +6,8 @@
 
     <groupId>com.nooul.apihelpers</groupId>
     <artifactId>spring-boot-rest-api-helpers</artifactId>
-
     <version>0.8.0.RELEASE</version>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -15,6 +15,7 @@
         <version>2.2.12.RELEASE</version>
         <relativePath/>
     </parent>
+
 
     <dependencies>
         <dependency>
@@ -46,11 +47,6 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.apache.commons</groupId>-->
-<!--            <artifactId>commons-lang3</artifactId>-->
-<!--            <version>3.9</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -117,6 +113,14 @@
                             </excludes>
                         </filter>
                     </filters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
+                <configuration>
+                    <runOrder>random</runOrder>
                 </configuration>
             </plugin>
         </plugins>

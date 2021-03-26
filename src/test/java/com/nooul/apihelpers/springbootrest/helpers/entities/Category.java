@@ -19,7 +19,7 @@ public class Category {
 
     private String name;
 
-    @OneToMany(mappedBy="category")
+    @OneToMany(mappedBy = "category")
     List<Movie> movies = new ArrayList<>();
 
     @ManyToOne

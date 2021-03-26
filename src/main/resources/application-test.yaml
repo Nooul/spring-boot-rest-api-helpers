@@ -1,4 +1,6 @@
 spring:
+  main:
+    banner-mode: off
   h2:
     console:
       enabled: false
@@ -10,17 +12,10 @@ spring:
     password: sa
   flyway:
     enabled: false
+
 logging:
   level:
-    org:
-      hibernate:
-        SQL:
-          TRACE
-        type:
-          descriptor:
-            sql:
-              BasicBinder:
-                TRACE
+    root: off
 
 server:
   api-prefix: /api/v1

@@ -30,14 +30,13 @@ public class Movie {
     @ManyToOne
     private Category category;
 
-    @ManyToMany(mappedBy="movies")
+    @ManyToMany(mappedBy = "movies")
     private List<Actor> actors = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "age_ratings")
     @Column(name = "age_rating")
     private Set<String> ageRatings = new HashSet<>();
-
 
 
 }

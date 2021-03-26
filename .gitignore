@@ -64,9 +64,6 @@ local.properties
 .builds
 *.dotCover
 
-## TODO: If you have NuGet Package Restore enabled, uncomment this
-#packages/
-
 # Visual C++ cache files
 ipch/
 *.aps
@@ -109,12 +106,10 @@ stylecop.*
 *.dbmdl
 Generated_Code #added for RIA/Silverlight projects
 
-# Backup & report files from converting an old project file to a newer
-# Visual Studio version. Backup files are not needed, because we have git ;-)
+# Backup & report files from converting an old project file to a newer Visual Studio version
 _UpgradeReport_Files/
 Backup*/
 UpgradeLog*.XML
-
 
 
 ############
@@ -126,6 +121,14 @@ Thumbs.db
 
 # Folder config file
 Desktop.ini
+
+
+############
+## Mac
+############
+.DS_Store
+
+.recommenders
 
 
 #############
@@ -160,11 +163,6 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
-# Mac crap
-.DS_Store
-
-.recommenders
-
 
 #############
 ## Java
@@ -174,7 +172,7 @@ pip-log.txt
 
 
 #########################
-## ENERGIA
+## Other
 #########################
 
 /target/**
@@ -182,3 +180,5 @@ pip-log.txt
 .sonar/*
 /dumps/**
 /data/**
+dependency-reduced-pom.xml
+.factorypath
