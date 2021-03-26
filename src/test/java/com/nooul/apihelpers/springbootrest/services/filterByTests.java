@@ -1,5 +1,6 @@
-package com.nooul.apihelpers.springbootrest.integration;
+package com.nooul.apihelpers.springbootrest.services;
 
+import com.nooul.apihelpers.springbootrest.AbstractSpringBootTest;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.ActorController;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.MovieController;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.UUIDEntityController;
@@ -9,25 +10,16 @@ import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
 import com.nooul.apihelpers.springbootrest.utils.UrlUtils;
 import org.assertj.core.util.IterableUtil;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
-import java.util.Set;
+import java.util.HashSet;
 
 import static com.nooul.apihelpers.springbootrest.helpers.utils.DateUtils.timeStamp;
 
-;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles(profiles = "test")
-public class filterByTests {
+public class filterByTests extends AbstractSpringBootTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -656,17 +648,17 @@ public class filterByTests {
 
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
-        matrix.setAgeRatings(Set.of("PG-13"));
+        matrix.setAgeRatings(new HashSet<>(Arrays.asList("PG-13")));
         movieRepository.save(matrix);
 
         Movie matrix2 = new Movie();
         matrix2.setName("The Matrix Reloaded");
-        matrix2.setAgeRatings(Set.of("R"));
+        matrix2.setAgeRatings(new HashSet<>(Arrays.asList("R")));
         movieRepository.save(matrix2);
 
         Movie constantine = new Movie();
         constantine.setName("Constantine");
-        constantine.setAgeRatings(Set.of("R"));
+        constantine.setAgeRatings(new HashSet<>(Arrays.asList("R")));
         movieRepository.save(constantine);
 
         Iterable<Movie> movieByAgeRating = movieController.filterBy("{ageRatings: R}", null, null);

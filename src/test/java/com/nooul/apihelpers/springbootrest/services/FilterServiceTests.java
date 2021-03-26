@@ -1,11 +1,12 @@
 package com.nooul.apihelpers.springbootrest.services;
 
+import com.nooul.apihelpers.springbootrest.AbstractSpringBootTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-class FilterServiceTests {
+class FilterServiceTests extends AbstractSpringBootTest {
 
     private FilterService filterService;
 

@@ -1,6 +1,7 @@
 package com.nooul.apihelpers.springbootrest.helpers.controllers;
 
 import com.nooul.apihelpers.springbootrest.entities.QueryParamWrapper;
+import com.nooul.apihelpers.springbootrest.helpers.entities.Movie;
 import com.nooul.apihelpers.springbootrest.helpers.repositories.MovieRepository;
 import com.nooul.apihelpers.springbootrest.services.FilterService;
 import com.nooul.apihelpers.springbootrest.utils.QueryParamExtractor;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.nooul.apihelpers.springbootrest.helpers.entities.Movie;
 
 import java.util.Arrays;
 

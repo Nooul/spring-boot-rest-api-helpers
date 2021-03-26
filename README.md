@@ -1,5 +1,7 @@
 # spring-boot-rest-api-helpers
 
+Java >= 8 (thanks to [davidegironi](https://github.com/davidegironi/))
+
 Inspired by built-in fake REST data provider [react-admin](https://github.com/marmelab/react-admin) (see [documentation](https://marmelab.com/react-admin/DataProviders.html)) that queries like that:
 ```    
     GET /movies?filter={id: 1} //get movies by id = 1
@@ -117,19 +119,7 @@ and add this as a dependency in your pom.xml dependencies:
 
 - Add springboot.rest package in the scanBasePackages at the top of your Spring Boot Application class
 ```java
-@SpringBootApplication(scanBasePackages = {"com.myproject", springbootrest})
-```
-
-- inject and expose as `@Bean` the provided `ObjectMapperProvider`
-
-```java
-    @Autowired
-    private ObjectMapperProvider objMapperProvider;
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        return objMapperProvider.getObjectMapper();
-    }
+@SpringBootApplication(scanBasePackages = {"com.myproject", springbootrest});
 ```
 - configure appplication.properties to use snake-case or camelCase for properties in API
 ```
