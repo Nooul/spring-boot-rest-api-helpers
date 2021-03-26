@@ -183,3 +183,4 @@ pip-log.txt
 /dumps/**
 /data/**
 dependency-reduced-pom.xml
+.factorypath
