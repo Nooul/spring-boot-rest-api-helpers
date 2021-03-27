@@ -159,7 +159,7 @@ public class FilterService<T, I extends Serializable> {
         List<Sort.Order> sortOrders = new ArrayList<>();
         if (sort.length() % 2 != 0) {
             throw new IllegalArgumentException(
-                    "sort should have even length given as array e.g ['name', 'ASC', 'birthDate', 'DESC']");
+                    "Sort should have even length given as array e.g ['key_1', 'ASC', 'key_2', 'DESC']");
         }
 
         // sort items

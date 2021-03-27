@@ -16,7 +16,7 @@ import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 
 /**
- * JSON Utilities
+ * JSON utilities
  */
 public class JSONUtils {
 

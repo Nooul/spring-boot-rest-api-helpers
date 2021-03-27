@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 /**
- * String utilities
+ * Map utilities
  */
 public class MapUtils {
 
