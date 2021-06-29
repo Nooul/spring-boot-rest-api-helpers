@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DateUtils {
     public static Timestamp timeStamp(String dateStr) {
@@ -16,6 +17,7 @@ public class DateUtils {
             dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         }
         Date date;
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
             date = dateFormat.parse(dateStr);
         } catch (ParseException e) {
