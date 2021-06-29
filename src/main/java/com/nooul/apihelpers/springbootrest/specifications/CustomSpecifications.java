@@ -279,6 +279,7 @@ public class CustomSpecifications<T> {
         else {
             dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         }
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date date;
         try {
             date = dateFormat.parse(dateStr);
