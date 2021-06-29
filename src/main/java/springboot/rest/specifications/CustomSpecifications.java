@@ -110,6 +110,10 @@ public class CustomSpecifications<T> {
         if (isKeyClean) {
             return handleCleanKeyCase(builder, root, join, query, cleanKey, a,  val);
         } else if (isNegation) {
+            if (isValueCollection) {
+                return builder.not(handleCollection(builder, root, join, query, a,  cleanKey, (Collection) val, true));
+            }
+
             return builder.not(handleCleanKeyCase(builder, root, join, query, cleanKey, a,  val));
         } else if (isConjunction) {
             if (isValueCollection) {
@@ -162,7 +166,7 @@ public class CustomSpecifications<T> {
 
     private String cleanUpKey(String key) {
 
-        List<String> postfixes = Arrays.asList("Gte", "Gt", "Lte", "Lt", "Not", "And");
+        List<String> postfixes = Arrays.asList("Gte", "Gt", "Lte", "Lt", "Not", "NotIn", "And");
         for (String postfix : postfixes) {
             if (key.endsWith(postfix)) {
                 return key.substring(0, key.length() - postfix.length());

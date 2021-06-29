@@ -1,9 +1,7 @@
 package springboot.rest.integration;
 
 import org.assertj.core.util.IterableUtil;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -16,9 +14,9 @@ import springboot.rest.helpers.repositories.*;
 import java.util.Arrays;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static springboot.rest.utils.UrlUtils.encodeURIComponent;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles(profiles = "test")
 public class filterByTests {
@@ -72,13 +70,13 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> moviesWithNullName1 = movieController.filterBy("{name: null}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName1));
+        assertEquals(1, IterableUtil.sizeOf(moviesWithNullName1));
         Iterable<Movie> moviesWithNullName2 = movieController.filterBy("{name: 'null'}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName2));
+        assertEquals(1, IterableUtil.sizeOf(moviesWithNullName2));
         Iterable<Movie> moviesWithNullName3 = movieController.filterBy("{name: ''}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName3));
+        assertEquals(1, IterableUtil.sizeOf(moviesWithNullName3));
         Iterable<Movie> moviesWithNullName4 = movieController.filterBy("{name: '   '}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesWithNullName4));
+        assertEquals(1, IterableUtil.sizeOf(moviesWithNullName4));
     }
 
     @Test
@@ -100,22 +98,22 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> moviesAfterOrOn2005 = movieController.filterBy("{yearReleasedGte: 2005}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn2005));
+        assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn2005));
 
         Iterable<Movie> moviesAfter2005 = movieController.filterBy("{yearReleasedGt: 2005}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter2005));
+        assertEquals(1, IterableUtil.sizeOf(moviesAfter2005));
 
         Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{yearReleasedLte: 2005}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesBeforeOrOn2005));
+        assertEquals(2, IterableUtil.sizeOf(moviesBeforeOrOn2005));
 
         Iterable<Movie> moviesBefore2005 = movieController.filterBy("{yearReleasedLt: 2005}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
+        assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
 
         Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{yearReleasedGt: 1999, yearReleasedLt:2017}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfter1999Before2017));
+        assertEquals(1, IterableUtil.sizeOf(moviesAfter1999Before2017));
 
         Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{yearReleasedGte: 2005, yearReleasedLte:2017}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
+        assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
     }
 
     @Test
@@ -140,13 +138,13 @@ public class filterByTests {
 
 
         Iterable<Movie> moviesAfterA = movieController.filterBy("{nameGt: A }", null, null);
-        Assert.assertEquals(3, IterableUtil.sizeOf(moviesAfterA));
+        assertEquals(3, IterableUtil.sizeOf(moviesAfterA));
 
         Iterable<Movie> moviesBeforeD = movieController.filterBy("{nameLt: D }", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesBeforeD));
+        assertEquals(1, IterableUtil.sizeOf(moviesBeforeD));
 
         Iterable<Movie> moviesAfterDBeforeM = movieController.filterBy("{nameGt: D, nameLt:M }", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesAfterDBeforeM));
+        assertEquals(1, IterableUtil.sizeOf(moviesAfterDBeforeM));
 
     }
 
@@ -177,7 +175,7 @@ public class filterByTests {
 
 
         Iterable<Movie> noDirectorMovies = movieController.filterBy("{director: null}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(noDirectorMovies));
+        assertEquals(2, IterableUtil.sizeOf(noDirectorMovies));
     }
 
 
@@ -211,9 +209,9 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror1 = movieController.filterBy("{category: {parentCategory: {id:"+fiction.getId()+"}}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror1));
+        assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror1));
         Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror2 = movieController.filterBy("{category: {parentCategory: "+fiction.getId()+"}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror2));
+        assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror2));
     }
 
 
@@ -241,7 +239,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> directorNotNullMovies = movieController.filterBy("{directorNot: null}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(directorNotNullMovies));
+        assertEquals(1, IterableUtil.sizeOf(directorNotNullMovies));
     }
 
     @Test
@@ -278,7 +276,7 @@ public class filterByTests {
 
 
         Iterable<Actor> noMovieActors = actorController.filterBy("{movies: null}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(noMovieActors));
+        assertEquals(2, IterableUtil.sizeOf(noMovieActors));
     }
 
     @Test
@@ -321,7 +319,7 @@ public class filterByTests {
 
 
         Iterable<Actor> withMovieActors = actorController.filterBy("{moviesNot: null}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(withMovieActors));
+        assertEquals(2, IterableUtil.sizeOf(withMovieActors));
     }
 
 
@@ -367,7 +365,7 @@ public class filterByTests {
 
 
         Iterable<Actor> matrixAndConstantineActors = actorController.filterBy("{moviesAnd: ["+matrix.getId()+","+constantine.getId()+"]}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(matrixAndConstantineActors));
+        assertEquals(1, IterableUtil.sizeOf(matrixAndConstantineActors));
     }
 
     @Test
@@ -395,9 +393,9 @@ public class filterByTests {
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id: " + keanu.getId()+ "}}", null, null);
         Iterable<Movie> keanuMovies2 = movieController.filterBy("{actors: "+ keanu.getId()+ "}", null, null);
         Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{id: "+ keanu.getId()+ "}]}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
     }
 
     @Test
@@ -430,7 +428,7 @@ public class filterByTests {
 
         Iterable<Movie> moviesByActors = movieController.filterBy("{actors: [" + keanu.getId()+ ", "+ jaeden.getId() +"]}", null, null);
 
-        Assert.assertEquals(3, IterableUtil.sizeOf(moviesByActors));
+        assertEquals(3, IterableUtil.sizeOf(moviesByActors));
     }
 
     @Test
@@ -449,7 +447,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> moviesById = movieController.filterBy("{ id: ["+matrix.getId()+","+constantine.getId()+"]}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesById));
+        assertEquals(2, IterableUtil.sizeOf(moviesById));
     }
 
     @Test
@@ -468,7 +466,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> moviesByNotIds = movieController.filterBy("{ idNot: ["+matrix.getId()+","+constantine.getId()+"]}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(moviesByNotIds));
+        assertEquals(1, IterableUtil.sizeOf(moviesByNotIds));
     }
 
     @Test
@@ -488,7 +486,7 @@ public class filterByTests {
 
 
         Iterable<Movie> movieById = movieController.filterBy("{id:"+matrix.getId()+"}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieById));
+        assertEquals(1, IterableUtil.sizeOf(movieById));
     }
 
     @Test
@@ -508,19 +506,19 @@ public class filterByTests {
 
 
         Iterable<Movie> movieById = movieController.filterBy("[{id:"+matrix.getId()+"},{id:"+constantine.getId()+"}]", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieById));
+        assertEquals(2, IterableUtil.sizeOf(movieById));
         Iterable<Movie> movieByTwoNames = movieController.filterBy("[{name:"+matrix.getName()+"},{name:"+constantine.getName()+"}]", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByTwoNames));
+        assertEquals(2, IterableUtil.sizeOf(movieByTwoNames));
         Iterable<Movie> movieByTwoNames2 = movieController.filterBy("{name:["+matrix.getName()+","+constantine.getName()+"]}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByTwoNames2));
+        assertEquals(2, IterableUtil.sizeOf(movieByTwoNames2));
         Iterable<Movie> movieByTwoNamesOneWrong = movieController.filterBy("[{name:"+matrix.getName()+"},{name:somethingsomething}]", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByTwoNamesOneWrong));
+        assertEquals(1, IterableUtil.sizeOf(movieByTwoNamesOneWrong));
         Iterable<Movie> movieByTwoNamesTwoWrong = movieController.filterBy("[{name:something},{name:somethingsomething}]", null, null);
-        Assert.assertEquals(0, IterableUtil.sizeOf(movieByTwoNamesTwoWrong));
+        assertEquals(0, IterableUtil.sizeOf(movieByTwoNamesTwoWrong));
         Iterable<Movie> movieByIdOrName = movieController.filterBy("[{id:"+matrix.getId()+"},{name:"+constantine.getName()+"}]", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByIdOrName));
+        assertEquals(2, IterableUtil.sizeOf(movieByIdOrName));
         Iterable<Movie> movieByIdOrName2 = movieController.filterBy("[{id:"+constantine.getId()+"},{name:"+constantine.getName()+"}]", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByIdOrName2));
+        assertEquals(1, IterableUtil.sizeOf(movieByIdOrName2));
     }
 
     @Test
@@ -540,7 +538,7 @@ public class filterByTests {
 
 
         Iterable<Movie> movieByNotId = movieController.filterBy("{idNot:"+matrix.getId()+"}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByNotId));
+        assertEquals(2, IterableUtil.sizeOf(movieByNotId));
     }
 
     @Test
@@ -559,7 +557,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByName = movieController.filterBy("{name:"+matrix.getName()+"}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+        assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -582,7 +580,7 @@ public class filterByTests {
         movieRepository.save(constantine);
 
         Iterable<Movie> movieByAgeRating = movieController.filterBy("{ageRatings: R}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByAgeRating));
+        assertEquals(2, IterableUtil.sizeOf(movieByAgeRating));
     }
 
 
@@ -610,7 +608,7 @@ public class filterByTests {
 
 
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id:"+keanu.getId()+"}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies));
     }
 
     @Test
@@ -635,7 +633,7 @@ public class filterByTests {
         actorRepository.save(keanu);
 
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:"+keanu.getFirstName()+", lastNameNot: Reves}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies));
     }
 
     @Test
@@ -660,9 +658,9 @@ public class filterByTests {
         actorRepository.save(keanu);
 
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {id: "  + keanu.getId() +", firstName:"+keanu.getFirstName()+", lastNameNot: Reves}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies));
         Iterable<Movie> constantineMovie = movieController.filterBy("{id: " + constantine.getId() +", actors: {id: "  + keanu.getId() +", firstName:"+keanu.getFirstName()+", lastNameNot: Reves}}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(constantineMovie));
+        assertEquals(1, IterableUtil.sizeOf(constantineMovie));
     }
 
     @Test
@@ -687,7 +685,7 @@ public class filterByTests {
         actorRepository.save(keanu);
 
         Iterable<Movie> keanuMovies = movieController.filterBy(encodeURIComponent("{actors: {firstName:%ean%, lastName: %eeve%}}"), null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies));
     }
 
     @Test
@@ -726,7 +724,7 @@ public class filterByTests {
         actorRepository.save(keanu);
 
         Iterable<Movie> lanaMovies = movieController.filterBy("{director: {firstName:Lana}}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(lanaMovies));
+        assertEquals(1, IterableUtil.sizeOf(lanaMovies));
     }
 
 
@@ -771,7 +769,7 @@ public class filterByTests {
         actorRepository.save(otherActor);
 
         Iterable<Actor> actors = actorController.filterBy("{movies: {director: {firstName:Lana}}}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
+        assertEquals(1, IterableUtil.sizeOf(actors));
     }
 
 
@@ -816,7 +814,7 @@ public class filterByTests {
         actorRepository.save(otherActor);
 
         Iterable<Actor> actors = actorController.filterBy("{movies: {director: {firstName:Lan%}}}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
+        assertEquals(1, IterableUtil.sizeOf(actors));
     }
 
 
@@ -843,14 +841,14 @@ public class filterByTests {
         actorRepository.save(keanu);
 
         Iterable<Movie> keanuMovies = movieController.filterBy("{actors: {firstName:Keanu, lastName: Reeves}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies));
 
         Iterable<Movie> keanuMovies2 = movieController.filterBy("{actorsAnd: [{firstName:Keanu},{lastName: Reeves}]}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies2));
         Iterable<Movie> keanuMovies3 = movieController.filterBy("{actors: [{firstName:SomethingSomething},{lastName: Reeves}]}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
+        assertEquals(2, IterableUtil.sizeOf(keanuMovies3));
         Iterable<Movie> keanuMovies4 = movieController.filterBy("{actorsAnd: [{firstName:SomethingSomething},{lastName: Reeves}]}", null, null);
-        Assert.assertEquals(0, IterableUtil.sizeOf(keanuMovies4));
+        assertEquals(0, IterableUtil.sizeOf(keanuMovies4));
     }
 
 
@@ -888,11 +886,11 @@ public class filterByTests {
 
 
         Iterable<Actor> actors = actorController.filterBy(encodeURIComponent("{movies: [{name:%atr%},{name:%onest%}]}}"), null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(actors));
+        assertEquals(1, IterableUtil.sizeOf(actors));
         Iterable<Actor> actors2 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onst%}]}}"), null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(actors2));
+        assertEquals(1, IterableUtil.sizeOf(actors2));
         Iterable<Actor> actors3 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onest%}]}}"), null, null);
-        Assert.assertEquals(0, IterableUtil.sizeOf(actors3));
+        assertEquals(0, IterableUtil.sizeOf(actors3));
     }
 
     @Test
@@ -920,7 +918,7 @@ public class filterByTests {
 
 
         Iterable<Movie> movieByName = movieController.filterBy("{director: {firstName:"+lana.getFirstName()+"}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+        assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -948,7 +946,7 @@ public class filterByTests {
 
 
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{director: {firstName:%an%}}"), null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+        assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -975,7 +973,7 @@ public class filterByTests {
         movieRepository.save(constantine);
 
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{director: {firstName:%an%}}"), null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+        assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
 
@@ -1003,7 +1001,7 @@ public class filterByTests {
         movieRepository.save(constantine);
 
         Iterable<Movie> movieByName = movieController.filterBy("{director: {id:"+lana.getId()+"}}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+        assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -1022,7 +1020,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: The Matr%}"), null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+        assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -1041,7 +1039,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: %loaded}"), null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+        assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -1060,7 +1058,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: %atri%}"), null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+        assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -1078,8 +1076,8 @@ public class filterByTests {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: The Matr%}"), null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+            Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: The Matr%}"), null, null);
+        assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -1092,7 +1090,7 @@ public class filterByTests {
         uuidEntityRepository.save(entity2);
 
         Iterable<UUIDEntity> entitiesByUuid = uuidEntityController.filterBy("{uuid: "+entity1.getUuid()+"}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(entitiesByUuid));
+        assertEquals(1, IterableUtil.sizeOf(entitiesByUuid));
     }
 
     @Test
@@ -1118,8 +1116,8 @@ public class filterByTests {
 
         Iterable<UUIDRelationship> relsByUuid = uuidRelationshipController.filterBy("{uuidEntity:" + entity1.getUuid()+" }", null, null);
         Iterable<UUIDRelationship> relsByUuid2 = uuidRelationshipController.filterBy("{uuidEntity: {uuid: " + entity1.getUuid()+" }}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(relsByUuid));
-        Assert.assertEquals(2, IterableUtil.sizeOf(relsByUuid2));
+        assertEquals(2, IterableUtil.sizeOf(relsByUuid));
+        assertEquals(2, IterableUtil.sizeOf(relsByUuid2));
     }
 
     @Test
@@ -1138,7 +1136,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: %loaded}"), null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByName));
+        assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
@@ -1157,7 +1155,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: %atri%}"), null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByName));
+        assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
 
@@ -1177,7 +1175,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByNotName = movieController.filterBy("{nameNot:"+matrix.getName()+"}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(movieByNotName));
+        assertEquals(2, IterableUtil.sizeOf(movieByNotName));
     }
 
     @Test
@@ -1196,7 +1194,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> moviesByName = movieController.filterBy("{name: ["+matrix.getName()+","+ constantine.getName()+"]}", null, null);
-        Assert.assertEquals(2, IterableUtil.sizeOf(moviesByName));
+        assertEquals(2, IterableUtil.sizeOf(moviesByName));
     }
 
 
@@ -1216,7 +1214,7 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> movieByFullText = movieController.filterBy("{q:atr}", null, null);
-        Assert.assertEquals(1, IterableUtil.sizeOf(movieByFullText));
+        assertEquals(1, IterableUtil.sizeOf(movieByFullText));
     }
 
     @Test
@@ -1235,8 +1233,8 @@ public class filterByTests {
         movieRepository.save(it);
 
         Iterable<Movie> allMovies = movieController.filterBy("{}", null, null);
-        Assert.assertEquals(3, IterableUtil.sizeOf(allMovies));
+        assertEquals(3, IterableUtil.sizeOf(allMovies));
         Iterable<Movie> allMovies2 = movieController.filterBy(null, null, null);
-        Assert.assertEquals(3, IterableUtil.sizeOf(allMovies2));
+        assertEquals(3, IterableUtil.sizeOf(allMovies2));
     }
 }
