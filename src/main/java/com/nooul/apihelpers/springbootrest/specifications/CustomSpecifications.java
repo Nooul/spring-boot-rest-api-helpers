@@ -43,6 +43,10 @@ public class CustomSpecifications<T> {
 
     public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, Map<String, Object> map, List<String> includeOnlyFields) {
         query.distinct(true);
+        if(map.containsKey("disableDistinct") && map.get("disableDistinct") instanceof Boolean && (boolean) map.get("disableDistinct") == true) {
+            query.distinct(false);
+        }
+        map.remove("disableDistinct");
         List<Predicate> predicates = handleMap(builder, root, null, query, map, includeOnlyFields);
         return builder.and(predicates.toArray(new Predicate[predicates.size()]));
     }

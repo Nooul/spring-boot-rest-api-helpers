@@ -289,6 +289,8 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror1));
         Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror2 = movieController.filterBy("{category: {parentCategory: " + fiction.getId() + "}}", null, null);
         assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror2));
+        Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror3 = movieController.filterBy("{category: {parentCategory: " + fiction.getId() + "}, disableDistinct: true }}", null, null);
+        assertEquals(4, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror3));
     }
 
     @Test
