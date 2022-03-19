@@ -53,7 +53,7 @@ The key names are not the ones on the database but the ones exposed by the REST 
 /movies?filter={actorsAnd: [{firstName:'A'}, {lastName:'B'}] } => movies having actors with firstName = A AND lastName = B
 ```
 
-* Disabling distinct search **Warning will return duplicate entries**
+* Disabling distinct search can have some performance boost sometimes - **Warning it will return duplicate entries**
 ```
 /actors?filter={movies: 1, firstName: John}
 /actors?filter={movies: 1, firstName: John, allowDuplicates: true}
