@@ -190,8 +190,8 @@ public class CustomSpecifications<T> {
         for (Attribute a : attributes) {
             boolean javaTypeIsString = a.getJavaType().getSimpleName().equalsIgnoreCase("string");
             boolean shouldSearch = includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName());
-            if (javaTypeIsString && shouldSearch) {
-                Predicate orPred = builder.like(root.get(a.getName()), finalText);
+            if ((javaTypeIsString || isUUID(a) || isMobile(a))  && shouldSearch) {
+                Predicate orPred = builder.like(root.get(a.getName()).as(String.class), finalText);
                 orPredicates.add(orPred);
             }
 
@@ -246,10 +246,10 @@ public class CustomSpecifications<T> {
 
     private Predicate createLikePredicate(CriteriaBuilder builder, Root<T> root, Join join, Attribute a, String val) {
         if (join == null) {
-            return builder.like(root.get(a.getName()), val);
+            return builder.like(root.get(a.getName()).as(String.class), val);
         }
         else {
-            return builder.like(join.get(a.getName()), val);
+            return builder.like(join.get(a.getName()).as(String.class), val);
         }
     }
 
@@ -387,6 +387,11 @@ public class CustomSpecifications<T> {
     private boolean isUUID(Attribute attribute) {
         String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
         return attributeJavaClass.equalsIgnoreCase("uuid");
+    }
+
+    private boolean isMobile(Attribute attribute) {
+        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
+        return attributeJavaClass.equalsIgnoreCase("mobile");
     }
 
     private boolean isPrimitive(Attribute attribute) {
