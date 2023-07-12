@@ -4,7 +4,6 @@ import com.nooul.apihelpers.springbootrest.AbstractJpaDataTest;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.*;
 import com.nooul.apihelpers.springbootrest.helpers.entities.*;
 import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
-import com.nooul.apihelpers.springbootrest.helpers.values.Mobile;
 import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
 import com.nooul.apihelpers.springbootrest.utils.UrlUtils;
 import org.assertj.core.util.IterableUtil;
@@ -1159,11 +1158,11 @@ public class filterByTest extends AbstractJpaDataTest {
 
     public void search_by_part_of_a_uuid_field() {
         Sender sender1 = new Sender();
-        sender1.setSender(Mobile.fromString("306970011222"));
+        sender1.setSender("306970011222");
         senderRepository.save(sender1);
 
         Sender sender2 = new Sender();
-        sender2.setSender(Mobile.fromString("306970011333"));
+        sender2.setSender("306970011333");
         senderRepository.save(sender2);
 
         String partOfUuid = sender1.getId().toString().substring(10, 20);
@@ -1176,11 +1175,11 @@ public class filterByTest extends AbstractJpaDataTest {
 
     public void search_by_part_of_a_mobile_field() {
         Sender sender1 = new Sender();
-        sender1.setSender(Mobile.fromString("306970011222"));
+        sender1.setSender("306970011222");
         senderRepository.save(sender1);
 
         Sender sender2 = new Sender();
-        sender2.setSender(Mobile.fromString("306970011333"));
+        sender2.setSender("306970011333");
         senderRepository.save(sender2);
 
         String partOfMobile = sender1.getId().toString().substring(2, 6);

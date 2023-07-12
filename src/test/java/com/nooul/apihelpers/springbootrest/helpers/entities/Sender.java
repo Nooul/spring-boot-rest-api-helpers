@@ -1,7 +1,5 @@
 package com.nooul.apihelpers.springbootrest.helpers.entities;
 
-import com.nooul.apihelpers.springbootrest.helpers.values.Mobile;
-import com.nooul.apihelpers.springbootrest.helpers.values.MobileConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,7 +23,5 @@ public class Sender {
     @Type(type="uuid-char")
     private UUID id;
 
-    @Convert(converter = MobileConverter.class)
-    private Mobile sender;
-
+    private String sender;
 }
