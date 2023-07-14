@@ -1,6 +1,7 @@
 package com.nooul.apihelpers.springbootrest.specifications;
 
 
+import com.nooul.apihelpers.springbootrest.annotations.ValueObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-//from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/specifications/CustomSpecifications.java
+//from: https://github.com/Nooul/spring-boot-rest-api-helpers/blob/master/src/main/java/com/nooul/apihelpers/springbootrest/specifications/CustomSpecifications.java
 @Service
 public class CustomSpecifications<T> {
 
@@ -26,7 +27,7 @@ public class CustomSpecifications<T> {
 
     public Specification<T> customSpecificationBuilder(Map<String, Object> map) {
 
-        return (Specification<T>) (root, query, builder) -> {
+        return (root, query, builder) -> {
 
             query.distinct(true);
             List<Predicate> predicates = handleMap(builder, root, null, query, map, new ArrayList<>());
@@ -50,8 +51,6 @@ public class CustomSpecifications<T> {
         List<Predicate> predicates = handleMap(builder, root, null, query, map, includeOnlyFields);
         return builder.and(predicates.toArray(new Predicate[predicates.size()]));
     }
-
-
 
     public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, List<Map<String, Object>> list) {
         query.distinct(true);
@@ -194,7 +193,7 @@ public class CustomSpecifications<T> {
         for (Attribute a : attributes) {
             boolean javaTypeIsString = a.getJavaType().getSimpleName().equalsIgnoreCase("string");
             boolean shouldSearch = includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName());
-            if ((javaTypeIsString || isUUID(a))  && shouldSearch) {
+            if ((javaTypeIsString || isUUID(a) || isValueObject(a)) && shouldSearch) {
                 Predicate orPred = builder.like(root.get(a.getName()).as(String.class), finalText);
                 orPredicates.add(orPred);
             }
@@ -205,15 +204,16 @@ public class CustomSpecifications<T> {
 
     }
 
+
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Join join, Attribute a, Object val) {
         if (isNull(a, val)) {
             if (a.isAssociation() && a.isCollection()) {
                 return builder.isEmpty(root.get(a.getName()));
-            }
-            else if(isPrimitive(a)) {
+            } else if(isPrimitive(a)) {
                 return builder.isNull(root.get(a.getName()));
-            }
-            else {
+            } else if (isValueObject(a)) {
+                return builder.equal(root.get(a.getName()).as(String.class), "null");
+            }else {
                 return root.get(a.getName()).isNull();
             }
         }
@@ -222,6 +222,8 @@ public class CustomSpecifications<T> {
                 return builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
             } else if (isPrimitive(a)) {
                 return builder.equal(root.get(a.getName()), val);
+            } else if (isValueObject(a)) {
+                return builder.equal(root.get(a.getName()).as(String.class), val);
             } else if(isUUID(a)) {
                 return builder.equal(root.get(a.getName()), UUID.fromString(val.toString()));
             } else if(a.isAssociation()) {
@@ -238,22 +240,23 @@ public class CustomSpecifications<T> {
                 return builder.equal(join.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
             } else if (isPrimitive(a)) {
                 return builder.equal(join.get(a.getName()), val);
+            } else if (isValueObject(a)) {
+                return builder.equal(join.get(a.getName()).as(String.class), val);
             } else if (a.isAssociation()) {
                 return builder.equal(join.get(a.getName()), val);
-            }
-            else if(a.isCollection()) {
+            } else if(a.isCollection()) {
                 return builder.equal(join, val);
             }
         }
-        throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
+        throw new IllegalArgumentException("equality/inequality is currently supported on primitives, enums and value objects");
     }
 
     private Predicate createLikePredicate(CriteriaBuilder builder, Root<T> root, Join join, Attribute a, String val) {
         if (join == null) {
-            return builder.like(root.get(a.getName()), val);
+            return builder.like(root.get(a.getName()).as(String.class), val);
         }
         else {
-            return builder.like(join.get(a.getName()), val);
+            return builder.like(join.get(a.getName()).as(String.class), val);
         }
     }
 
@@ -393,6 +396,11 @@ public class CustomSpecifications<T> {
             }
         }
         return val;
+    }
+
+    private boolean isValueObject(Attribute attribute) {
+        boolean test = attribute.getJavaType().isAnnotationPresent(ValueObject.class);
+        return test;
     }
 
     private boolean isUUID(Attribute attribute) {

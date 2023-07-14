@@ -4,8 +4,8 @@ import com.nooul.apihelpers.springbootrest.AbstractJpaDataTest;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.*;
 import com.nooul.apihelpers.springbootrest.helpers.entities.*;
 import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
+import com.nooul.apihelpers.springbootrest.helpers.values.Mobile;
 import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
-import com.nooul.apihelpers.springbootrest.utils.UrlUtils;
 import org.assertj.core.util.IterableUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1242,6 +1242,51 @@ public class filterByTest extends AbstractJpaDataTest {
 
         Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: 69700112}", null, null);
         assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
+    }
+
+    @Test
+    public void search_by_part_of_value_object_field() {
+        Sender sender1 = new Sender();
+        sender1.setSenderValueObject(Mobile.fromString("306970011444"));
+        senderRepository.save(sender1);
+
+        Sender sender2 = new Sender();
+        sender2.setSenderValueObject(Mobile.fromString("306970011555"));
+        senderRepository.save(sender2);
+
+        Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: 306970011555 }", null, null);
+        assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
+    }
+
+    @Test
+    public void value_object_field_exact_match_null_and_inequality() {
+        Sender sender1 = new Sender();
+        sender1.setSenderValueObject(Mobile.fromString("306970011123"));
+        senderRepository.save(sender1);
+
+        Sender sender2 = new Sender();
+        sender2.setSenderValueObject(Mobile.fromString("306970032123"));
+        senderRepository.save(sender2);
+
+
+        Sender sender3 = new Sender();
+        senderRepository.save(sender3);
+
+        Sender sender4 = new Sender();
+        sender4.setSenderValueObject(Mobile.fromString("3069722222222"));
+        senderRepository.save(sender4);
+
+        Iterable<Sender> entitiesByValueObject = senderController.filterBy("{senderValueObject: 306970011123 }", null, null);
+        assertEquals(1, IterableUtil.sizeOf(entitiesByValueObject));
+
+        Iterable<Sender> entitiesByNullValueObject = senderController.filterBy("{senderValueObject: null }", null, null);
+        assertEquals(0, IterableUtil.sizeOf(entitiesByNullValueObject));
+
+        Iterable<Sender> entitiesByNotNullValueObject = senderController.filterBy("{senderValueObjectNot: null }", null, null);
+        assertEquals(3, IterableUtil.sizeOf(entitiesByNotNullValueObject));
+
+        Iterable<Sender> entitiesByNotValueObject = senderController.filterBy("{senderValueObjectNot: 306970011123 }", null, null);
+        assertEquals(2, IterableUtil.sizeOf(entitiesByNotValueObject)); // result is not 3 because we need extra check with IS NOT NULL for negations in SQL
     }
 
     @Test

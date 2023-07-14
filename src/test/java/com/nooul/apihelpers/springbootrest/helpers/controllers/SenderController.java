@@ -28,6 +28,6 @@ public class SenderController {
             @RequestParam(required = false, name = "filter") String filterStr,
             @RequestParam(required = false, name = "range") String rangeStr, @RequestParam(required = false, name = "sort") String sortStr) {
         QueryParamWrapper wrapper = QueryParamExtractor.extract(filterStr, rangeStr, sortStr);
-        return filterService.filterBy(wrapper, repository, "id", Arrays.asList("id","sender"));
+        return filterService.filterBy(wrapper, repository, "id");
     }
 }

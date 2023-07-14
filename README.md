@@ -134,6 +134,7 @@ spring-boot-rest-api-helpers.use-snake-case = false
 - for each of the Rest API resources create a class `XYZ` that is annotated with `@Entity`
 - for each of the Rest API resources create an interface `XYZRepository` that extends `BaseRepository<XYZ,KeyType>`
 - for each of the Rest API resources create a class `XYZController` annotated with `@RestController`
+- for each of Value object annotate them with with `com.nooul.apihelpers.springbootrest.annotations.ValueObject`. See `Sender` with `Mobile` and `MobileConverter` in test helpers. They should behave like plain strings. No comparisons are supported with Gte/Lte/Gt/Lt yet
 
 for more examples see/run the integration tests
 *Note:* three-level join tests are failing and are not implemented yet - Any help towards an implementation that allows any number of depth for queries would be greatly appreciated :D
@@ -151,4 +152,5 @@ that is fully working and uses [react-admin-java-rest](https://github.com/zifnab
 Fully Working Fork of admin-on-rest-demo: [react-admin-demo-java-rest](https://github.com/zifnab87/react-admin-demo-java-rest)
 
 ## Release Notes
- Version: 0.9.0 - Support for Instant fields on Entities for date and date time range comparisons similar to Timestamp querying 
+ - 0.9.0 - Support for Instant fields on Entities for date and date time range comparisons similar to Timestamp querying 
+ - 0.10.0 - Support for Value Objects that can be used in search with `q`, exact match and search by null
