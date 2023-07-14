@@ -1,11 +1,9 @@
 package com.nooul.apihelpers.springbootrest.helpers.values;
 
 import com.nooul.apihelpers.springbootrest.annotations.ValueObject;
-import lombok.ToString;
 
 import java.util.Objects;
 
-@ToString
 @ValueObject
 public class Mobile {
 
