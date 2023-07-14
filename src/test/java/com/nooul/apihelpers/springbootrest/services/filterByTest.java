@@ -1285,8 +1285,8 @@ public class filterByTest extends AbstractJpaDataTest {
         Iterable<Sender> entitiesByNotNullValueObject = senderController.filterBy("{senderValueObjectNot: null }", null, null);
         assertEquals(3, IterableUtil.sizeOf(entitiesByNotNullValueObject));
 
-        Iterable<Sender> entitiesByNotValueObject = senderController.filterBy("{senderValueObjectNot: 306970011123 }", null, null);
-        assertEquals(2, IterableUtil.sizeOf(entitiesByNotValueObject)); // result is not 3 because we need extra check with IS NOT NULL for negations in SQL
+        Iterable<Sender> entitiesByNotValueObject = senderController.filterBy("{senderValueObjectNot: [306970011123,null] }", null, null);
+        assertEquals(2, IterableUtil.sizeOf(entitiesByNotValueObject));
     }
 
     @Test

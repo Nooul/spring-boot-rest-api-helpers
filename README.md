@@ -141,7 +141,7 @@ for more examples see/run the integration tests
 
 ## Previous Versions
 
-This repo used to be called `react-admin-java-rest` and it was used to provide the needed building blocks for building a real backend API like that can give responses to the above requests in conjuction with react-admin/admin-on-rest (used here together: https://github.com/zifnab87/admin-on-rest-demo-java-rest). Since the time of their first incarnation, it seemed obvious that those API helpers were useful outside of the react-admin REST API realm, so the name `spring-boot-rest-api-helpers` was given.
+This repo used to be called `react-admin-java-rest` and it was used to provide the needed building blocks for building a real backend API like that can give responses to the above requests in conjunction with react-admin/admin-on-rest (used here together: https://github.com/zifnab87/admin-on-rest-demo-java-rest). Since the time of their first incarnation, it seemed obvious that those API helpers were useful outside of the react-admin REST API realm, so the name `spring-boot-rest-api-helpers` was given.
 
 
 ## Fully working example (outdated)
