@@ -4,8 +4,8 @@ import com.nooul.apihelpers.springbootrest.AbstractJpaDataTest;
 import com.nooul.apihelpers.springbootrest.helpers.controllers.*;
 import com.nooul.apihelpers.springbootrest.helpers.entities.*;
 import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
+import com.nooul.apihelpers.springbootrest.helpers.values.Mobile;
 import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
-import com.nooul.apihelpers.springbootrest.utils.UrlUtils;
 import org.assertj.core.util.IterableUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1241,6 +1241,20 @@ public class filterByTest extends AbstractJpaDataTest {
         senderRepository.save(sender2);
 
         Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: 69700112}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
+    }
+
+    @Test
+    public void search_by_part_of_value_object_field() {
+        Sender sender1 = new Sender();
+        sender1.setSenderValueObject(Mobile.fromString("306970011444"));
+        senderRepository.save(sender1);
+
+        Sender sender2 = new Sender();
+        sender2.setSenderValueObject(Mobile.fromString("306970011555"));
+        senderRepository.save(sender2);
+
+        Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: 69700115 }", null, null);
         assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
     }
 

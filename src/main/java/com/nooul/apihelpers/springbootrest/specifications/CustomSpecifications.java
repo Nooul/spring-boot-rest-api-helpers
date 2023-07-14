@@ -1,6 +1,8 @@
 package com.nooul.apihelpers.springbootrest.specifications;
 
 
+import com.nooul.apihelpers.springbootrest.annotations.ValueObject;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -26,7 +28,7 @@ public class CustomSpecifications<T> {
 
     public Specification<T> customSpecificationBuilder(Map<String, Object> map) {
 
-        return (Specification<T>) (root, query, builder) -> {
+        return (root, query, builder) -> {
 
             query.distinct(true);
             List<Predicate> predicates = handleMap(builder, root, null, query, map, new ArrayList<>());
@@ -50,8 +52,6 @@ public class CustomSpecifications<T> {
         List<Predicate> predicates = handleMap(builder, root, null, query, map, includeOnlyFields);
         return builder.and(predicates.toArray(new Predicate[predicates.size()]));
     }
-
-
 
     public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, List<Map<String, Object>> list) {
         query.distinct(true);
@@ -194,7 +194,7 @@ public class CustomSpecifications<T> {
         for (Attribute a : attributes) {
             boolean javaTypeIsString = a.getJavaType().getSimpleName().equalsIgnoreCase("string");
             boolean shouldSearch = includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName());
-            if ((javaTypeIsString || isUUID(a))  && shouldSearch) {
+            if ((javaTypeIsString || isUUID(a) || isValueObject(a)) && shouldSearch) {
                 Predicate orPred = builder.like(root.get(a.getName()).as(String.class), finalText);
                 orPredicates.add(orPred);
             }
@@ -204,6 +204,7 @@ public class CustomSpecifications<T> {
         return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
 
     }
+
 
     private Predicate createEqualityPredicate(CriteriaBuilder builder, Root root, Join join, Attribute a, Object val) {
         if (isNull(a, val)) {
@@ -250,10 +251,10 @@ public class CustomSpecifications<T> {
 
     private Predicate createLikePredicate(CriteriaBuilder builder, Root<T> root, Join join, Attribute a, String val) {
         if (join == null) {
-            return builder.like(root.get(a.getName()), val);
+            return builder.like(root.get(a.getName()).as(String.class), val);
         }
         else {
-            return builder.like(join.get(a.getName()), val);
+            return builder.like(join.get(a.getName()).as(String.class), val);
         }
     }
 
@@ -393,6 +394,11 @@ public class CustomSpecifications<T> {
             }
         }
         return val;
+    }
+
+    private boolean isValueObject(Attribute attribute) {
+        boolean test = attribute.getJavaType().isAnnotationPresent(ValueObject.class);
+        return test;
     }
 
     private boolean isUUID(Attribute attribute) {
