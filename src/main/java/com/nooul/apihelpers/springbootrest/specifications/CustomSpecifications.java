@@ -2,7 +2,6 @@ package com.nooul.apihelpers.springbootrest.specifications;
 
 
 import com.nooul.apihelpers.springbootrest.annotations.ValueObject;
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;

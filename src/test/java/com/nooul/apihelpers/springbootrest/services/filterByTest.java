@@ -1259,7 +1259,7 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-    public void value_object_field_exact_match() {
+    public void value_object_field_exact_match_null_and_inequality() {
         Sender sender1 = new Sender();
         sender1.setSenderValueObject(Mobile.fromString("306970011123"));
         senderRepository.save(sender1);
@@ -1268,15 +1268,25 @@ public class filterByTest extends AbstractJpaDataTest {
         sender2.setSenderValueObject(Mobile.fromString("306970032123"));
         senderRepository.save(sender2);
 
+
         Sender sender3 = new Sender();
-        sender3.setSenderValueObject(null);
         senderRepository.save(sender3);
+
+        Sender sender4 = new Sender();
+        sender4.setSenderValueObject(Mobile.fromString("3069722222222"));
+        senderRepository.save(sender4);
 
         Iterable<Sender> entitiesByValueObject = senderController.filterBy("{senderValueObject: 306970011123 }", null, null);
         assertEquals(1, IterableUtil.sizeOf(entitiesByValueObject));
 
         Iterable<Sender> entitiesByNullValueObject = senderController.filterBy("{senderValueObject: null }", null, null);
         assertEquals(0, IterableUtil.sizeOf(entitiesByNullValueObject));
+
+        Iterable<Sender> entitiesByNotNullValueObject = senderController.filterBy("{senderValueObjectNot: null }", null, null);
+        assertEquals(3, IterableUtil.sizeOf(entitiesByNotNullValueObject));
+
+        Iterable<Sender> entitiesByNotValueObject = senderController.filterBy("{senderValueObjectNot: 306970011123 }", null, null);
+        assertEquals(2, IterableUtil.sizeOf(entitiesByNotValueObject)); // result is not 3 because we need extra check with IS NOT NULL for negations in SQL
     }
 
     @Test
