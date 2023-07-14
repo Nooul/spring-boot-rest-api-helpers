@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import static com.nooul.apihelpers.springbootrest.helpers.utils.DateUtils.timeStamp;
+import static com.nooul.apihelpers.springbootrest.utils.UrlUtils.encodeURIComponent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Import({FilterService.class, CustomSpecifications.class,
@@ -87,7 +88,7 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-    public void date_range_queries() {
+    public void timestamp_date_range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
         matrix.setReleaseDate(timeStamp("1999-01-05"));
@@ -123,7 +124,43 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-    public void date_with_time_range_queries() {
+    public void instant_date_range_queries() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setReleaseDateInstant(timeStamp("1999-01-05").toInstant());
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setReleaseDateInstant(timeStamp("2005-01-05").toInstant());
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setReleaseDateInstant(timeStamp("2017-01-05").toInstant());
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesAfterOrOn2005 = movieController.filterBy("{releaseDateInstantGte: '2005-01-01'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn2005));
+
+        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{releaseDateInstantGt: '2005-01-01'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfter2005));
+
+        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{releaseDateInstantLte: '2005-01-1'}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(moviesBeforeOrOn2005));
+
+        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{releaseDateInstantLt: '2005-01-01'}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
+
+        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{releaseDateInstantGt: '1999-01-01', releaseDateInstantLt: '2017-12-01'}", null, null);
+        assertEquals(3, IterableUtil.sizeOf(moviesAfter1999Before2017));
+
+        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{releaseDateInstantGte: 2005-01-01, releaseDateInstantLte:2017-12-01}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
+    }
+
+    @Test
+    public void timestamp_date_with_time_range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
         matrix.setReleaseDate(timeStamp("1999-01-05T01:00:00"));
@@ -149,6 +186,37 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn3));
 
         Iterable<Movie> moviesAfter3 = movieController.filterBy("{releaseDateGt: '1999-01-05T03:00:00'}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(moviesAfter3));
+
+    }
+
+    @Test
+    public void instant_date_with_time_range_queries() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setReleaseDateInstant(timeStamp("1999-01-05T01:00:00").toInstant());
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setReleaseDateInstant(timeStamp("1999-01-05T03:00:00").toInstant());
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setReleaseDateInstant(timeStamp("1999-01-05T04:00:00").toInstant());
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesAfterOrOn1 = movieController.filterBy("{releaseDateInstantGte: '1999-01-05T01:00:00'}", null, null);
+        assertEquals(3, IterableUtil.sizeOf(moviesAfterOrOn1));
+
+        Iterable<Movie> moviesAfter1 = movieController.filterBy("{releaseDateInstantGt: '1999-01-05T01:00:00'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfter1));
+
+        Iterable<Movie> moviesAfterOrOn3 = movieController.filterBy("{releaseDateInstantGte: '1999-01-05T03:00:00'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn3));
+
+        Iterable<Movie> moviesAfter3 = movieController.filterBy("{releaseDateInstantGt: '1999-01-05T03:00:00'}", null, null);
         assertEquals(1, IterableUtil.sizeOf(moviesAfter3));
 
     }
@@ -400,7 +468,7 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(2, IterableUtil.sizeOf(withMovieActors));
     }
 
-    @Test
+    @Test //fails due to performance issues fix and is not supported
     public void reference_test_conjunctive_equality_in_list__fetch_actors_that_have_played_in_all_movies_of_query() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -626,8 +694,8 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
-    @Test
 
+    @Test
     public void exact_match_of_primitive_in_primitive_collection__fetch_movie_by_age_rating() {
 
         Movie matrix = new Movie();
@@ -749,7 +817,7 @@ public class filterByTest extends AbstractJpaDataTest {
         keanu.setMovies(Arrays.asList(matrix, constantine));
         actorRepository.save(keanu);
 
-        Iterable<Movie> keanuMovies = movieController.filterBy(UrlUtils.encodeURIComponent("{actors: {firstName:%ean%, lastName: %eeve%}}"), null, null);
+        Iterable<Movie> keanuMovies = movieController.filterBy(encodeURIComponent("{actors: {firstName:%ean%, lastName: %eeve%}}"), null, null);
         assertEquals(2, IterableUtil.sizeOf(keanuMovies));
     }
 
@@ -916,48 +984,46 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
 
-//    @Test
-//
-//    public void two_level_many_to_many_fetch_actors_with_movies_starting_with_matr_or_const() {
-//        Movie matrix = new Movie();
-//        matrix.setName("The Matrix");
-//        movieRepository.save(matrix);
-//
-//        Movie constantine = new Movie();
-//        constantine.setName("Constantine");
-//        movieRepository.save(constantine);
-//
-//        Movie it = new Movie();
-//        it.setName("IT");
-//        movieRepository.save(it);
-//
-//        Actor keanu = new Actor();
-//        keanu.setFirstName("Keanu");
-//        keanu.setLastName("Reeves");
-//        keanu.setMovies(Arrays.asList(matrix, constantine));
-//        actorRepository.save(keanu);
-//
-//        Actor noMovieActor = new Actor();
-//        noMovieActor.setFirstName("No Movie");
-//        noMovieActor.setLastName("Whatsoever");
-//        actorRepository.save(noMovieActor);
-//
-//        Actor noMovieActor2 = new Actor();
-//        noMovieActor2.setFirstName("No Movie 2");
-//        noMovieActor2.setLastName("Whatsoever 2");
-//        actorRepository.save(noMovieActor2);
-//
-//
-//        Iterable<Actor> actors = actorController.filterBy(encodeURIComponent("{movies: [{name:%atr%},{name:%onest%}]}}"), null, null);
-//        assertEquals(1, IterableUtil.sizeOf(actors));
-//        Iterable<Actor> actors2 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onst%}]}}"), null, null);
-//        assertEquals(1, IterableUtil.sizeOf(actors2));
-//        Iterable<Actor> actors3 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onest%}]}}"), null, null);
-//        assertEquals(0, IterableUtil.sizeOf(actors3));
-//    }
-
     @Test
+    public void two_level_many_to_many_fetch_actors_with_movies_starting_with_matr_or_const() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        movieRepository.save(matrix);
 
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Actor keanu = new Actor();
+        keanu.setFirstName("Keanu");
+        keanu.setLastName("Reeves");
+        keanu.setMovies(Arrays.asList(matrix, constantine));
+        actorRepository.save(keanu);
+
+        Actor noMovieActor = new Actor();
+        noMovieActor.setFirstName("No Movie");
+        noMovieActor.setLastName("Whatsoever");
+        actorRepository.save(noMovieActor);
+
+        Actor noMovieActor2 = new Actor();
+        noMovieActor2.setFirstName("No Movie 2");
+        noMovieActor2.setLastName("Whatsoever 2");
+        actorRepository.save(noMovieActor2);
+
+
+        Iterable<Actor> actors = actorController.filterBy(encodeURIComponent("{movies: [{name:%atr%},{name:%onest%}]}}"), null, null);
+        assertEquals(1, IterableUtil.sizeOf(actors));
+        Iterable<Actor> actors2 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onst%}]}}"), null, null);
+        assertEquals(1, IterableUtil.sizeOf(actors2));
+        Iterable<Actor> actors3 = actorController.filterBy(encodeURIComponent("{moviesAnd: [{name:%atr%},{name:%onest%}]}}"), null, null);
+        assertEquals(0, IterableUtil.sizeOf(actors3));
+    }
+
+    @Test //fails due to performance issues fix and is not supported
     public void two_level_exact_match_of_primitive__fetch_movie_by_director_name() {
 
         Director lana = new Director();
@@ -985,7 +1051,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void two_level_full_text_search__fetch_movie_like_director_name() {
 
         Director lana = new Director();
@@ -1008,12 +1073,11 @@ public class filterByTest extends AbstractJpaDataTest {
         movieRepository.save(constantine);
 
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{director: {firstName:%an%}}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{director: {firstName:%an%}}"), null, null);
         assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
-
     public void two_level__fetch_movie_like_director_name() {
 
         Director lana = new Director();
@@ -1035,13 +1099,12 @@ public class filterByTest extends AbstractJpaDataTest {
         constantine.setName("Constantine");
         movieRepository.save(constantine);
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{director: {firstName:%an%}}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{director: {firstName:%an%}}"), null, null);
         assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
 
     @Test
-
     public void two_level__fetch_movie_with_director_id() {
 
         Director lana = new Director();
@@ -1068,7 +1131,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void search_text_on_primitive__fetch_movie_by_name_prefix() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1082,12 +1144,11 @@ public class filterByTest extends AbstractJpaDataTest {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{name: The Matr%}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: The Matr%}"), null, null);
         assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
-
     public void search_text_on_primitive__fetch_movie_by_name_postfix() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1101,12 +1162,11 @@ public class filterByTest extends AbstractJpaDataTest {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{name: %loaded}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: %loaded}"), null, null);
         assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
-
     public void search_text_on_primitive__fetch_movie_by_name_infix() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1120,12 +1180,11 @@ public class filterByTest extends AbstractJpaDataTest {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{name: %atri%}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{name: %atri%}"), null, null);
         assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
-
     public void search_text_on_primitive__fetch_movie_by_not_containing_name_prefix() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1139,12 +1198,11 @@ public class filterByTest extends AbstractJpaDataTest {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{nameNot: The Matr%}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: The Matr%}"), null, null);
         assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
-
     public void filter_by_primary_key_that_is_native_uuid() {
         UUIDEntity entity1 = new UUIDEntity();
         uuidEntityRepository.save(entity1);
@@ -1173,7 +1231,7 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-    public void search_by_part_of_a_mobile_field() {
+    public void search_by_part_of_a_mobile_field_which_is_integer_as_input_bug_fix() {
         Sender sender1 = new Sender();
         sender1.setSender("306970011222");
         senderRepository.save(sender1);
@@ -1182,9 +1240,7 @@ public class filterByTest extends AbstractJpaDataTest {
         sender2.setSender("306970011333");
         senderRepository.save(sender2);
 
-        String partOfMobile = sender1.getId().toString().substring(2, 6);
-
-        Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: " + partOfMobile + "}", null, null);
+        Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: 69700112}", null, null);
         assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
     }
 
@@ -1215,7 +1271,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void search_text_on_primitive__fetch_movie_by_not_containing_name_postfix() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1229,12 +1284,11 @@ public class filterByTest extends AbstractJpaDataTest {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{nameNot: %loaded}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: %loaded}"), null, null);
         assertEquals(2, IterableUtil.sizeOf(movieByName));
     }
 
     @Test
-
     public void search_text_on_primitive__fetch_movie_by_not_oontaining_name_infix() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1248,13 +1302,12 @@ public class filterByTest extends AbstractJpaDataTest {
         it.setName("IT");
         movieRepository.save(it);
 
-        Iterable<Movie> movieByName = movieController.filterBy(UrlUtils.encodeURIComponent("{nameNot: %atri%}"), null, null);
+        Iterable<Movie> movieByName = movieController.filterBy(encodeURIComponent("{nameNot: %atri%}"), null, null);
         assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
 
     @Test
-
     public void exact_match_of_primitive__fetch_movie_by_not_name() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1273,7 +1326,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void disjunctive_exact_match_of_primitives__fetch_movie_by_list_of_names() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1293,7 +1345,6 @@ public class filterByTest extends AbstractJpaDataTest {
 
 
     @Test
-
     public void full_text_search_in_all_fields() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1312,7 +1363,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void find_all_works() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");

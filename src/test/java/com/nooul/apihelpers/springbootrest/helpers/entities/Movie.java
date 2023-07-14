@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,8 @@ public class Movie {
     private String name;
 
     private Timestamp releaseDate;
+
+    private Instant releaseDateInstant;
 
     @ManyToOne
     private Director director;
