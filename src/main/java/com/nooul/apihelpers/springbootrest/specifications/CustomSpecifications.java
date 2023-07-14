@@ -194,8 +194,8 @@ public class CustomSpecifications<T> {
         for (Attribute a : attributes) {
             boolean javaTypeIsString = a.getJavaType().getSimpleName().equalsIgnoreCase("string");
             boolean shouldSearch = includeOnlyFields.isEmpty() || includeOnlyFields.contains(a.getName());
-            if (javaTypeIsString && shouldSearch) {
-                Predicate orPred = builder.like(root.get(a.getName()), finalText);
+            if ((javaTypeIsString || isUUID(a))  && shouldSearch) {
+                Predicate orPred = builder.like(root.get(a.getName()).as(String.class), finalText);
                 orPredicates.add(orPred);
             }
 
@@ -261,7 +261,7 @@ public class CustomSpecifications<T> {
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
             if (timestamp != null) {
-                return builder.greaterThan(builder.lower(root.get(a.getName())), timestamp);
+                return builder.greaterThan(root.get(a.getName()), timestamp);
             }
 
             return builder.greaterThan(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
@@ -295,7 +295,7 @@ public class CustomSpecifications<T> {
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
             if (timestamp != null) {
-                return builder.greaterThanOrEqualTo(builder.lower(root.get(a.getName())), timestamp);
+                return builder.greaterThanOrEqualTo(root.get(a.getName()), timestamp);
             }
             return builder.greaterThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
@@ -308,7 +308,7 @@ public class CustomSpecifications<T> {
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
             if (timestamp != null) {
-                return builder.lessThan(builder.lower(root.get(a.getName())), timestamp);
+                return builder.lessThan(root.get(a.getName()), timestamp);
             }
             return builder.lessThan(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
@@ -321,7 +321,7 @@ public class CustomSpecifications<T> {
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
             if (timestamp != null) {
-                return builder.lessThanOrEqualTo(builder.lower(root.get(a.getName())), timestamp);
+                return builder.lessThanOrEqualTo(root.get(a.getName()), timestamp);
             }
             return builder.lessThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {

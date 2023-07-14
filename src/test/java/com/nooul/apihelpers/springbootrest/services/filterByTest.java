@@ -1,10 +1,7 @@
 package com.nooul.apihelpers.springbootrest.services;
 
 import com.nooul.apihelpers.springbootrest.AbstractJpaDataTest;
-import com.nooul.apihelpers.springbootrest.helpers.controllers.ActorController;
-import com.nooul.apihelpers.springbootrest.helpers.controllers.MovieController;
-import com.nooul.apihelpers.springbootrest.helpers.controllers.UUIDEntityController;
-import com.nooul.apihelpers.springbootrest.helpers.controllers.UUIDRelationshipController;
+import com.nooul.apihelpers.springbootrest.helpers.controllers.*;
 import com.nooul.apihelpers.springbootrest.helpers.entities.*;
 import com.nooul.apihelpers.springbootrest.helpers.repositories.*;
 import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
@@ -21,7 +18,7 @@ import static com.nooul.apihelpers.springbootrest.helpers.utils.DateUtils.timeSt
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Import({FilterService.class, CustomSpecifications.class,
-        MovieController.class, ActorController.class, UUIDEntityController.class,
+        MovieController.class, ActorController.class, UUIDEntityController.class, SenderController.class,
         UUIDRelationshipController.class
 })
 public class filterByTest extends AbstractJpaDataTest {
@@ -42,6 +39,9 @@ public class filterByTest extends AbstractJpaDataTest {
     private UUIDEntityRepository uuidEntityRepository;
 
     @Autowired
+    private SenderRepository senderRepository;
+
+    @Autowired
     private UUIDRelationshipRepository uuidRelationshipRepository;
 
     @Autowired
@@ -52,6 +52,9 @@ public class filterByTest extends AbstractJpaDataTest {
 
     @Autowired
     private UUIDEntityController uuidEntityController;
+
+    @Autowired
+    private SenderController senderController;
 
     @Autowired
     private UUIDRelationshipController uuidRelationshipController;
@@ -1151,6 +1154,40 @@ public class filterByTest extends AbstractJpaDataTest {
 
         Iterable<UUIDEntity> entitiesByUuid = uuidEntityController.filterBy("{uuid: " + entity1.getUuid() + "}", null, null);
         assertEquals(1, IterableUtil.sizeOf(entitiesByUuid));
+    }
+
+    @Test
+
+    public void search_by_part_of_a_uuid_field() {
+        Sender sender1 = new Sender();
+        sender1.setSender("306970011222");
+        senderRepository.save(sender1);
+
+        Sender sender2 = new Sender();
+        sender2.setSender("306970011333");
+        senderRepository.save(sender2);
+
+        String partOfUuid = sender1.getId().toString().substring(10, 20);
+
+        Iterable<Sender> entitiesByUuid = senderController.filterBy("{q: " + partOfUuid + "}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(entitiesByUuid));
+    }
+
+    @Test
+
+    public void search_by_part_of_a_mobile_field() {
+        Sender sender1 = new Sender();
+        sender1.setSender("306970011222");
+        senderRepository.save(sender1);
+
+        Sender sender2 = new Sender();
+        sender2.setSender("306970011333");
+        senderRepository.save(sender2);
+
+        String partOfMobile = sender1.getId().toString().substring(2, 6);
+
+        Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: " + partOfMobile + "}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
     }
 
     @Test
