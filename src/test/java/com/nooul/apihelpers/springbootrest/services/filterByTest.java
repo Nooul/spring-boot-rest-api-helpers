@@ -1254,8 +1254,29 @@ public class filterByTest extends AbstractJpaDataTest {
         sender2.setSenderValueObject(Mobile.fromString("306970011555"));
         senderRepository.save(sender2);
 
-        Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: 69700115 }", null, null);
+        Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: 306970011555 }", null, null);
         assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
+    }
+
+    @Test
+    public void value_object_field_exact_match() {
+        Sender sender1 = new Sender();
+        sender1.setSenderValueObject(Mobile.fromString("306970011123"));
+        senderRepository.save(sender1);
+
+        Sender sender2 = new Sender();
+        sender2.setSenderValueObject(Mobile.fromString("306970032123"));
+        senderRepository.save(sender2);
+
+        Sender sender3 = new Sender();
+        sender3.setSenderValueObject(null);
+        senderRepository.save(sender3);
+
+        Iterable<Sender> entitiesByValueObject = senderController.filterBy("{senderValueObject: 306970011123 }", null, null);
+        assertEquals(1, IterableUtil.sizeOf(entitiesByValueObject));
+
+        Iterable<Sender> entitiesByNullValueObject = senderController.filterBy("{senderValueObject: null }", null, null);
+        assertEquals(0, IterableUtil.sizeOf(entitiesByNullValueObject));
     }
 
     @Test

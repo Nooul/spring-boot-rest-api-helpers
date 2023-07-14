@@ -152,4 +152,4 @@ Fully Working Fork of admin-on-rest-demo: [react-admin-demo-java-rest](https://g
 
 ## Release Notes
  - 0.9.0 - Support for Instant fields on Entities for date and date time range comparisons similar to Timestamp querying 
- - 0.10.0 - Support for Value Objects that can be used in search (you need to annotate them with `com.nooul.apihelpers.springbootrest.annotations.ValueObject`). See Sender with Mobile and MobileConverter in test helpers
+ - 0.10.0 - Support for Value Objects that can be used in search with `q`, exact match and search by null (you need to annotate them with `com.nooul.apihelpers.springbootrest.annotations.ValueObject`). See Sender with Mobile and MobileConverter in test helpers

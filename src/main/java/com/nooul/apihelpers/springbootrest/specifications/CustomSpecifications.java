@@ -210,11 +210,11 @@ public class CustomSpecifications<T> {
         if (isNull(a, val)) {
             if (a.isAssociation() && a.isCollection()) {
                 return builder.isEmpty(root.get(a.getName()));
-            }
-            else if(isPrimitive(a)) {
+            } else if(isPrimitive(a)) {
                 return builder.isNull(root.get(a.getName()));
-            }
-            else {
+            } else if (isValueObject(a)) {
+                return builder.equal(root.get(a.getName()).as(String.class), "null");
+            }else {
                 return root.get(a.getName()).isNull();
             }
         }
@@ -223,6 +223,8 @@ public class CustomSpecifications<T> {
                 return builder.equal(root.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
             } else if (isPrimitive(a)) {
                 return builder.equal(root.get(a.getName()), val);
+            } else if (isValueObject(a)) {
+                return builder.equal(root.get(a.getName()).as(String.class), val);
             } else if(isUUID(a)) {
                 return builder.equal(root.get(a.getName()), UUID.fromString(val.toString()));
             } else if(a.isAssociation()) {
@@ -239,14 +241,15 @@ public class CustomSpecifications<T> {
                 return builder.equal(join.get(a.getName()), Enum.valueOf(Class.class.cast(a.getJavaType()), (String) val));
             } else if (isPrimitive(a)) {
                 return builder.equal(join.get(a.getName()), val);
+            } else if (isValueObject(a)) {
+                return builder.equal(join.get(a.getName()).as(String.class), val);
             } else if (a.isAssociation()) {
                 return builder.equal(join.get(a.getName()), val);
-            }
-            else if(a.isCollection()) {
+            } else if(a.isCollection()) {
                 return builder.equal(join, val);
             }
         }
-        throw new IllegalArgumentException("equality/inequality is currently supported on primitives and enums");
+        throw new IllegalArgumentException("equality/inequality is currently supported on primitives, enums and value objects");
     }
 
     private Predicate createLikePredicate(CriteriaBuilder builder, Root<T> root, Join join, Attribute a, String val) {
