@@ -59,7 +59,7 @@ public class filterByTest extends AbstractJpaDataTest {
     @Autowired
     private UUIDRelationshipController uuidRelationshipController;
 
-
+    @Test
     public void find_null_primitive_should_return() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -86,7 +86,7 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(1, IterableUtil.sizeOf(moviesWithNullName4));
     }
 
-
+    @Test
     public void date_range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
@@ -1157,7 +1157,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void search_by_part_of_a_uuid_field() {
         Sender sender1 = new Sender();
         sender1.setSender("306970011222");
@@ -1174,7 +1173,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void search_by_part_of_a_mobile_field() {
         Sender sender1 = new Sender();
         sender1.setSender("306970011222");
@@ -1191,7 +1189,6 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-
     public void filter_by_foreign_key_that_is_native_uuid() {
         UUIDEntity entity1 = new UUIDEntity();
         uuidEntityRepository.save(entity1);

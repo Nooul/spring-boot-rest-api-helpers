@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class Actor {
     private String lastName;
 
     private int birthYear;
+
+    private Instant birthDate;
 
     @ManyToMany
     private List<Movie> movies = new ArrayList<>();
