@@ -19,7 +19,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-//from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/specifications/CustomSpecifications.java
+//from: https://github.com/Nooul/spring-boot-rest-api-helpers/blob/master/src/main/java/com/nooul/apihelpers/springbootrest/specifications/CustomSpecifications.java
 @Service
 public class CustomSpecifications<T> {
 

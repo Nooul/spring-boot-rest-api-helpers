@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-//from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/services/FilterService.java
+//from: https://github.com/Nooul/spring-boot-rest-api-helpers/blob/master/src/main/java/com/nooul/apihelpers/springbootrest/services/FilterService.java
 public class FilterService<T, I extends Serializable> {
 
     @Autowired
