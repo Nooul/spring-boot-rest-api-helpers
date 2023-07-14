@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/specifications/CustomSpecifications.java
@@ -260,13 +261,61 @@ public class CustomSpecifications<T> {
     private Predicate createGtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
         if (val instanceof String) {
             Timestamp timestamp = timeStamp((String)val);
-            if (timestamp != null) {
-                return builder.greaterThan(root.get(a.getName()), timestamp);
+            if (timestamp != null && !isInstant(a)) {
+                return builder.greaterThan(root.get(a.getName()),  timestamp);
+            } else if (timestamp != null && isInstant(a)) {
+                return builder.greaterThan(root.get(a.getName()), timestamp.toInstant());
             }
 
             return builder.greaterThan(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
         } else if (val instanceof Integer) {
             return builder.greaterThan(root.get(a.getName()), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+
+    private Predicate createGtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null && !isInstant(a)) {
+                return builder.greaterThanOrEqualTo(root.get(a.getName()), timestamp);
+            } else if(timestamp != null && isInstant(a)) {
+                return builder.greaterThanOrEqualTo(root.get(a.getName()), timestamp.toInstant());
+            }
+            return builder.greaterThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+    private Predicate createLtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null && !isInstant(a)) {
+                return builder.lessThan(root.get(a.getName()), timestamp);
+            } else if(timestamp != null && isInstant(a)) {
+                return builder.lessThan(root.get(a.getName()), timestamp.toInstant());
+            }
+            return builder.lessThan(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.lessThan(root.get(a.getName()), (Integer) val);
+        }
+        throw new IllegalArgumentException("val type not supported yet");
+    }
+
+    private Predicate createLtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
+        if (val instanceof String) {
+            Timestamp timestamp = timeStamp((String)val);
+            if (timestamp != null && !isInstant(a)) {
+                return builder.lessThanOrEqualTo(root.get(a.getName()), timestamp);
+            } else if (timestamp != null && isInstant(a)) {
+                return builder.lessThanOrEqualTo(root.get(a.getName()), timestamp.toInstant());
+            }
+            return builder.lessThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
+        } else if (val instanceof Integer) {
+            return builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
         }
         throw new IllegalArgumentException("val type not supported yet");
     }
@@ -287,47 +336,6 @@ public class CustomSpecifications<T> {
         }
         long time = date.getTime();
         return new Timestamp(time);
-    }
-
-
-
-    private Predicate createGtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
-        if (val instanceof String) {
-            Timestamp timestamp = timeStamp((String)val);
-            if (timestamp != null) {
-                return builder.greaterThanOrEqualTo(root.get(a.getName()), timestamp);
-            }
-            return builder.greaterThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
-        } else if (val instanceof Integer) {
-            return builder.greaterThanOrEqualTo(root.get(a.getName()), (Integer) val);
-        }
-        throw new IllegalArgumentException("val type not supported yet");
-    }
-
-    private Predicate createLtPredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
-        if (val instanceof String) {
-            Timestamp timestamp = timeStamp((String)val);
-            if (timestamp != null) {
-                return builder.lessThan(root.get(a.getName()), timestamp);
-            }
-            return builder.lessThan(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
-        } else if (val instanceof Integer) {
-            return builder.lessThan(root.get(a.getName()), (Integer) val);
-        }
-        throw new IllegalArgumentException("val type not supported yet");
-    }
-
-    private Predicate createLtePredicate(CriteriaBuilder builder, Root root, Attribute a, Object val) {
-        if (val instanceof String) {
-            Timestamp timestamp = timeStamp((String)val);
-            if (timestamp != null) {
-                return builder.lessThanOrEqualTo(root.get(a.getName()), timestamp);
-            }
-            return builder.lessThanOrEqualTo(builder.lower(root.get(a.getName())), ((String) val).toLowerCase());
-        } else if (val instanceof Integer) {
-            return builder.lessThanOrEqualTo(root.get(a.getName()), (Integer) val);
-        }
-        throw new IllegalArgumentException("val type not supported yet");
     }
 
 
@@ -391,6 +399,11 @@ public class CustomSpecifications<T> {
     private boolean isUUID(Attribute attribute) {
         String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
         return attributeJavaClass.equalsIgnoreCase("uuid");
+    }
+
+    private boolean isInstant(Attribute attribute) {
+        String attributeJavaClass = attribute.getJavaType().getSimpleName().toLowerCase();
+        return attributeJavaClass.equals("instant");
     }
 
     private boolean isPrimitive(Attribute attribute) {

@@ -87,7 +87,7 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-    public void date_range_queries() {
+    public void timestamp_date_range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
         matrix.setReleaseDate(timeStamp("1999-01-05"));
@@ -123,7 +123,43 @@ public class filterByTest extends AbstractJpaDataTest {
     }
 
     @Test
-    public void date_with_time_range_queries() {
+    public void instant_date_range_queries() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setReleaseDateInstant(timeStamp("1999-01-05").toInstant());
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setReleaseDateInstant(timeStamp("2005-01-05").toInstant());
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setReleaseDateInstant(timeStamp("2017-01-05").toInstant());
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesAfterOrOn2005 = movieController.filterBy("{releaseDateInstantGte: '2005-01-01'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn2005));
+
+        Iterable<Movie> moviesAfter2005 = movieController.filterBy("{releaseDateInstantGt: '2005-01-01'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfter2005));
+
+        Iterable<Movie> moviesBeforeOrOn2005 = movieController.filterBy("{releaseDateInstantLte: '2005-01-1'}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(moviesBeforeOrOn2005));
+
+        Iterable<Movie> moviesBefore2005 = movieController.filterBy("{releaseDateInstantLt: '2005-01-01'}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(moviesBefore2005));
+
+        Iterable<Movie> moviesAfter1999Before2017 = movieController.filterBy("{releaseDateInstantGt: '1999-01-01', releaseDateInstantLt: '2017-12-01'}", null, null);
+        assertEquals(3, IterableUtil.sizeOf(moviesAfter1999Before2017));
+
+        Iterable<Movie> moviesAfter2005OrOnBefore2017OrOn = movieController.filterBy("{releaseDateInstantGte: 2005-01-01, releaseDateInstantLte:2017-12-01}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfter2005OrOnBefore2017OrOn));
+    }
+
+    @Test
+    public void timestamp_date_with_time_range_queries() {
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
         matrix.setReleaseDate(timeStamp("1999-01-05T01:00:00"));
@@ -149,6 +185,37 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn3));
 
         Iterable<Movie> moviesAfter3 = movieController.filterBy("{releaseDateGt: '1999-01-05T03:00:00'}", null, null);
+        assertEquals(1, IterableUtil.sizeOf(moviesAfter3));
+
+    }
+
+    @Test
+    public void instant_date_with_time_range_queries() {
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setReleaseDateInstant(timeStamp("1999-01-05T01:00:00").toInstant());
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setReleaseDateInstant(timeStamp("1999-01-05T03:00:00").toInstant());
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setReleaseDateInstant(timeStamp("1999-01-05T04:00:00").toInstant());
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesAfterOrOn1 = movieController.filterBy("{releaseDateInstantGte: '1999-01-05T01:00:00'}", null, null);
+        assertEquals(3, IterableUtil.sizeOf(moviesAfterOrOn1));
+
+        Iterable<Movie> moviesAfter1 = movieController.filterBy("{releaseDateInstantGt: '1999-01-05T01:00:00'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfter1));
+
+        Iterable<Movie> moviesAfterOrOn3 = movieController.filterBy("{releaseDateInstantGte: '1999-01-05T03:00:00'}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesAfterOrOn3));
+
+        Iterable<Movie> moviesAfter3 = movieController.filterBy("{releaseDateInstantGt: '1999-01-05T03:00:00'}", null, null);
         assertEquals(1, IterableUtil.sizeOf(moviesAfter3));
 
     }
@@ -626,8 +693,8 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(1, IterableUtil.sizeOf(movieByName));
     }
 
-    @Test
 
+    @Test
     public void exact_match_of_primitive_in_primitive_collection__fetch_movie_by_age_rating() {
 
         Movie matrix = new Movie();
@@ -1182,7 +1249,7 @@ public class filterByTest extends AbstractJpaDataTest {
         sender2.setSender("306970011333");
         senderRepository.save(sender2);
 
-        String partOfMobile = sender1.getId().toString().substring(2, 6);
+        String partOfMobile = sender1.getId().toString().substring(2, 8);
 
         Iterable<Sender> entitiesByMobile = senderController.filterBy("{q: " + partOfMobile + "}", null, null);
         assertEquals(1, IterableUtil.sizeOf(entitiesByMobile));
