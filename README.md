@@ -127,7 +127,7 @@ and add this as a dependency in your pom.xml dependencies:
 ```java
 @SpringBootApplication(scanBasePackages = {"com.myproject", springbootrest});
 ```
-- configure appplication.properties to use snake-case or camelCase for properties in API
+- configure application.properties to use snake-case or camelCase for properties in API
 ```
 spring-boot-rest-api-helpers.use-snake-case = false
 ```
@@ -149,3 +149,6 @@ For an example of how it can be used along admin-on-rest there is a fork of [adm
 that is fully working and uses [react-admin-java-rest](https://github.com/zifnab87/react-admin-java-rest)
 
 Fully Working Fork of admin-on-rest-demo: [react-admin-demo-java-rest](https://github.com/zifnab87/react-admin-demo-java-rest)
+
+## Release Notes
+ Version: 0.9.0 - Support for Instant fields on Entities for date and date time range comparisons similar to Timestamp querying 
