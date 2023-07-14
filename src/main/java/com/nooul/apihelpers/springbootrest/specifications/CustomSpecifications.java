@@ -15,7 +15,6 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.*;
 
 //from: https://github.com/zifnab87/spring-boot-rest-api-helpers/blob/master/src/main/java/springboot/rest/specifications/CustomSpecifications.java
@@ -72,10 +71,10 @@ public class CustomSpecifications<T> {
 
         List<Predicate> predicates = new ArrayList<>();
         Predicate pred;
-        if (map.containsKey("q") && map.get("q") instanceof String) {
-
-
-            predicates.add(searchInAllAttributesPredicate(builder, root, (String) map.get("q"), includeOnlyFields));
+        if (map.containsKey("q")) {
+            if (map.get("q") instanceof String ||  map.get("q") instanceof Number) {
+                predicates.add(searchInAllAttributesPredicate(builder, root, String.valueOf(map.get("q")), includeOnlyFields));
+            }
             map.remove("q");
         }
         Set<Attribute<? super T, ?>> attributes = root.getModel().getAttributes();
