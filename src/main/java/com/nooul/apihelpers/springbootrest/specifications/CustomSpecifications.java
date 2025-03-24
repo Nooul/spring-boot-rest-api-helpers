@@ -2,16 +2,16 @@ package com.nooul.apihelpers.springbootrest.specifications;
 
 
 import com.nooul.apihelpers.springbootrest.annotations.ValueObject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.IdentifiableType;
+import jakarta.persistence.metamodel.Metamodel;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.*;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.IdentifiableType;
-import javax.persistence.metamodel.Metamodel;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -44,7 +44,7 @@ public class CustomSpecifications<T> {
 
     public Predicate customSpecificationBuilder(CriteriaBuilder builder, CriteriaQuery query, Root root, Map<String, Object> map, List<String> includeOnlyFields) {
         query.distinct(true);
-        if(map.containsKey("allowDuplicates") && map.get("allowDuplicates") instanceof Boolean && (boolean) map.get("allowDuplicates") == true) {
+        if(map.containsKey("allowDuplicates") && map.get("allowDuplicates") instanceof Boolean && (boolean) map.get("allowDuplicates")) {
             query.distinct(false);
         }
         map.remove("allowDuplicates");
@@ -243,7 +243,9 @@ public class CustomSpecifications<T> {
             } else if (isValueObject(a)) {
                 return builder.equal(join.get(a.getName()).as(String.class), val);
             } else if (a.isAssociation()) {
-                return builder.equal(join.get(a.getName()), val);
+                Path associationPath = join.get(a.getName());
+                String associationPathIdKeyName = getIdAttribute(em, associationPath.getJavaType()).getName();
+                return builder.equal(associationPath.get(associationPathIdKeyName), val);
             } else if(a.isCollection()) {
                 return builder.equal(join, val);
             }

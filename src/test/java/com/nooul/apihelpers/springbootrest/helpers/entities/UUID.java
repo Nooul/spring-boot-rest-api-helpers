@@ -3,9 +3,7 @@ package com.nooul.apihelpers.springbootrest.helpers.entities;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 @Getter
