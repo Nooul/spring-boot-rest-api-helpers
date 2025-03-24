@@ -56,8 +56,12 @@ The key names are not the ones on the database but the ones exposed by the REST 
 * Disabling distinct search can have some performance boost sometimes - **Warning it will return duplicate entries**
 ```
 /actors?filter={movies: 1, firstName: John}
-/actors?filter={movies: 1, firstName: John, allowDuplicates: true}
 ```
+allowDuplicates is not supported after Hibernate 6 since it always passes distinct:true!
+
+https://docs.jboss.org/hibernate/orm/6.0/migration-guide/migration-guide.html#query-sqm-distinct
+~~/actors?filter={movies: 1, firstName: John, allowDuplicates: true}~~
+
 
 **Important**: Keep in mind that the object/array that is passed in filter needs to be url encoded for the request to work. E.g in Javascript someone would use `encodeURIComponent()` like that 
 ```
