@@ -361,8 +361,42 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror1));
         Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror2 = movieController.filterBy("{category: {parentCategory: " + fiction.getId() + "}}", null, null);
         assertEquals(2, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror2));
-        Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror3 = movieController.filterBy("{category: {parentCategory: " + fiction.getId() + "}, allowDuplicates: true }}", null, null);
-        assertEquals(4, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror3));
+    }
+
+
+    @Test
+    @Disabled("hibernate 6 always passes distinct so allowDuplicates: true is not supported right now - https://docs.jboss.org/hibernate/orm/6.0/migration-guide/migration-guide.html#query-sqm-distinct")
+    public void reference_many_to_one_null__fetch_movies_with_category_having_parent_category_with_duplicates() {
+
+        Category fiction = new Category();
+        fiction.setName("fiction");
+        categoryRepository.save(fiction);
+
+        Category horror = new Category();
+        horror.setName("horror");
+        horror.setParentCategory(fiction);
+        categoryRepository.save(horror);
+
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setCategory(fiction);
+        movieRepository.save(matrix);
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        constantine.setCategory(horror);
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        it.setCategory(horror);
+        movieRepository.save(it);
+
+        Iterable<Movie> moviesWithCategoriesThatHaveParentCategoryHorror = movieController.filterBy("{category: {parentCategory: " + fiction.getId() + "}, allowDuplicates: true }}", null, null);
+        assertEquals(4, IterableUtil.sizeOf(moviesWithCategoriesThatHaveParentCategoryHorror));
+
+
     }
 
     @Test
