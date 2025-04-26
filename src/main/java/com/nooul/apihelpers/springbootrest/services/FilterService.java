@@ -151,9 +151,8 @@ public class FilterService<T, I extends Serializable> {
     }
 
     private HashMap<String, Object> convertToCamelCase(HashMap<String, Object> snakeCaseMap) {
-        Set<String> keys = snakeCaseMap.keySet();
-        HashMap<String, Object> camelCaseMap = new HashMap<>(snakeCaseMap);
-        for (String key : keys) {
+        HashMap<String, Object> camelCaseMap = new HashMap<>();
+        for (String key : snakeCaseMap.keySet()) {
             Object val = snakeCaseMap.get(key);
             camelCaseMap.put(convertToCamelCase(key), val);
         }
