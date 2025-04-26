@@ -437,7 +437,6 @@ public class filterByTest extends AbstractJpaDataTest {
         delRayClip.setDirector(delRay);
         movieRepository.save(delRayClip);
 
-
         Iterable<Movie> directorNotNullMovies = movieController.filterBy("{directorNot: null}", null, null);
         assertEquals(2, IterableUtil.sizeOf(directorNotNullMovies));
 
@@ -447,13 +446,53 @@ public class filterByTest extends AbstractJpaDataTest {
         Iterable<Movie> directorLanaOrDelRay = movieController.filterBy("[{director:"+lana.getId()+"}, { director: "+delRay.getId()+" }]", null, null);
         assertEquals(2, IterableUtil.sizeOf(directorLanaOrDelRay));
 
-//        List<Movie> movies = movieRepository.findAll(
-//                MovieSpecifications.hasDirectorByIdOrIsNull(lana.getId())
-//        );
-//        assertEquals(3, IterableUtil.sizeOf(movies));
-//
-//        Iterable<Movie> directorNullOrLanaMovies = movieController.filterBy("[{director:"+lana.getId()+"}, { director: null }]", null, null);
-//        assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies));
+
+
+    }
+
+    @Test
+    public void special_case_combining_null_with_id_in_or_collection() {
+        Director lana = new Director();
+        lana.setFirstName("Lana");
+        lana.setLastName("Wachowski");
+        directorRepository.save(lana);
+
+
+        Director delRay = new Director();
+        lana.setFirstName("del");
+        lana.setLastName("Ray");
+        directorRepository.save(delRay);
+
+
+        Movie matrix = new Movie();
+        matrix.setName("The Matrix");
+        matrix.setDirector(lana);
+        movieRepository.save(matrix);
+
+
+        Movie constantine = new Movie();
+        constantine.setName("Constantine");
+        movieRepository.save(constantine);
+
+        Movie it = new Movie();
+        it.setName("IT");
+        movieRepository.save(it);
+
+        Movie delRayClip = new Movie();
+        delRayClip.setName("del ray");
+        delRayClip.setDirector(delRay);
+        movieRepository.save(delRayClip);
+
+
+
+        Iterable<Movie> directorNullOrLanaMovies = movieController.filterBy("{ director:["+lana.getId()+",null]}", null, null);
+        assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies));
+
+        Iterable<Movie> directorNullOrLanaMovies2 = movieController.filterBy("{ director:[null,"+lana.getId()+"]}", null, null);
+        assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies2));
+
+        Iterable<Movie> directorNullOrLanaMovies3 = movieController.filterBy("{ director:[null,{id: "+lana.getId()+"}]}", null, null);
+        assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies3));
 
 
     }
