@@ -63,7 +63,7 @@ https://docs.jboss.org/hibernate/orm/6.0/migration-guide/migration-guide.html#qu
 ~~/actors?filter={movies: 1, firstName: John, allowDuplicates: true}~~
 
 
-* Special case to check if an entity is associated with another entity or is null - below is the only syntax that will work (note {id: null} won't work). The following will bring movies with no director or director with id = 1 or id = 2
+* Special case to check if an entity is associated with another entity or is null (only first level) - below is the only syntax that will currently work (note replacing `null` with `{id: null}` won't work). The following will bring movies with no director or director with id = 1 or id = 2
 ```
 /actors?filter={director: [null,1,2] }
 /actors?filter={director: [1,null, 2] }
