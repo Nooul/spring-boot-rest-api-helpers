@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Import;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import static com.nooul.apihelpers.springbootrest.helpers.utils.DateUtils.timeStamp;
 import static com.nooul.apihelpers.springbootrest.utils.UrlUtils.encodeURIComponent;
@@ -86,7 +87,11 @@ public class filterByTest extends AbstractJpaDataTest {
         assertEquals(1, IterableUtil.sizeOf(moviesWithNullName3));
         Iterable<Movie> moviesWithNullName4 = movieController.filterBy("{name: '   '}", null, null);
         assertEquals(1, IterableUtil.sizeOf(moviesWithNullName4));
+
+        Iterable<Movie> moviesWithNullOrNotNullName1 = movieController.filterBy("[{name: 'The Matrix'},{name: null}]", null, null);
+        assertEquals(2, IterableUtil.sizeOf(moviesWithNullOrNotNullName1));
     }
+
 
     @Test
     public void timestamp_date_range_queries() {
@@ -407,6 +412,12 @@ public class filterByTest extends AbstractJpaDataTest {
         directorRepository.save(lana);
 
 
+        Director delRay = new Director();
+        lana.setFirstName("del");
+        lana.setLastName("Ray");
+        directorRepository.save(delRay);
+
+
         Movie matrix = new Movie();
         matrix.setName("The Matrix");
         matrix.setDirector(lana);
@@ -421,8 +432,30 @@ public class filterByTest extends AbstractJpaDataTest {
         it.setName("IT");
         movieRepository.save(it);
 
+        Movie delRayClip = new Movie();
+        delRayClip.setName("del ray");
+        delRayClip.setDirector(delRay);
+        movieRepository.save(delRayClip);
+
+
         Iterable<Movie> directorNotNullMovies = movieController.filterBy("{directorNot: null}", null, null);
-        assertEquals(1, IterableUtil.sizeOf(directorNotNullMovies));
+        assertEquals(2, IterableUtil.sizeOf(directorNotNullMovies));
+
+        Iterable<Movie> directorNullMovies = movieController.filterBy("{director: null}", null, null);
+        assertEquals(2, IterableUtil.sizeOf(directorNullMovies));
+
+        Iterable<Movie> directorLanaOrDelRay = movieController.filterBy("[{director:"+lana.getId()+"}, { director: "+delRay.getId()+" }]", null, null);
+        assertEquals(2, IterableUtil.sizeOf(directorLanaOrDelRay));
+
+//        List<Movie> movies = movieRepository.findAll(
+//                MovieSpecifications.hasDirectorByIdOrIsNull(lana.getId())
+//        );
+//        assertEquals(3, IterableUtil.sizeOf(movies));
+//
+//        Iterable<Movie> directorNullOrLanaMovies = movieController.filterBy("[{director:"+lana.getId()+"}, { director: null }]", null, null);
+//        assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies));
+
+
     }
 
     @Test

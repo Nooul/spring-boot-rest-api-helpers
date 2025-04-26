@@ -4,6 +4,7 @@ package com.nooul.apihelpers.springbootrest.services;
 import com.nooul.apihelpers.springbootrest.entities.QueryParamWrapper;
 import com.nooul.apihelpers.springbootrest.repositories.BaseRepository;
 import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
+import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications2;
 import org.apache.commons.text.CaseUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,17 +45,14 @@ public class FilterService<T, I extends Serializable> {
             }
 
             return repo.count(
-                    specifications.customSpecificationBuilder(map));
+                    specifications.build(map));
 
         } else if (filterOr != null && filterOr.length() > 0) {
-
-            return repo.count((Specification<T>) (root, query, builder) -> {
-                List list = filterOr.toList();
-                if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                    //map = convertToCamelCase(map); TODO for list
-                }
-                return specifications.customSpecificationBuilder(builder, query, root, list);
-            });
+            List list = filterOr.toList();
+            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                //map = convertToCamelCase(map); TODO for list
+            }
+            return repo.count(specifications.build(list));
 
         } else {
             return repo.count();
@@ -127,29 +125,24 @@ public class FilterService<T, I extends Serializable> {
         sortObj = Sort.by(sortHelper(sort, primaryKeyName));
         Page result;
         if (filter != null && filter.length() > 0) {
-            result = repo.findAll(
-                    (Specification<T>) (root, query, builder) -> {
+            HashMap<String, Object> map = (HashMap<String, Object>) filter.toMap();
 
-                        HashMap<String, Object> map = (HashMap<String, Object>) filter.toMap();
+            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                map = convertToCamelCase(map);
+            }
 
-                        if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                            map = convertToCamelCase(map);
-                        }
 
-                        return specifications.customSpecificationBuilder(builder, query, root,
-                                map, searchOnlyInFields
-                        );
-                    }, PageRequest.of(page, size, sortObj));
+            result = repo.findAll(specifications.build(map, searchOnlyInFields), PageRequest.of(page, size, sortObj));
 
         } else if (filterOr != null && filterOr.length() > 0) {
+
+            List list = filterOr.toList();
+            if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
+                //map = convertToCamelCase(map); TODO for list
+            }
+
             result = repo.findAll(
-                    (Specification<T>) (root, query, builder) -> {
-                        List list = filterOr.toList();
-                        if (usesSnakeCase != null && usesSnakeCase.equals("true")) {
-                            //map = convertToCamelCase(map); TODO for list
-                        }
-                        return specifications.customSpecificationBuilder(builder, query, root, list);
-                    }
+                    specifications.build(list)
                     , PageRequest.of(page, size, sortObj));
 
         } else {
