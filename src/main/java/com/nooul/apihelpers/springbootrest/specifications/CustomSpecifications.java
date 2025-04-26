@@ -52,14 +52,33 @@ public class CustomSpecifications<T> {
 
             query.distinct(true);
             List<Predicate> orPredicates = new ArrayList<>();
+            boolean needsLeftJoin = false;
+            if (containsMapsWithNullValues(list)) {
+                needsLeftJoin = true;
+            }
+
             for (Map<String, Object> map : list) {
-                List<Predicate> predicates = handleMap(builder, root, null, query, map, new ArrayList<>(), false);
+                List<Predicate> predicates = handleMap(builder, root, null, query, map, new ArrayList<>(), needsLeftJoin);
                 Predicate orPred = builder.and(predicates.toArray(new Predicate[predicates.size()]));
                 orPredicates.add(orPred);
             }
             return builder.or(orPredicates.toArray(new Predicate[orPredicates.size()]));
 
         };
+    }
+
+
+    private boolean containsMapsWithNullValues(Collection values) {
+        for (Object obj : values) {
+            if (obj instanceof Map) {
+                Map map = (Map) obj;
+                boolean containsNull = map.values().stream().anyMatch(v -> v == null);
+                if (containsNull) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 
@@ -156,6 +175,7 @@ public class CustomSpecifications<T> {
         List<Predicate> predicates = new ArrayList<>();
 
 
+
         for (Object val : values) {
             Predicate pred = handleAllCases(builder, root, join, query, a, key, val, needsLeftJoin);
             predicates.add(pred);
@@ -163,6 +183,7 @@ public class CustomSpecifications<T> {
         Predicate[] predicatesArray = predicates.toArray(new Predicate[predicates.size()]);
         return (conjunction) ? builder.and(predicatesArray): builder.or(predicatesArray);
     }
+
 
     public Predicate handleCleanKeyCase(CriteriaBuilder builder, Root root, Join join, CriteriaQuery query, String key, Attribute a, Object val, boolean needsLeftJoin) {
         boolean isValueCollection = val instanceof Collection;

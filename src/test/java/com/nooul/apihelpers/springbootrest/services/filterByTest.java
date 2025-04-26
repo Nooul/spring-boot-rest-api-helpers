@@ -445,13 +445,10 @@ public class filterByTest extends AbstractJpaDataTest {
 
         Iterable<Movie> directorLanaOrDelRay = movieController.filterBy("[{director:"+lana.getId()+"}, { director: "+delRay.getId()+" }]", null, null);
         assertEquals(2, IterableUtil.sizeOf(directorLanaOrDelRay));
-
-
-
     }
 
     @Test
-    public void special_case_combining_null_with_id_in_or_collection() {
+    public void special_case_combining_null_with_first_level_associated_id_in_or_operation() {
         Director lana = new Director();
         lana.setFirstName("Lana");
         lana.setLastName("Wachowski");
@@ -493,6 +490,12 @@ public class filterByTest extends AbstractJpaDataTest {
 
         Iterable<Movie> directorNullOrLanaMovies3 = movieController.filterBy("{ director:[null,{id: "+lana.getId()+"}]}", null, null);
         assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies3));
+
+        Iterable<Movie> directorNullOrLanaMovies4 = movieController.filterBy("[{ director:null}, {director: "+lana.getId()+"}]", null, null);
+        assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies4));
+
+        Iterable<Movie> directorNullOrLanaMovies5 = movieController.filterBy("[{ director:null}, {director: {id: "+lana.getId()+"}}]", null, null);
+        assertEquals(3, IterableUtil.sizeOf(directorNullOrLanaMovies5));
 
 
     }
