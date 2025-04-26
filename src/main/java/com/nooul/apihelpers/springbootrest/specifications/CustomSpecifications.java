@@ -143,7 +143,7 @@ public class CustomSpecifications<T> {
     }
 
     private boolean containsNull(Collection val) {
-        for (var ent : val) {
+        for (Object ent : val) {
             if (ent == null) {
                 return true;
             }

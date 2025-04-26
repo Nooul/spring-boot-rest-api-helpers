@@ -4,7 +4,6 @@ package com.nooul.apihelpers.springbootrest.services;
 import com.nooul.apihelpers.springbootrest.entities.QueryParamWrapper;
 import com.nooul.apihelpers.springbootrest.repositories.BaseRepository;
 import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications;
-import com.nooul.apihelpers.springbootrest.specifications.CustomSpecifications2;
 import org.apache.commons.text.CaseUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
