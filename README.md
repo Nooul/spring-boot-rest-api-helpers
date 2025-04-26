@@ -63,6 +63,14 @@ https://docs.jboss.org/hibernate/orm/6.0/migration-guide/migration-guide.html#qu
 ~~/actors?filter={movies: 1, firstName: John, allowDuplicates: true}~~
 
 
+* Special case to check if an entity is associated with another entity or is null (only first level) - below is the only syntax that will currently work (note replacing `null` with `{id: null}` won't work). The following will bring movies with no director or director with id = 1 or id = 2
+```
+/actors?filter={director: [null,1,2] }
+/actors?filter={director: [1,null, 2] }
+/actors?filter={director: [{id: 1}.{id: 2},null] }
+```
+
+
 **Important**: Keep in mind that the object/array that is passed in filter needs to be url encoded for the request to work. E.g in Javascript someone would use `encodeURIComponent()` like that 
 ```
 let filterObj = {movies: [1,2]};
